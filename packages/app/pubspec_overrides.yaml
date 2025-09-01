@@ -1,0 +1,10 @@
+# melos_managed_dependency_overrides: admin,core,ui,user
+dependency_overrides:
+  admin:
+    path: ..\\features\\admin
+  core:
+    path: ..\\shared\\core
+  ui:
+    path: ..\\shared\\ui
+  user:
+    path: ..\\features\\user

@@ -1,0 +1,25 @@
+name: app
+description: App Flutter principale
+publish_to: "none"
+
+environment:
+  sdk: ">=3.0.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_riverpod: ^2.4.0
+  go_router: ^14.0.2
+  graphql_flutter: ^5.1.2
+  flutter_appauth: ^6.0.2
+  pdf: ^3.10.7
+  printing: ^5.11.0
+
+  user:
+    path: ../features/user
+  admin:
+    path: ../features/admin
+  core:
+    path: ../shared/core
+  ui:
+    path: ../shared/ui

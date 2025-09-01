@@ -1,0 +1,8 @@
+name: my_project
+packages:
+  - packages/**
+
+scripts:
+  bootstrap: melos bootstrap
+  get: melos exec -- flutter pub get
+  clean: melos exec -- flutter clean

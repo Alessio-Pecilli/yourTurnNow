@@ -1,0 +1,25 @@
+{
+    // Mostra le schede dei file in alto
+    "workbench.editor.showTabs": "multiple",
+
+    // Barra dei menu sempre visibile (File, Modifica, Terminale, Run ecc)
+    "window.menuBarVisibility": "classic",
+
+    // Mostra i numeri di riga
+    "editor.lineNumbers": "on",
+
+    // Mostra la mini mappa a destra
+    "editor.minimap.enabled": true,
+
+    // Evidenzia la riga corrente
+    "editor.renderLineHighlight": "all",
+
+    // Font più leggibile
+    "editor.fontSize": 14,
+
+    // Apri sempre i terminali integrati sotto
+    "terminal.integrated.defaultLocation": "editor",
+
+    // Mostra spazi e tab (utile se programmi tanto)
+    "editor.renderWhitespace": "selection"
+}
