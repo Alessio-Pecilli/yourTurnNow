@@ -1,8 +1,9 @@
-import 'package:flutter/foundation.dart';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:your_turn/src/mock_db.dart';
 import 'package:your_turn/src/models/money_tx.dart';
 import 'package:your_turn/src/models/expense_category.dart';
+
 
 
 class TransactionsCtrl extends StateNotifier<List<MoneyTx>> {
@@ -26,6 +27,17 @@ class TransactionsCtrl extends StateNotifier<List<MoneyTx>> {
       category: inferredCategory,
     );
     state = [tx, ...state];
+  }
+
+  void removeTx(String txId) {
+    state = state.where((t) => t.id != txId).toList();
+  }
+
+  void updateTx(MoneyTx updated) {
+    state = [
+      for (final t in state)
+        if (t.id == updated.id) updated else t
+    ];
   }
 }
 

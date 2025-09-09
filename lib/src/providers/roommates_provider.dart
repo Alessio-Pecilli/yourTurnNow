@@ -39,6 +39,10 @@ class RoommatesCtrl extends StateNotifier<List<Roommate>> {
     final r = state[i];
     state = [...state]..[i] = r.copyWith(monthlyBudget: r.monthlyBudget + delta);
   }
+
+  void remove(String roommateId) {
+    state = state.where((r) => r.id != roommateId).toList();
+  }
 }
 
 final roommatesProvider =

@@ -5,10 +5,12 @@ import 'package:your_turn/src/models/todo_category.dart';
 import 'package:your_turn/src/providers/roommates_provider.dart';
 import 'package:your_turn/src/providers/todo_provider.dart';
 import 'package:your_turn/src/providers/user_provider.dart';
+import 'package:your_turn/src/providers/categories_provider.dart';
 import 'package:your_turn/src/widgets/todo/todo_add_dialog.dart';
 import 'package:your_turn/src/widgets/todo/empty_state.dart';
 import 'package:your_turn/src/widgets/todo/assignees_avatars.dart';
 import 'profile_page.dart';
+import 'admin_page.dart';
 
 final todosCategoryFilterProvider = StateProvider<TodoCategory?>((ref) => null);
 
@@ -26,6 +28,7 @@ class TodoPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(userProvider);
+    final categories = ref.watch(categoriesProvider);
     final tasks = ref.watch(filteredTodosProvider);
     final roommates = ref.watch(roommatesProvider);
 
@@ -52,6 +55,29 @@ class TodoPage extends ConsumerWidget {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
+                      Container(
+                        margin: const EdgeInsets.only(right: 12),
+                        child: ElevatedButton.icon(
+                          onPressed: () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) => const AdminPage(),
+                              ),
+                            );
+                          },
+                          icon: const Icon(Icons.admin_panel_settings, size: 18),
+                          label: const Text('Admin'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.orange.shade600,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            elevation: 3,
+                          ),
+                        ),
+                      ),
                       if (user != null)
                         GestureDetector(
                           onTap: () {
@@ -235,7 +261,7 @@ class TodoPage extends ConsumerWidget {
                                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                               ),
                               const SizedBox(width: 8),
-                              ...stockCategories.map((category) {
+                              ...categories.map((category) {
                                 final categoryColor = Color(int.parse(category.color.substring(1), radix: 16) + 0xFF000000);
                                 return Padding(
                                   padding: const EdgeInsets.only(right: 8),
@@ -274,140 +300,146 @@ class TodoPage extends ConsumerWidget {
             if (tasks.isEmpty)
               const EmptyStateSliver()
             else
-              SliverList(
-                delegate: SliverChildBuilderDelegate(
-                      (context, index) {
-                    final t = tasks[index];
-                    final assigned = roommates.where((r) => t.assigneeIds.contains(r.id)).toList();
-                    final dueStr = t.dueDate == null
-                        ? null
-                        : MaterialLocalizations.of(context).formatShortDate(t.dueDate!.toLocal());
-                    final completedStr = (t.status == TodoStatus.done && t.completedAt != null)
-                        ? MaterialLocalizations.of(context).formatShortDate(t.completedAt!.toLocal())
-                        : null;
-                    final isCompleted = t.status == TodoStatus.done;
+              SliverPadding(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                sliver: SliverGrid(
+                  delegate: SliverChildBuilderDelegate(
+                    (context, index) {
+                      final t = tasks[index];
+                      final assigned = roommates.where((r) => t.assigneeIds.contains(r.id)).toList();
+                      final dueStr = t.dueDate == null
+                          ? null
+                          : MaterialLocalizations.of(context).formatShortDate(t.dueDate!.toLocal());
+                      final completedStr = (t.status == TodoStatus.done && t.completedAt != null)
+                          ? MaterialLocalizations.of(context).formatShortDate(t.completedAt!.toLocal())
+                          : null;
+                      final isCompleted = t.status == TodoStatus.done;
 
-                    final item = Container(
-                      margin: const EdgeInsets.symmetric(horizontal: 16),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(20),
-                        gradient: LinearGradient(
-                          colors: isCompleted
-                              ? [Colors.green.shade50, Colors.green.shade100]
-                              : [Colors.white, Colors.blue.shade50],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: (isCompleted
-                                ? Colors.green
-                                : Colors.blue)
-                                .withOpacity(0.15),
-                            blurRadius: 8,
-                            offset: const Offset(0, 4),
+                      return Container(
+                        margin: const EdgeInsets.symmetric(vertical: 2, horizontal: 2),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(10),
+                          gradient: LinearGradient(
+                            colors: isCompleted
+                                ? [Colors.green.shade50, Colors.green.shade100]
+                                : [Colors.white, Colors.grey.shade100], // niente più celestino
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
                           ),
-                        ],
-                        border: Border.all(
-                          color: isCompleted ? Colors.green.shade200 : Colors.blue.shade200,
-                          width: 1.5,
+                          boxShadow: [
+                            BoxShadow(
+                              color: (isCompleted
+                                  ? Colors.green
+                                  : Colors.blue)
+                                  .withOpacity(0.07),
+                              blurRadius: 2,
+                              offset: const Offset(0, 1),
+                            ),
+                          ],
+                          border: Border.all(
+                            color: isCompleted ? Colors.green.shade200 : Colors.blue.shade200,
+                            width: 0.7,
+                          ),
                         ),
-                      ),
-                      child: Material(
-                        color: Colors.transparent,
-                        child: InkWell(
-                          borderRadius: BorderRadius.circular(20),
-                          onTap: () => ref.read(todosProvider.notifier).toggleDone(t.id),
-                          child: Padding(
-                            padding: const EdgeInsets.all(20),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
+                        child: Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(10),
+                            onTap: () => ref.read(todosProvider.notifier).toggleDone(t.id),
+                            child: Padding(
+                              padding: const EdgeInsets.all(4), // Ridotto da 5 a 4
+                              child: SingleChildScrollView(
+                                physics: const ClampingScrollPhysics(),
+                                child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisSize: MainAxisSize.min,
                                   children: [
-                                    _buildCheckbox(isCompleted),
-                                    const SizedBox(width: 16),
-                                    Expanded(child: _buildTitleArea(t, isCompleted)),
-                                    _buildActions(context, ref, t),
-                                  ],
-                                ),
-                                const SizedBox(height: 16),
-                                if (assigned.isNotEmpty) ...[
-                                  Row(
-                                    children: [
-                                      Icon(Icons.people_rounded, size: 18, color: Colors.grey.shade600),
-                                      const SizedBox(width: 8),
-                                      Text(
-                                        'Assegnato a:',
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.w600,
-                                          color: Colors.grey.shade600,
+                                    Row(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        _buildCheckbox(isCompleted),
+                                        const SizedBox(width: 4),
+                                        Expanded(
+                                          child: _buildTitleArea(t, isCompleted, maxLines: 1),
                                         ),
+                                        _buildActions(context, ref, t),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 3), // Ridotto da 4 a 3
+                                    if (assigned.isNotEmpty) ...[
+                                      Row(
+                                        children: [
+                                          Icon(Icons.people_rounded, size: 9, color: Colors.grey.shade600),
+                                          const SizedBox(width: 12), // Aumentato da 2 a 12
+                                          Text(
+                                            'A:',
+                                            style: TextStyle(
+                                              fontSize: 8.5,
+                                              fontWeight: FontWeight.w600,
+                                              color: Colors.grey.shade600,
+                                            ),
+                                          ),
+                                          const SizedBox(width: 2),
+                                          Expanded(child: AssigneesAvatars(assignees: assigned)),
+                                        ],
                                       ),
-                                      const SizedBox(width: 8),
-                                      Expanded(child: AssigneesAvatars(assignees: assigned)),
+                                      const SizedBox(height: 8), // Aumentato da 2 a 8
                                     ],
-                                  ),
-                                  const SizedBox(height: 12),
-                                ],
-                                Wrap(
-                                  spacing: 8,
-                                  runSpacing: 8,
-                                  children: [
-                                    for (final cat in t.categories)
-                                      _buildCategoryChip(
-                                        _hexColor(cat.color),
-                                        cat.icon,
-                                        cat.name,
-                                      ),
-                                    if (t.cost != null)
-                                      _infoChip(
-                                        bg: Colors.green.shade100,
-                                        border: Colors.green.shade300,
-                                        icon: Icons.euro_rounded,
-                                        iconColor: Colors.green.shade700,
-                                        text: '€${t.cost!.toStringAsFixed(2)}',
-                                        textColor: Colors.green.shade700,
-                                      ),
-                                    if (dueStr != null)
-                                      _infoChip(
-                                        bg: Colors.orange.shade100,
-                                        border: Colors.orange.shade300,
-                                        icon: Icons.schedule_rounded,
-                                        iconColor: Colors.orange.shade700,
-                                        text: 'Scade: $dueStr',
-                                        textColor: Colors.orange.shade700,
-                                      ),
-                                    if (completedStr != null)
-                                      _infoChip(
-                                        bg: Colors.green.shade100,
-                                        border: Colors.green.shade300,
-                                        icon: Icons.check_circle_rounded,
-                                        iconColor: Colors.green.shade700,
-                                        text: 'Fatto: $completedStr',
-                                        textColor: Colors.green.shade700,
-                                      ),
+                                    Wrap(
+                                      spacing: 4,
+                                      runSpacing: 4,
+                                      children: [
+                                        for (final cat in t.categories)
+                                          _buildCategoryChip(
+                                            _hexColor(cat.color),
+                                            cat.icon,
+                                            cat.name,
+                                          ),
+                                        if (t.cost != null)
+                                          _infoChip(
+                                            bg: Colors.green.shade100,
+                                            border: Colors.green.shade300,
+                                            icon: Icons.euro_rounded,
+                                            iconColor: Colors.green.shade700,
+                                            text: '€${t.cost!.toStringAsFixed(2)}',
+                                            textColor: Colors.green.shade700,
+                                          ),
+                                        if (dueStr != null)
+                                          _infoChip(
+                                            bg: Colors.orange.shade100,
+                                            border: Colors.orange.shade300,
+                                            icon: Icons.schedule_rounded,
+                                            iconColor: Colors.orange.shade700,
+                                            text: 'Scade: $dueStr',
+                                            textColor: Colors.orange.shade700,
+                                          ),
+                                        if (completedStr != null)
+                                          _infoChip(
+                                            bg: Colors.green.shade100,
+                                            border: Colors.green.shade300,
+                                            icon: Icons.check_circle_rounded,
+                                            iconColor: Colors.green.shade700,
+                                            text: 'Fatto: $completedStr',
+                                            textColor: Colors.green.shade700,
+                                          ),
+                                      ],
+                                    ),
                                   ],
                                 ),
-                              ],
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                    );
-
-                    // Aggiunge lo spacing tra gli item (tranne dopo l’ultimo)
-                    return Column(
-                      children: [
-                        const SizedBox(height: 6),
-                        item,
-                        if (index != tasks.length - 1) const SizedBox(height: 12),
-                      ],
-                    );
-                  },
-                  childCount: tasks.length,
+                      );
+                    },
+                    childCount: tasks.length,
+                  ),
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    mainAxisSpacing: 6,
+                    crossAxisSpacing: 6,
+                    childAspectRatio: 5.0, // Aumentato da 4.2 a 5.0 per rendere i card più bassi
+                  ),
                 ),
               ),
 
@@ -462,36 +494,41 @@ class TodoPage extends ConsumerWidget {
         : null,
   );
 
-  Widget _buildTitleArea(dynamic t, bool isCompleted) => Column(
+  Widget _buildTitleArea(dynamic t, bool isCompleted, {int maxLines = 2}) => Column(
     crossAxisAlignment: CrossAxisAlignment.start,
+    mainAxisSize: MainAxisSize.min,
     children: [
       Text(
         t.title,
         style: TextStyle(
-          fontSize: 18,
+          fontSize: 12,
           fontWeight: FontWeight.bold,
           color: isCompleted ? Colors.green.shade700 : Colors.grey.shade800,
           decoration: isCompleted ? TextDecoration.lineThrough : null,
           decorationColor: Colors.green.shade400,
           decorationThickness: 2,
         ),
+        maxLines: maxLines,
+        overflow: TextOverflow.ellipsis,
       ),
       if (t.notes?.isNotEmpty ?? false) ...[
-        const SizedBox(height: 8),
+        const SizedBox(height: 2),
         Container(
-          padding: const EdgeInsets.all(12),
+          padding: const EdgeInsets.all(4),
           decoration: BoxDecoration(
             color: Colors.grey.shade100,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.grey.shade300, width: 1),
+            borderRadius: BorderRadius.circular(6),
+            border: Border.all(color: Colors.grey.shade300, width: 0.5),
           ),
           child: Text(
             t.notes!,
             style: TextStyle(
-              fontSize: 14,
+              fontSize: 9.5,
               color: Colors.grey.shade700,
               fontStyle: FontStyle.italic,
             ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
         ),
       ],
