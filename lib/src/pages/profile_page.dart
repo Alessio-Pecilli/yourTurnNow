@@ -44,6 +44,27 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
   static const String _shortcutInfo =
       'Scorciatoie: Alt+A = Aggiungi/Modifica saldo • Alt+D = Scarica CSV';
 
+  // Funzione di mapping da TodoCategory a ExpenseCategory
+  ExpenseCategory _mapTodoCategoryToExpense(TodoCategory? todoCategory) {
+    if (todoCategory == null) return ExpenseCategory.altro;
+    
+    switch (todoCategory.id) {
+      case 'spesa':
+        return ExpenseCategory.spesa;
+      case 'bollette':
+        return ExpenseCategory.bolletta; // bollette (plurale) → bolletta (singolare)
+      case 'pulizie':
+        return ExpenseCategory.pulizia; // pulizie (plurale) → pulizia (singolare)
+      case 'cucina':
+      case 'divertimento':
+      case 'manutenzione':
+      case 'varie':
+        return ExpenseCategory.altro;
+      default:
+        return ExpenseCategory.altro;
+    }
+  }
+
   Card _sectionCard({required Widget child, EdgeInsetsGeometry? margin}) => Card(
     margin: margin ?? const EdgeInsets.fromLTRB(16, 12, 16, 8),
     elevation: 6,
@@ -255,7 +276,6 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
   }
 
   SliverToBoxAdapter _buildFilters(BuildContext context, List<TodoCategory> categories) {
-    final scheme = Theme.of(context).colorScheme;
     return SliverToBoxAdapter(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -268,134 +288,157 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Top row: titolo + toggle vista
+                // Top row: Vista + Categorie + Data/Reset
                 Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Expanded(
-                      child: Text('Filtri e vista',
-                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.grey.shade800)),
-                    ),
-                    // ✅ Toggle Lista/Griglia
+                    // Vista Lista/Griglia
                     Semantics(
                       label: 'Selettore vista transazioni',
                       child: SegmentedButton<_TxView>(
                         segments: const [
-                          ButtonSegment(value: _TxView.grid, icon: Icon(Icons.grid_view), label: Text('Griglia')),
-                          ButtonSegment(value: _TxView.list, icon: Icon(Icons.view_agenda), label: Text('Lista')),
+                          ButtonSegment(value: _TxView.grid, icon: Icon(Icons.grid_view, size: 18)),
+                          ButtonSegment(value: _TxView.list, icon: Icon(Icons.view_agenda, size: 18)),
                         ],
                         selected: {_view},
                         onSelectionChanged: (s) => setState(() => _view = s.first),
                         showSelectedIcon: false,
                         style: ButtonStyle(
                           visualDensity: VisualDensity.compact,
-                          minimumSize: WidgetStateProperty.all(const Size(0, 40)),
-                          padding: WidgetStateProperty.all(const EdgeInsets.symmetric(horizontal: 8)),
+                          minimumSize: WidgetStateProperty.all(const Size(0, 36)),
+                          padding: WidgetStateProperty.all(const EdgeInsets.symmetric(horizontal: 6)),
+                          backgroundColor: WidgetStateProperty.resolveWith((states) {
+                            if (states.contains(WidgetState.selected)) {
+                              return Colors.blue.shade700;
+                            }
+                            return Colors.white;
+                          }),
+                          foregroundColor: WidgetStateProperty.resolveWith((states) {
+                            if (states.contains(WidgetState.selected)) {
+                              return Colors.white;
+                            }
+                            return Colors.blue.shade700;
+                          }),
+                          side: WidgetStateProperty.all(BorderSide(color: Colors.blue.shade700, width: 1.5)),
+                          textStyle: WidgetStateProperty.all(const TextStyle(fontSize: 12)),
                         ),
                       ),
                     ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text('Categoria', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.grey.shade700)),
-                    Text('Intervallo date', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.grey.shade700)),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
+                    
+                    const SizedBox(width: 16),
+                    
+                    // Categorie
                     Expanded(
-                      flex: 2,
+                      flex: 3,
                       child: Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
+                        spacing: 6,
+                        runSpacing: 6,
                         children: [
                           ChoiceChip(
                             label: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                Icon(Icons.label_outline, size: 18, color: _selectedCategory == null ? scheme.primary : Colors.grey.shade600),
+                                Icon(Icons.label_outline, size: 16, color: _selectedCategory == null ? Colors.white : Colors.blue.shade700),
                                 const SizedBox(width: 4),
-                                const Text('Tutte'),
+                                const Text('Tutte', style: TextStyle(fontSize: 12)),
                               ],
                             ),
                             selected: _selectedCategory == null,
                             onSelected: (_) => setState(() => _selectedCategory = null),
-                            backgroundColor: Colors.grey.shade50,
-                            selectedColor: scheme.primary.withOpacity(0.12),
+                            backgroundColor: _selectedCategory == null ? Colors.blue.shade700 : Colors.white,
+                            selectedColor: Colors.blue.shade700,
+                            side: BorderSide(color: Colors.blue.shade700, width: 1.5),
                             labelStyle: TextStyle(
-                              color: _selectedCategory == null ? scheme.primary : Colors.grey.shade600,
-                              fontWeight: _selectedCategory == null ? FontWeight.bold : FontWeight.normal,
+                              color: _selectedCategory == null ? Colors.white : Colors.blue.shade700,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 12,
                             ),
+                            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            visualDensity: VisualDensity.compact,
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                           ),
-                          ...categories.map((category) {
+                          ...categories.take(4).map((category) {
                             final categoryColor = Color(int.parse(category.color.substring(1), radix: 16) + 0xFF000000);
+                            final isSelected = _selectedCategory?.id == category.id;
                             return ChoiceChip(
                               label: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  Icon(category.icon, size: 18, color: categoryColor),
+                                  Icon(category.icon, size: 16, color: isSelected ? Colors.white : categoryColor),
                                   const SizedBox(width: 4),
-                                  Text(category.name),
+                                  Text(category.name.length > 8 ? category.name.substring(0, 8) : category.name, 
+                                       style: const TextStyle(fontSize: 12)),
                                 ],
                               ),
-                              selected: _selectedCategory?.id == category.id,
+                              selected: isSelected,
                               onSelected: (_) => setState(() => _selectedCategory = category),
-                              backgroundColor: Colors.grey.shade50,
-                              selectedColor: categoryColor.withOpacity(0.10),
+                              backgroundColor: isSelected ? categoryColor : Colors.white,
+                              selectedColor: categoryColor,
+                              side: BorderSide(color: categoryColor, width: 1.5),
                               labelStyle: TextStyle(
-                                color: categoryColor,
-                                fontWeight: _selectedCategory?.id == category.id ? FontWeight.bold : FontWeight.w600,
+                                color: isSelected ? Colors.white : categoryColor,
+                                fontWeight: FontWeight.w600,
+                                fontSize: 12,
                               ),
+                              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                              visualDensity: VisualDensity.compact,
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                             );
                           }),
                         ],
                       ),
                     ),
+                    
                     const SizedBox(width: 12),
-                    Expanded(
-                      flex: 1,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          OutlinedButton.icon(
-                            icon: const Icon(Icons.date_range),
-                            label: Text(
-                              _selectedDateRange == null
-                                  ? 'Seleziona intervallo'
-                                  : '${DateFormat('dd/MM/yy').format(_selectedDateRange!.start)} – ${DateFormat('dd/MM/yy').format(_selectedDateRange!.end)}',
-                            ),
-                            onPressed: () async {
-                              final picked = await showDateRangePicker(
-                                context: context,
-                                firstDate: DateTime(2020),
-                                lastDate: DateTime.now().add(const Duration(days: 365)),
-                                initialDateRange: _selectedDateRange,
-                                builder: (context, child) {
-                                  return Theme(
-                                    data: ThemeData.light(useMaterial3: true),
-                                    child: Dialog(backgroundColor: Colors.white, child: child!),
-                                  );
-                                },
-                              );
-                              if (!mounted) return;
-                              setState(() => _selectedDateRange = picked);
-                            },
+                    
+                    // Data e Reset
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        OutlinedButton.icon(
+                          style: OutlinedButton.styleFrom(
+                            minimumSize: const Size(0, 36),
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                            textStyle: const TextStyle(fontSize: 12),
                           ),
-                          TextButton(
-                            onPressed: () => setState(() {
-                              _selectedCategory = null;
-                              _selectedDateRange = null;
-                            }),
-                            child: const Text('Reset'),
+                          icon: const Icon(Icons.date_range, size: 16),
+                          label: Text(
+                            _selectedDateRange == null
+                                ? 'Date'
+                                : '${DateFormat('dd/MM').format(_selectedDateRange!.start)}-${DateFormat('dd/MM').format(_selectedDateRange!.end)}',
+                            style: const TextStyle(fontSize: 12),
                           ),
-                        ],
-                      ),
+                          onPressed: () async {
+                            final picked = await showDateRangePicker(
+                              context: context,
+                              firstDate: DateTime(2020),
+                              lastDate: DateTime.now().add(const Duration(days: 365)),
+                              initialDateRange: _selectedDateRange,
+                              builder: (context, child) {
+                                return Theme(
+                                  data: ThemeData.light(useMaterial3: true),
+                                  child: Dialog(backgroundColor: Colors.white, child: child!),
+                                );
+                              },
+                            );
+                            if (!mounted) return;
+                            setState(() => _selectedDateRange = picked);
+                          },
+                        ),
+                        const SizedBox(height: 4),
+                        TextButton(
+                          style: TextButton.styleFrom(
+                            minimumSize: const Size(0, 24),
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                            textStyle: const TextStyle(fontSize: 11),
+                          ),
+                          onPressed: () => setState(() {
+                            _selectedCategory = null;
+                            _selectedDateRange = null;
+                          }),
+                          child: const Text('Reset'),
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -464,20 +507,26 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
   void _onDeleteTransaction(BuildContext context, MoneyTx tx) async {
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Elimina transazione'),
-        content: const Text('Sei sicuro di voler eliminare questa transazione?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Annulla'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Elimina'),
-            style: FilledButton.styleFrom(backgroundColor: Colors.red),
-          ),
-        ],
+      builder: (context) => Theme(
+        data: ThemeData.light(useMaterial3: true),
+        child: AlertDialog(
+          title: const Text('Elimina transazione'),
+          content: const Text('Sei sicuro di voler eliminare questa transazione?'),
+          backgroundColor: Colors.white,
+          surfaceTintColor: Colors.white,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Annulla'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text('Elimina'),
+              style: FilledButton.styleFrom(backgroundColor: Colors.red),
+            ),
+          ],
+        ),
       ),
     );
     if (confirmed == true) {
@@ -538,13 +587,21 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                             label: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                Icon(category.icon, size: 18, color: category.color),
+                                Icon(category.icon, size: 18, color: sel ? Colors.white : category.color),
                                 const SizedBox(width: 6),
                                 Text(category.label),
                               ],
                             ),
                             selected: sel,
                             onSelected: (_) => setState(() => selectedCategory = category),
+                            backgroundColor: sel ? category.color : Colors.white,
+                            selectedColor: category.color,
+                            side: BorderSide(color: category.color, width: 1.5),
+                            labelStyle: TextStyle(
+                              color: sel ? Colors.white : category.color,
+                              fontWeight: FontWeight.w600,
+                            ),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                           );
                         }),
                       ],
@@ -753,13 +810,21 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                             label: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                Icon(category.icon, size: 18, color: categoryColor),
+                                Icon(category.icon, size: 18, color: sel ? Colors.white : categoryColor),
                                 const SizedBox(width: 6),
                                 Text(category.name),
                               ],
                             ),
                             selected: sel,
                             onSelected: (_) => setState(() => selectedCategory = category),
+                            backgroundColor: sel ? categoryColor : Colors.white,
+                            selectedColor: categoryColor,
+                            side: BorderSide(color: categoryColor, width: 1.5),
+                            labelStyle: TextStyle(
+                              color: sel ? Colors.white : categoryColor,
+                              fontWeight: FontWeight.w600,
+                            ),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                           );
                         }),
                       ],
@@ -830,7 +895,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
       roommateId: me.id,
       amount: amount,
       note: note,
-      category: ExpenseCategory.altro, // TODO: mappare la categoria scelta se serve
+      category: _mapTodoCategoryToExpense(selectedCategory),
       when: when,
     );
     final txs = ref.read(userTransactionsProvider(me.id));
@@ -865,9 +930,9 @@ class _TxTileCard extends StatelessWidget {
     final isIn = tx.amount >= 0;
     final amountStr = money.format(tx.amount.abs());
     final dateStr = DateFormat('dd/MM/yy • HH:mm').format(tx.createdAt);
-    final catIcon = tx.category?.icon;
-    final catColor = tx.category?.color;
-    final catLabel = tx.category?.label;
+    final catIcon = tx.category.icon;
+    final catColor = tx.category.color;
+    final catLabel = tx.category.label;
 
     final amountColor = isIn ? Colors.green.shade700 : Colors.red.shade700;
 
@@ -876,11 +941,12 @@ class _TxTileCard extends StatelessWidget {
       ..write(amountStr)
       ..write(tx.note.trim().isEmpty ? '' : ' per ${tx.note}')
       ..write('. ')
-      ..write(catLabel != null ? 'Categoria $catLabel. ' : '')
+      ..write('Categoria $catLabel. ')
       ..write('In data $dateStr.');
 
     final card = Card(
       elevation: 3,
+      color: Colors.white,
       clipBehavior: Clip.antiAlias,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: InkWell(
@@ -895,13 +961,13 @@ class _TxTileCard extends StatelessWidget {
                 width: dense ? 36 : 44,
                 height: dense ? 36 : 44,
                 decoration: BoxDecoration(
-                  color: catColor?.withOpacity(0.12) ?? Colors.blue.withOpacity(0.10),
+                  color: catColor.withOpacity(0.12),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(
-                  catIcon ?? Icons.receipt_long_rounded,
+                  catIcon,
                   size: dense ? 20 : 24,
-                  color: catColor ?? Colors.blue,
+                  color: catColor,
                 ),
               ),
               const SizedBox(width: 12),

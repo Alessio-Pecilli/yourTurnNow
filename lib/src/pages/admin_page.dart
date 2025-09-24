@@ -10,6 +10,17 @@ import 'package:your_turn/src/providers/user_provider.dart';
 import 'package:your_turn/src/providers/todo_provider.dart';
 import 'package:your_turn/src/providers/categories_provider.dart';
 import 'dart:math' as math;
+import 'dart:convert';
+import 'dart:typed_data';
+import 'package:intl/intl.dart';
+
+import 'package:your_turn/src/utils/csv_web_download_stub.dart'
+  if (dart.library.html) 'package:your_turn/src/utils/csv_web_download.dart';
+
+// Classe per l'Intent della shortcut download
+class _DownloadIntent extends Intent {
+  const _DownloadIntent();
+}
 
 class AdminPage extends ConsumerStatefulWidget {
   const AdminPage({Key? key}) : super(key: key);
@@ -139,35 +150,139 @@ class _AdminPageState extends ConsumerState<AdminPage> {
     );
   }
 
+  // Funzione per scaricare i dati dei grafici in formato CSV
+  Future<void> _downloadChartsData() async {
+    final todos = ref.read(todosProvider);
+    final roommates = ref.read(roommatesProvider);
+    
+    // Prepara i dati
+    final completedTodos = todos.where((t) => t.status == TodoStatus.done).toList();
+    final openTodos = todos.where((t) => t.status == TodoStatus.open).toList();
+    
+    // Calcola i dati per i 3 grafici
+    
+    // 1. Spese per categoria
+    final Map<String, double> expensesByCategory = {};
+    for (final todo in completedTodos) {
+      if (todo.cost != null && todo.cost! > 0) {
+        final categoryName = todo.categories.isNotEmpty ? todo.categories.first.name : 'Senza categoria';
+        expensesByCategory[categoryName] = (expensesByCategory[categoryName] ?? 0) + todo.cost!;
+      }
+    }
+    
+    // 2. Statistiche coinquilini (task completati)
+    final Map<String, int> tasksByRoommate = {};
+    for (final roommate in roommates) {
+      tasksByRoommate[roommate.name] = roommate.tasksCompleted;
+    }
+    
+    // 3. Status todos
+    final todoStats = {
+      'Completati': completedTodos.length,
+      'Aperti': openTodos.length,
+    };
+    
+    // Genera CSV
+    final List<String> csvLines = [];
+    
+    // Sezione 1: Spese per categoria
+    csvLines.add('=== SPESE PER CATEGORIA ===');
+    csvLines.add('Categoria;Importo (€)');
+    for (final entry in expensesByCategory.entries) {
+      csvLines.add('${_escapeCSV(entry.key)};${entry.value.toStringAsFixed(2)}');
+    }
+    csvLines.add('TOTALE;${expensesByCategory.values.fold(0.0, (a, b) => a + b).toStringAsFixed(2)}');
+    csvLines.add('');
+    
+    // Sezione 2: Task completati per coinquilino
+    csvLines.add('=== TASK COMPLETATI PER COINQUILINO ===');
+    csvLines.add('Coinquilino;Task Completati');
+    for (final entry in tasksByRoommate.entries) {
+      csvLines.add('${_escapeCSV(entry.key)};${entry.value}');
+    }
+    csvLines.add('TOTALE;${tasksByRoommate.values.fold(0, (a, b) => a + b)}');
+    csvLines.add('');
+    
+    // Sezione 3: Status todos
+    csvLines.add('=== STATUS TODOS ===');
+    csvLines.add('Status;Quantità');
+    for (final entry in todoStats.entries) {
+      csvLines.add('${_escapeCSV(entry.key)};${entry.value}');
+    }
+    csvLines.add('TOTALE;${todoStats.values.fold(0, (a, b) => a + b)}');
+    csvLines.add('');
+    
+    // Aggiungi timestamp
+    final now = DateTime.now();
+    final timestamp = DateFormat('yyyy-MM-dd HH:mm:ss').format(now);
+    csvLines.add('Generato il: $timestamp');
+    
+    // Crea il file
+    final content = csvLines.join('\r\n');
+    final bytes = Uint8List.fromList([
+      ...const [0xEF, 0xBB, 0xBF], // BOM UTF-8 per Excel
+      ...utf8.encode(content),
+    ]);
+    
+    // Download
+    final filename = 'admin_grafici_${DateFormat('yyyyMMdd_HHmmss').format(now)}.csv';
+    triggerDownloadCsv(filename, bytes);
+    
+    // Mostra messaggio di conferma
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Dati grafici esportati in $filename'),
+        backgroundColor: Colors.green.shade600,
+      ),
+    );
+  }
+  
+  String _escapeCSV(String text) {
+    if (text.contains(';') || text.contains('"') || text.contains('\n')) {
+      return '"${text.replaceAll('"', '""')}"';
+    }
+    return text;
+  }
+
   @override
   Widget build(BuildContext context) {
     final roommates = ref.watch(roommatesProvider);
     
-    return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Color(0xFFFDF6EC), Color(0xFFE0EAFD)],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
+    return Shortcuts(
+      shortcuts: <LogicalKeySet, Intent>{
+        LogicalKeySet(LogicalKeyboardKey.alt, LogicalKeyboardKey.keyG): const _DownloadIntent(),
+      },
+      child: Actions(
+        actions: <Type, Action<Intent>>{
+          _DownloadIntent: CallbackAction<_DownloadIntent>(
+            onInvoke: (intent) => _downloadChartsData(),
           ),
-        ),
-        child: SafeArea(
-          child: CustomScrollView(
-            slivers: [
-              _buildAppBar(context),
-              // Layout a due colonne usando SliverPadding
-              SliverPadding(
-                padding: const EdgeInsets.all(16),
-                sliver: SliverToBoxAdapter(
-                  child: LayoutBuilder(
-                    builder: (context, constraints) {
-                      final isWide = constraints.maxWidth > 800;
-                      if (isWide) {
-                        // Layout desktop: due colonne affiancate
-                        return Column(
-                          children: [
-                            Row(
+        },
+        child: Scaffold(
+          body: Container(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Color(0xFFFDF6EC), Color(0xFFE0EAFD)],
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+              ),
+            ),
+            child: SafeArea(
+              child: CustomScrollView(
+                slivers: [
+                  _buildAppBar(context),
+                  // Layout a due colonne usando SliverPadding
+                  SliverPadding(
+                    padding: const EdgeInsets.all(16),
+                    sliver: SliverToBoxAdapter(
+                      child: LayoutBuilder(
+                        builder: (context, constraints) {
+                          final isWide = constraints.maxWidth > 800;
+                          if (isWide) {
+                            // Layout desktop: due colonne affiancate
+                            return Column(
+                              children: [
+                                Row(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 // Categorie a sinistra
@@ -208,7 +323,9 @@ class _AdminPageState extends ConsumerState<AdminPage> {
           ),
         ),
       ),
-    );
+        ), // Chiusura di Scaffold
+      ), // Chiusura di Actions
+    ); // Chiusura di Shortcuts
   }
 
   SliverAppBar _buildAppBar(BuildContext context) {
@@ -233,6 +350,13 @@ class _AdminPageState extends ConsumerState<AdminPage> {
         onPressed: () => context.pop(),
       ),
       actions: [
+        // Bottone per scaricare i dati dei grafici
+        IconButton(
+          icon: const Icon(Icons.download, color: Colors.blue, size: 24),
+          tooltip: 'Scarica dati grafici (Alt+G)',
+          onPressed: () => _downloadChartsData(),
+        ),
+        const SizedBox(width: 8),
         if (currentUser != null)
           Padding(
             padding: const EdgeInsets.only(right: 16),
@@ -577,8 +701,8 @@ class _AdminPageState extends ConsumerState<AdminPage> {
                   ),
                 ),
               ),
-            ],
-          ],
+            ], // Fine dell'else condizionale
+          ], // Fine del children della Column alla riga 485
         ),
       ),
     );

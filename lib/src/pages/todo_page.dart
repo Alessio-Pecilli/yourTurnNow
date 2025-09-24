@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:your_turn/src/models/todo_status.dart';
 import 'package:your_turn/src/models/todo_category.dart';
+import 'package:your_turn/src/models/todo_item.dart';
 import 'package:your_turn/src/providers/roommates_provider.dart';
 import 'package:your_turn/src/providers/todo_provider.dart';
 import 'package:your_turn/src/providers/user_provider.dart';
@@ -17,6 +18,28 @@ final todosCategoryFilterProvider = StateProvider<TodoCategory?>((ref) => null);
 // Provider for "just you" filter
 final todosJustYouFilterProvider = StateProvider<bool>((ref) => false);
 
+// Provider for pagination
+final currentPageProvider = StateProvider<int>((ref) => 0);
+const int todosPerPage = 10;
+
+// Provider for paginated todos
+final paginatedTodosProvider = Provider<List<TodoItem>>((ref) {
+  final allTodos = ref.watch(filteredTodosProvider);
+  final currentPage = ref.watch(currentPageProvider);
+  
+  final startIndex = currentPage * todosPerPage;
+  final endIndex = (startIndex + todosPerPage).clamp(0, allTodos.length);
+  
+  if (startIndex >= allTodos.length) return [];
+  return allTodos.sublist(startIndex, endIndex);
+});
+
+// Provider for total pages
+final totalPagesProvider = Provider<int>((ref) {
+  final allTodos = ref.watch(filteredTodosProvider);
+  return (allTodos.length / todosPerPage).ceil();
+});
+
 class TodoPage extends ConsumerWidget {
   const TodoPage({super.key});
 
@@ -29,8 +52,24 @@ class TodoPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(userProvider);
     final categories = ref.watch(categoriesProvider);
-    final tasks = ref.watch(filteredTodosProvider);
+    final tasks = ref.watch(paginatedTodosProvider);
+    final allTasks = ref.watch(filteredTodosProvider);
+    final currentPage = ref.watch(currentPageProvider);
+    final totalPages = ref.watch(totalPagesProvider);
     final roommates = ref.watch(roommatesProvider);
+
+    // Reset pagina quando cambiano i filtri
+    ref.listen(todosCategoryFilterProvider, (previous, next) {
+      if (previous != next) {
+        ref.read(currentPageProvider.notifier).state = 0;
+      }
+    });
+    
+    ref.listen(todosJustYouFilterProvider, (previous, next) {
+      if (previous != next) {
+        ref.read(currentPageProvider.notifier).state = 0;
+      }
+    });
 
     return Scaffold(
       body: Container(
@@ -122,40 +161,7 @@ class TodoPage extends ConsumerWidget {
                 ),
               ),
             ),
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Card(
-                  color: Colors.white,
-                  elevation: 8,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 28),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Icon(Icons.home_rounded, size: 64, color: Colors.blue.shade700),
-                        const SizedBox(height: 12),
-                        Text(
-                          'To-Do Coinquilini',
-                          style: TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.grey.shade800,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Organizza la vita di casa insieme',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(fontSize: 16, color: Colors.grey.shade600),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ),
+            
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
@@ -442,6 +448,94 @@ class TodoPage extends ConsumerWidget {
                   ),
                 ),
               ),
+
+            // Controlli di paginazione
+            if (totalPages > 1)
+              SliverToBoxAdapter(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      // Bottone Precedente
+                      IconButton(
+                        onPressed: currentPage > 0
+                            ? () => ref.read(currentPageProvider.notifier).state = currentPage - 1
+                            : null,
+                        icon: const Icon(Icons.chevron_left),
+                        style: IconButton.styleFrom(
+                          backgroundColor: currentPage > 0 ? Colors.blue.shade50 : Colors.grey.shade200,
+                          foregroundColor: currentPage > 0 ? Colors.blue.shade700 : Colors.grey,
+                        ),
+                      ),
+                      
+                      const SizedBox(width: 16),
+                      
+                      // Indicatori pagine
+                      ...List.generate(totalPages, (index) {
+                        final isCurrentPage = index == currentPage;
+                        return Container(
+                          margin: const EdgeInsets.symmetric(horizontal: 4),
+                          child: GestureDetector(
+                            onTap: () => ref.read(currentPageProvider.notifier).state = index,
+                            child: Container(
+                              width: 36,
+                              height: 36,
+                              decoration: BoxDecoration(
+                                color: isCurrentPage ? Colors.blue.shade700 : Colors.transparent,
+                                border: Border.all(
+                                  color: isCurrentPage ? Colors.blue.shade700 : Colors.grey.shade300,
+                                  width: 1.5,
+                                ),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Center(
+                                child: Text(
+                                  '${index + 1}',
+                                  style: TextStyle(
+                                    color: isCurrentPage ? Colors.white : Colors.grey.shade600,
+                                    fontWeight: isCurrentPage ? FontWeight.bold : FontWeight.w500,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        );
+                      }).take(7), // Mostra massimo 7 pagine per volta
+                      
+                      const SizedBox(width: 16),
+                      
+                      // Bottone Successivo
+                      IconButton(
+                        onPressed: currentPage < totalPages - 1
+                            ? () => ref.read(currentPageProvider.notifier).state = currentPage + 1
+                            : null,
+                        icon: const Icon(Icons.chevron_right),
+                        style: IconButton.styleFrom(
+                          backgroundColor: currentPage < totalPages - 1 ? Colors.blue.shade50 : Colors.grey.shade200,
+                          foregroundColor: currentPage < totalPages - 1 ? Colors.blue.shade700 : Colors.grey,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+            // Info conteggio todos
+            SliverToBoxAdapter(
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: Text(
+                  'Mostrando ${tasks.length} di ${allTasks.length} todos${totalPages > 1 ? ' (Pagina ${currentPage + 1} di $totalPages)' : ''}',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: Colors.grey.shade600,
+                    fontSize: 12,
+                  ),
+                ),
+              ),
+            ),
 
             const SliverPadding(padding: EdgeInsets.only(bottom: 96)),
           ],

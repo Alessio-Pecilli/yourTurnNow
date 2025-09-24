@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:your_turn/src/mock_db.dart';
 import 'package:your_turn/src/models/todo_item.dart';
@@ -119,6 +118,33 @@ class TodosCtrl extends StateNotifier<List<TodoItem>> {
       // stessa data del completamento
       final txWhen = toDone ? updated.completedAt : DateTime.now();
 
+      // Mappa la categoria del todo a quella della transazione
+      ExpenseCategory? txCategory;
+      if (t.categories.isNotEmpty) {
+        final todoCategoryId = t.categories.first.id;
+        switch (todoCategoryId) {
+          case 'spesa':
+            txCategory = ExpenseCategory.spesa;
+            break;
+          case 'bollette':
+            txCategory = ExpenseCategory.bolletta;
+            break;
+          case 'pulizie':
+            txCategory = ExpenseCategory.pulizia;
+            break;
+          case 'manutenzione':
+          case 'varie':
+            txCategory = ExpenseCategory.altro;
+            break;
+          case 'divertimento':
+          case 'cucina':
+            txCategory = ExpenseCategory.altro;
+            break;
+          default:
+            txCategory = ExpenseCategory.altro;
+        }
+      }
+
       for (final uid in ass) {
         ref.read(roommatesProvider.notifier).adjustBudgetFor(uid, deltaBudget);
         ref.read(transactionsProvider.notifier).addTx(
@@ -126,6 +152,7 @@ class TodosCtrl extends StateNotifier<List<TodoItem>> {
           amount: deltaBudget,
           note: txNote,
           when: txWhen,
+          category: txCategory,
         );
       }
     }
