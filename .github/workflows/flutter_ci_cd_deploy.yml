@@ -37,6 +37,8 @@ jobs:
             ~/.pub-cache
             build/
           key: ${{ runner.os }}-flutter-${{ hashFiles('pubspec.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-flutter-
 
       - name: Install dependencies
         run: flutter pub get
@@ -63,7 +65,7 @@ jobs:
         uses: actions/dependency-review-action@v3
 
       - name: Install safety scanner
-        run: pip install safety || echo "Python non installato"
+        run: pip install safety || echo "⚠️ Python non installato"
 
       - name: Security check (placeholder)
         run: |
@@ -91,6 +93,8 @@ jobs:
             ~/.pub-cache
             build/
           key: ${{ runner.os }}-flutter-${{ hashFiles('pubspec.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-flutter-
 
       - name: Install dependencies
         run: flutter pub get
@@ -131,6 +135,8 @@ jobs:
             ~/.pub-cache
             build/
           key: ${{ runner.os }}-flutter-${{ hashFiles('pubspec.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-flutter-
 
       - name: Install dependencies
         run: flutter pub get
