@@ -10,6 +10,7 @@ import 'package:your_turn/src/providers/categories_provider.dart';
 import 'package:your_turn/src/widgets/todo/todo_add_dialog.dart';
 import 'package:your_turn/src/widgets/todo/empty_state.dart';
 import 'package:your_turn/src/widgets/todo/assignees_avatars.dart';
+import 'package:your_turn/src/widgets/weather/weather_card.dart';
 import 'profile_page.dart';
 import 'admin_page.dart';
 
@@ -294,6 +295,9 @@ class TodoPage extends ConsumerWidget {
                               }),
                             ],
                           ),
+                          const SizedBox(width: 12),
+                          // Compact weather inline with filters
+                          const CompactWeather(city: 'Roma,IT'),
                         ],
                       ),
                     ),
