@@ -318,7 +318,7 @@ void showTodoAddDialog(BuildContext context, WidgetRef outerRef, {TodoItem? pres
                               style: TextStyle(color: Colors.grey.shade800),
                             ),
                           ),
-                          const SizedBox(height: 10),
+                          const SizedBox(height: 16),
 
                           // Assegna a - griglia compatta
                           Text(
@@ -329,7 +329,7 @@ void showTodoAddDialog(BuildContext context, WidgetRef outerRef, {TodoItem? pres
                               color: Colors.grey.shade800,
                             ),
                           ),
-                          const SizedBox(height: 6),
+                          const SizedBox(height: 8),
                           if (roommates.isEmpty)
                             Container(
                               padding: const EdgeInsets.all(12),

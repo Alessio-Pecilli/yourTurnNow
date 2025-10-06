@@ -5,18 +5,19 @@ import 'package:your_turn/src/models/todo_category.dart';
 import 'package:your_turn/src/models/money_tx.dart';
 import 'package:your_turn/src/models/expense_category.dart';
 
-/// Coinquilini finti
+
+/// Coinquilini finti con foto profilo carine e colorate
 final mockRoommates = <Roommate>[
-  Roommate(id: "u1", name: "Ale", photoUrl: 'https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=150&h=150&fit=crop', monthlyBudget: 200, tasksCompleted: 8),
-  Roommate(id: "u2", name: "Marco", photoUrl: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=150&h=150&fit=crop', monthlyBudget: 150, tasksCompleted: 5),
-  Roommate(id: "u3", name: "Giulia", photoUrl: 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=150&h=150&fit=crop', monthlyBudget: 180, tasksCompleted: 6),
-  Roommate(id: "u4", name: "Luca", photoUrl: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=150&h=150&fit=crop', monthlyBudget: 120, tasksCompleted: 4),
-  Roommate(id: "u5", name: "Sofia", photoUrl: 'https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=150&h=150&fit=crop', monthlyBudget: 160, tasksCompleted: 7),
-  Roommate(id: "u6", name: "Andrea", photoUrl: 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=150&h=150&fit=crop', monthlyBudget: 140, tasksCompleted: 3),
-  Roommate(id: "u7", name: "Elena", photoUrl: 'https://images.unsplash.com/photo-1580584126903-c17d41830450?w=150&h=150&fit=crop', monthlyBudget: 175, tasksCompleted: 6),
-  Roommate(id: "u8", name: "Matteo", photoUrl: 'https://images.unsplash.com/photo-1517077304055-6e89abbf09b0?w=150&h=150&fit=crop', monthlyBudget: 100, tasksCompleted: 2),
-  Roommate(id: "u9", name: "Davide", photoUrl: 'https://images.unsplash.com/photo-1569982175971-d92b01cf8694?w=150&h=150&fit=crop', monthlyBudget: 130, tasksCompleted: 4),
-  Roommate(id: "u10", name: "Chiara", photoUrl: 'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=150&h=150&fit=crop', monthlyBudget: 90, tasksCompleted: 3),
+  Roommate(id: "u1", name: "Ale", photoUrl: 'https://api.dicebear.com/7.x/adventurer/png?seed=Ale&backgroundColor=ffdfbf,c0aede,d1d4f9&scale=80', monthlyBudget: 200, tasksCompleted: 8),
+  Roommate(id: "u2", name: "Marco", photoUrl: 'https://api.dicebear.com/7.x/adventurer/png?seed=Marco&backgroundColor=ffd5dc,ffdfbf,c0aede&scale=80', monthlyBudget: 150, tasksCompleted: 5),
+  Roommate(id: "u3", name: "Giulia", photoUrl: 'https://api.dicebear.com/7.x/adventurer/png?seed=Giulia&backgroundColor=d1d4f9,ffd5dc,b6e3f4&scale=80', monthlyBudget: 180, tasksCompleted: 6),
+  Roommate(id: "u4", name: "Luca", photoUrl: 'https://api.dicebear.com/7.x/adventurer/png?seed=Luca&backgroundColor=c0aede,ffdfbf,d1d4f9&scale=80', monthlyBudget: 120, tasksCompleted: 4),
+  Roommate(id: "u5", name: "Sofia", photoUrl: 'https://api.dicebear.com/7.x/adventurer/png?seed=Sofia&backgroundColor=ffd5dc,b6e3f4,ffdfbf&scale=80', monthlyBudget: 160, tasksCompleted: 7),
+  Roommate(id: "u6", name: "Andrea", photoUrl: 'https://api.dicebear.com/7.x/adventurer/png?seed=Andrea&backgroundColor=b6e3f4,c0aede,ffd5dc&scale=80', monthlyBudget: 140, tasksCompleted: 3),
+  Roommate(id: "u7", name: "Elena", photoUrl: 'https://api.dicebear.com/7.x/adventurer/png?seed=Elena&backgroundColor=ffdfbf,d1d4f9,c0aede&scale=80', monthlyBudget: 175, tasksCompleted: 6),
+  Roommate(id: "u8", name: "Matteo", photoUrl: 'https://api.dicebear.com/7.x/adventurer/png?seed=Matteo&backgroundColor=d1d4f9,ffd5dc,b6e3f4&scale=80', monthlyBudget: 100, tasksCompleted: 2),
+  Roommate(id: "u9", name: "Davide", photoUrl: 'https://api.dicebear.com/7.x/adventurer/png?seed=Davide&backgroundColor=c0aede,ffdfbf,ffd5dc&scale=80', monthlyBudget: 130, tasksCompleted: 4),
+  Roommate(id: "u10", name: "Chiara", photoUrl: 'https://api.dicebear.com/7.x/adventurer/png?seed=Chiara&backgroundColor=b6e3f4,d1d4f9,ffdfbf&scale=80', monthlyBudget: 90, tasksCompleted: 3),
 ];
 
 /// To-do finti con categorie
@@ -27,8 +28,9 @@ final mockTodos = <TodoItem>[
     notes: "Latte, pane, uova",
     assigneeIds: ["u1", "u2"],
     cost: 20,
-    status: TodoStatus.open,
+    status: TodoStatus.done,
     createdAt: DateTime.now().subtract(const Duration(hours: 2)),
+    completedAt: DateTime.now().subtract(const Duration(hours: 1)),
     categories: [stockCategories.firstWhere((c) => c.id == 'spesa')],
   ),
   TodoItem(
@@ -36,7 +38,7 @@ final mockTodos = <TodoItem>[
     title: "Pulire la cucina ✨",
     notes: "Attento ai fornelli!",
     assigneeIds: ["u3"],
-    cost: 5, // Aggiunto costo per detergenti
+    cost: 5,
     status: TodoStatus.done,
     createdAt: DateTime.now().subtract(const Duration(days: 1)),
     completedAt: DateTime.now().subtract(const Duration(hours: 12)),

@@ -78,18 +78,18 @@ class _AdminPageState extends ConsumerState<AdminPage> {
     {'hex': '#795548', 'name': 'Marrone'},
   ];
 
-  // Avatar sicuri per utenti - oggetti e icone (10 disponibili)
+  // Avatar carini e colorati per nuovi utenti - stile DiceBear adventurer
   static const List<String> _stockAvatars = [
-    'https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=150&h=150&fit=crop', // Computer/Tech
-    'https://images.unsplash.com/photo-1574169208507-84376144848b?w=150&h=150&fit=crop', // Notebook
-    'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=150&h=150&fit=crop', // Libri
-    'https://images.unsplash.com/photo-1541807084-5c52b6b3adef?w=150&h=150&fit=crop', // Fotocamera
-    'https://images.unsplash.com/photo-1570303345338-e1f0eddf4946?w=150&h=150&fit=crop', // Pianta
-    'https://images.unsplash.com/photo-1571171637578-41bc2dd41cd2?w=150&h=150&fit=crop', // Orologio
-    'https://images.unsplash.com/photo-1565106430482-8f6e74349ca1?w=150&h=150&fit=crop', // Cuffie
-    'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=150&h=150&fit=crop', // Tazza caffè
-    'https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=150&h=150&fit=crop', // Libri colorati  
-    'https://images.unsplash.com/photo-1541963463532-d68292c34d19?w=150&h=150&fit=crop', // Matite
+    'https://api.dicebear.com/7.x/adventurer/png?seed=NewUser1&backgroundColor=ffdfbf,c0aede,d1d4f9&scale=80',
+    'https://api.dicebear.com/7.x/adventurer/png?seed=NewUser2&backgroundColor=ffd5dc,ffdfbf,c0aede&scale=80',
+    'https://api.dicebear.com/7.x/adventurer/png?seed=NewUser3&backgroundColor=d1d4f9,ffd5dc,b6e3f4&scale=80',
+    'https://api.dicebear.com/7.x/adventurer/png?seed=NewUser4&backgroundColor=c0aede,ffdfbf,d1d4f9&scale=80',
+    'https://api.dicebear.com/7.x/adventurer/png?seed=NewUser5&backgroundColor=ffd5dc,b6e3f4,ffdfbf&scale=80',
+    'https://api.dicebear.com/7.x/adventurer/png?seed=NewUser6&backgroundColor=b6e3f4,c0aede,ffd5dc&scale=80',
+    'https://api.dicebear.com/7.x/adventurer/png?seed=NewUser7&backgroundColor=ffdfbf,d1d4f9,c0aede&scale=80',
+    'https://api.dicebear.com/7.x/adventurer/png?seed=NewUser8&backgroundColor=d1d4f9,ffd5dc,b6e3f4&scale=80',
+    'https://api.dicebear.com/7.x/adventurer/png?seed=NewUser9&backgroundColor=c0aede,ffdfbf,ffd5dc&scale=80',
+    'https://api.dicebear.com/7.x/adventurer/png?seed=NewUser10&backgroundColor=b6e3f4,d1d4f9,ffdfbf&scale=80',
   ];
 
   String _getRandomAvatar() {

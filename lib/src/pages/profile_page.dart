@@ -30,7 +30,7 @@ class ProfilePage extends ConsumerStatefulWidget {
   ConsumerState<ProfilePage> createState() => _ProfilePageState();
 }
 
-enum _TxView { grid, list }
+// Solo vista griglia - lista rimossa
 
 class _ProfilePageState extends ConsumerState<ProfilePage> {
   int _visibleTxCount = 10;
@@ -39,7 +39,11 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
   TodoCategory? _selectedCategory;
   DateTimeRange? _selectedDateRange;
   bool _showHelp = true;
-  _TxView _view = _TxView.grid; // ✅ default griglia (com’era)
+    // Solo vista griglia - rimossa selezione vista
+  
+  // Paginazione griglia 4x4
+  int _currentPage = 0;
+  static const int _rowsPerPage = 4; // 4 righe per pagina, colonne dinamiche
 
   static const String _shortcutInfo =
       'Scorciatoie: Alt+A = Aggiungi/Modifica saldo • Alt+D = Scarica CSV';
@@ -73,10 +77,33 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
     child: Padding(padding: const EdgeInsets.all(20), child: child),
   );
 
+  // Mappatura da TodoCategory a ExpenseCategory
+  ExpenseCategory? _mapTodoToExpenseCategory(TodoCategory? todoCategory) {
+    if (todoCategory == null) return null;
+    
+    switch (todoCategory.id) {
+      case 'spesa':
+        return ExpenseCategory.spesa;
+      case 'bollette':
+        return ExpenseCategory.bolletta;
+      case 'pulizie':
+        return ExpenseCategory.pulizia;
+      case 'manutenzione':
+      case 'cucina':
+      case 'divertimento':
+      case 'varie':
+      default:
+        return ExpenseCategory.altro;
+    }
+  }
+
   List<MoneyTx> _applyFilters(List<MoneyTx> all) {
     var out = all;
     if (_selectedCategory != null) {
-      out = out.where((t) => t.category == _selectedCategory).toList();
+      final expenseCategory = _mapTodoToExpenseCategory(_selectedCategory);
+      if (expenseCategory != null) {
+        out = out.where((t) => t.category == expenseCategory).toList();
+      }
     }
     if (_selectedDateRange != null) {
       final r = _selectedDateRange!;
@@ -292,40 +319,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Vista Lista/Griglia
-                    Semantics(
-                      label: 'Selettore vista transazioni',
-                      child: SegmentedButton<_TxView>(
-                        segments: const [
-                          ButtonSegment(value: _TxView.grid, icon: Icon(Icons.grid_view, size: 18)),
-                          ButtonSegment(value: _TxView.list, icon: Icon(Icons.view_agenda, size: 18)),
-                        ],
-                        selected: {_view},
-                        onSelectionChanged: (s) => setState(() => _view = s.first),
-                        showSelectedIcon: false,
-                        style: ButtonStyle(
-                          visualDensity: VisualDensity.compact,
-                          minimumSize: WidgetStateProperty.all(const Size(0, 36)),
-                          padding: WidgetStateProperty.all(const EdgeInsets.symmetric(horizontal: 6)),
-                          backgroundColor: WidgetStateProperty.resolveWith((states) {
-                            if (states.contains(WidgetState.selected)) {
-                              return Colors.blue.shade700;
-                            }
-                            return Colors.white;
-                          }),
-                          foregroundColor: WidgetStateProperty.resolveWith((states) {
-                            if (states.contains(WidgetState.selected)) {
-                              return Colors.white;
-                            }
-                            return Colors.blue.shade700;
-                          }),
-                          side: WidgetStateProperty.all(BorderSide(color: Colors.blue.shade700, width: 1.5)),
-                          textStyle: WidgetStateProperty.all(const TextStyle(fontSize: 12)),
-                        ),
-                      ),
-                    ),
-                    
-                    const SizedBox(width: 16),
+                    // Solo vista griglia
                     
                     // Categorie
                     Expanded(
@@ -357,7 +351,8 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                             visualDensity: VisualDensity.compact,
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                           ),
-                          ...categories.take(4).map((category) {
+                          // Mostra le stesse categorie dei todo
+                          ...categories.map((category) {
                             final categoryColor = Color(int.parse(category.color.substring(1), radix: 16) + 0xFF000000);
                             final isSelected = _selectedCategory?.id == category.id;
                             return ChoiceChip(
@@ -395,48 +390,57 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
-                        OutlinedButton.icon(
-                          style: OutlinedButton.styleFrom(
-                            minimumSize: const Size(0, 36),
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-                            textStyle: const TextStyle(fontSize: 12),
-                          ),
-                          icon: const Icon(Icons.date_range, size: 16),
-                          label: Text(
-                            _selectedDateRange == null
-                                ? 'Date'
-                                : '${DateFormat('dd/MM').format(_selectedDateRange!.start)}-${DateFormat('dd/MM').format(_selectedDateRange!.end)}',
-                            style: const TextStyle(fontSize: 12),
-                          ),
-                          onPressed: () async {
-                            final picked = await showDateRangePicker(
-                              context: context,
-                              firstDate: DateTime(2020),
-                              lastDate: DateTime.now().add(const Duration(days: 365)),
-                              initialDateRange: _selectedDateRange,
-                              builder: (context, child) {
-                                return Theme(
-                                  data: ThemeData.light(useMaterial3: true),
-                                  child: Dialog(backgroundColor: Colors.white, child: child!),
-                                );
-                              },
-                            );
-                            if (!mounted) return;
-                            setState(() => _selectedDateRange = picked);
-                          },
-                        ),
-                        const SizedBox(height: 4),
-                        TextButton(
-                          style: TextButton.styleFrom(
-                            minimumSize: const Size(0, 24),
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                            textStyle: const TextStyle(fontSize: 11),
-                          ),
-                          onPressed: () => setState(() {
-                            _selectedCategory = null;
-                            _selectedDateRange = null;
-                          }),
-                          child: const Text('Reset'),
+                        // Data e Reset sulla stessa riga
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Flexible(
+                              child: OutlinedButton.icon(
+                                style: OutlinedButton.styleFrom(
+                                  minimumSize: const Size(0, 36),
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                                  textStyle: const TextStyle(fontSize: 12),
+                                ),
+                                icon: const Icon(Icons.date_range, size: 16),
+                                label: Text(
+                                  _selectedDateRange == null
+                                      ? 'Date'
+                                      : '${DateFormat('dd/MM').format(_selectedDateRange!.start)}-${DateFormat('dd/MM').format(_selectedDateRange!.end)}',
+                                  style: const TextStyle(fontSize: 12),
+                                ),
+                                onPressed: () async {
+                                  final picked = await showDateRangePicker(
+                                    context: context,
+                                    firstDate: DateTime(2020),
+                                    lastDate: DateTime.now().add(const Duration(days: 365)),
+                                    initialDateRange: _selectedDateRange,
+                                    builder: (context, child) {
+                                      return Theme(
+                                        data: ThemeData.light(useMaterial3: true),
+                                        child: Dialog(backgroundColor: Colors.white, child: child!),
+                                      );
+                                    },
+                                  );
+                                  if (!mounted) return;
+                                  setState(() => _selectedDateRange = picked);
+                                },
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            TextButton(
+                              style: TextButton.styleFrom(
+                                minimumSize: const Size(0, 36), // Stessa altezza del bottone data
+                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                textStyle: const TextStyle(fontSize: 12),
+                              ),
+                              onPressed: () => setState(() {
+                                _selectedCategory = null;
+                                _selectedDateRange = null;
+                                _currentPage = 0; // Reset pagina quando si resettano i filtri
+                              }),
+                              child: const Text('Reset'),
+                            ),
+                          ],
                         ),
                       ],
                     ),
@@ -465,43 +469,57 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
       );
     }
 
-    if (_view == _TxView.grid) {
-      return SliverPadding(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        sliver: SliverGrid(
-          delegate: SliverChildBuilderDelegate(
-            (context, i) => _TxTileCard(
-              tx: visibleTxs[i],
-              money: _money,
-              onDelete: () => _onDeleteTransaction(context, visibleTxs[i]),
-              onEdit: () => _onEditTransaction(context, visibleTxs[i]),
-              dense: false,
-            ),
-            childCount: visibleTxs.length,
-          ),
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,
-            mainAxisSpacing: 8,
-            crossAxisSpacing: 8,
-            childAspectRatio: 3.8,
-          ),
+    // Sempre vista griglia
+    return SliverPadding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        sliver: SliverLayoutBuilder(
+          builder: (context, constraints) {
+            // Calcola dimensioni dinamiche per le transazioni (stesso sistema dei todo)
+            final screenWidth = constraints.crossAxisExtent;
+            final minCardWidth = 240.0; // Larghezza minima per leggibilità transazioni
+            final maxCardWidth = 320.0; // Larghezza massima
+            
+            // Calcola numero ottimale di colonne
+            int crossAxisCount = (screenWidth / minCardWidth).floor();
+            if (crossAxisCount < 1) crossAxisCount = 1;
+            if (crossAxisCount > 6) crossAxisCount = 6; // Max 6 colonne come todo
+            
+            // Calcola elementi per pagina in base alle colonne dinamiche
+            final itemsPerPage = crossAxisCount * _rowsPerPage; // colonne * 4 righe
+            
+            // Calcola l'indice di inizio e fine per la pagina corrente
+            final startIndex = _currentPage * itemsPerPage;
+            final endIndex = (startIndex + itemsPerPage).clamp(0, visibleTxs.length);
+            final pageItems = visibleTxs.sublist(startIndex, endIndex);
+            
+            // Calcola larghezza effettiva delle card
+            final cardWidth = screenWidth / crossAxisCount;
+            final clampedCardWidth = cardWidth.clamp(minCardWidth, maxCardWidth);
+            
+            // Aspect ratio dinamico per altezza ottimale (più compatto dei todo)
+            final aspectRatio = clampedCardWidth / 120.0; // Altezza fissa 120px per transazioni compatte
+            
+            return SliverGrid(
+              delegate: SliverChildBuilderDelegate(
+                (context, i) => _TxTileCard(
+                  tx: pageItems[i],
+                  money: _money,
+                  onDelete: () => _onDeleteTransaction(context, pageItems[i]),
+                  onEdit: () => _onEditTransaction(context, pageItems[i]),
+                  dense: false,
+                ),
+                childCount: pageItems.length,
+              ),
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: crossAxisCount, // Dinamico come i todo!
+                mainAxisSpacing: 8,
+                crossAxisSpacing: 8,
+                childAspectRatio: aspectRatio, // Dinamico!
+              ),
+            );
+          },
         ),
       );
-    } else {
-      return SliverList.builder(
-        itemCount: visibleTxs.length,
-        itemBuilder: (context, i) => Padding(
-          padding: const EdgeInsets.fromLTRB(12, 6, 12, 6),
-          child: _TxTileCard(
-            tx: visibleTxs[i],
-            money: _money,
-            onDelete: () => _onDeleteTransaction(context, visibleTxs[i]),
-            onEdit: () => _onEditTransaction(context, visibleTxs[i]),
-            dense: true, // ✅ layout da lista
-          ),
-        ),
-      );
-    }
   }
 
   void _onDeleteTransaction(BuildContext context, MoneyTx tx) async {
@@ -676,36 +694,55 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
   }
 
   SliverToBoxAdapter _buildPagination(List<MoneyTx> txs) {
-    return SliverToBoxAdapter(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            if (_visibleTxCount > 10)
-              OutlinedButton(
-                onPressed: () => setState(() => _visibleTxCount = 10),
-                child: const Text('Vai all\'inizio'),
+    // Solo griglia - paginazione dinamica 
+    final estimatedItemsPerPage = 5 * _rowsPerPage; // 5 colonne * 4 righe = 20 elementi
+    final totalPages = (txs.length / estimatedItemsPerPage).ceil();
+      if (totalPages <= 1) return const SliverToBoxAdapter(child: SizedBox.shrink());
+      
+      return SliverToBoxAdapter(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // Pulsante Precedente
+              IconButton.outlined(
+                onPressed: _currentPage > 0 
+                  ? () => setState(() => _currentPage--) 
+                  : null,
+                icon: const Icon(Icons.chevron_left),
+                tooltip: 'Pagina precedente',
               ),
-            const SizedBox(width: 8),
-            if (_visibleTxCount < txs.length)
-              OutlinedButton(
-                onPressed: () => setState(() {
-                  final next = _visibleTxCount + 10;
-                  _visibleTxCount = next > txs.length ? txs.length : next;
-                }),
-                child: const Text('Carica altri'),
+              const SizedBox(width: 16),
+              // Indicatore pagina
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                decoration: BoxDecoration(
+                  color: Colors.blue.shade50,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: Colors.blue.shade200),
+                ),
+                child: Text(
+                  '${_currentPage + 1} di $totalPages',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    color: Colors.blue.shade800,
+                  ),
+                ),
               ),
-            const SizedBox(width: 8),
-            if (_visibleTxCount < txs.length)
-              OutlinedButton(
-                onPressed: () => setState(() => _visibleTxCount = txs.length),
-                child: const Text('Vai alla fine'),
+              const SizedBox(width: 16),
+              // Pulsante Successivo
+              IconButton.outlined(
+                onPressed: _currentPage < totalPages - 1 
+                  ? () => setState(() => _currentPage++) 
+                  : null,
+                icon: const Icon(Icons.chevron_right),
+                tooltip: 'Pagina successiva',
               ),
-          ],
+            ],
+          ),
         ),
-      ),
-    );
+      );
   }
 
   Future<void> _downloadTransactionsCsv(Roommate me) async {
@@ -944,99 +981,146 @@ class _TxTileCard extends StatelessWidget {
       ..write('Categoria $catLabel. ')
       ..write('In data $dateStr.');
 
-    final card = Card(
-      elevation: 3,
-      color: Colors.white,
-      clipBehavior: Clip.antiAlias,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: InkWell(
-        onTap: onEdit,
-        child: Padding(
-          padding: EdgeInsets.all(dense ? 12 : 16),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              // Icona categoria
-              Container(
-                width: dense ? 36 : 44,
-                height: dense ? 36 : 44,
-                decoration: BoxDecoration(
-                  color: catColor.withOpacity(0.12),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(
-                  catIcon,
-                  size: dense ? 20 : 24,
-                  color: catColor,
-                ),
-              ),
-              const SizedBox(width: 12),
-              // Testi
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+    return Semantics(
+      label: semanticsLabel.toString(),
+      child: Container(
+        margin: const EdgeInsets.symmetric(vertical: 2), // Solo margine verticale come todo
+        decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(10),
+        gradient: LinearGradient(
+          colors: isIn
+              ? [Colors.green.shade50.withOpacity(0.3), Colors.green.shade50.withOpacity(0.7)]
+              : [Colors.white, Colors.grey.shade100],
+          begin: isIn ? Alignment.bottomRight : Alignment.topLeft,
+          end: isIn ? Alignment.topLeft : Alignment.bottomRight,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: (isIn ? Colors.green : catColor).withOpacity(0.07),
+            blurRadius: 2,
+            offset: const Offset(0, 1),
+          ),
+        ],
+        border: Border.all(
+          color: isIn ? Colors.green.shade200 : catColor.withOpacity(0.3),
+          width: 0.7,
+        ),
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: Container(
+          child: Padding(
+            padding: const EdgeInsets.all(6), // Padding compatto come i todo
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Prima riga: icona + importo + pulsanti
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    // ✅ 1) Importo (prima)
-                    Text(
-                      (isIn ? '+ ' : '- ') + amountStr,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontSize: dense ? 16 : 18,
-                        fontWeight: FontWeight.w800,
-                        color: amountColor,
+                    // Icona compatta accanto al testo
+                    Container(
+                      width: 24,
+                      height: 24,
+                      decoration: BoxDecoration(
+                        color: catColor.withOpacity(0.15),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Icon(
+                        catIcon,
+                        size: 14,
+                        color: catColor,
                       ),
                     ),
-                    const SizedBox(height: 4),
-                    // ✅ 2) Motivo/nota (poi)
-                    Text(
-                      (tx.note.isEmpty ? '—' : tx.note),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontSize: dense ? 13 : 14,
-                        color: Colors.grey.shade800,
+                    const SizedBox(width: 8),
+                    // Importo (principale)
+                    Expanded(
+                      child: Text(
+                        (isIn ? '+ ' : '- ') + amountStr,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w800,
+                          color: amountColor,
+                        ),
                       ),
                     ),
-                    const SizedBox(height: 6),
-                    // Meta
+                    // Pulsanti compatti
                     Row(
+                      mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.access_time, size: 14, color: Colors.grey.shade600),
+                        Container(
+                          decoration: BoxDecoration(
+                            color: Colors.blue.shade100,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: IconButton(
+                            tooltip: 'Modifica',
+                            icon: Icon(Icons.edit_rounded, color: Colors.blue.shade700, size: 16),
+                            onPressed: onEdit,
+                            padding: const EdgeInsets.all(4),
+                            constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
+                          ),
+                        ),
                         const SizedBox(width: 4),
-                        Text(dateStr, style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
+                        Container(
+                          decoration: BoxDecoration(
+                            color: Colors.red.shade100,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: IconButton(
+                            tooltip: 'Elimina',
+                            icon: Icon(Icons.delete_rounded, color: Colors.red.shade700, size: 16),
+                            onPressed: onDelete,
+                            padding: const EdgeInsets.all(4),
+                            constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
+                          ),
+                        ),
                       ],
                     ),
                   ],
                 ),
-              ),
-              const SizedBox(width: 8),
-              // Azioni
-              Semantics(
-                label: 'Azioni transazione',
-                button: true,
-                child: PopupMenuButton<String>(
-                  tooltip: 'Azioni',
-                  onSelected: (v) {
-                    if (v == 'edit') onEdit();
-                    if (v == 'delete') onDelete();
-                  },
-                  itemBuilder: (context) => const [
-                    PopupMenuItem(value: 'edit', child: ListTile(leading: Icon(Icons.edit), title: Text('Modifica'))),
-                    PopupMenuItem(value: 'delete', child: ListTile(leading: Icon(Icons.delete), title: Text('Elimina'))),
-                  ],
-                  icon: const Icon(Icons.more_horiz),
+                // Seconda riga: nota (solo se presente)
+                if (tx.note.isNotEmpty) ...[
+                  const SizedBox(height: 4),
+                  Padding(
+                    padding: const EdgeInsets.only(left: 32), // Allineato all'importo
+                    child: Text(
+                      tx.note,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey.shade600,
+                      ),
+                    ),
+                  ),
+                ],
+                // Terza riga: data
+                const SizedBox(height: 3),
+                Padding(
+                  padding: const EdgeInsets.only(left: 32), // Allineato all'importo
+                  child: Row(
+                    children: [
+                      Icon(Icons.access_time, size: 10, color: Colors.grey.shade500),
+                      const SizedBox(width: 3),
+                      Text(
+                        dateStr,
+                        style: TextStyle(
+                          fontSize: 10,
+                          color: Colors.grey.shade500,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
-    );
-
-    return Semantics(
-      label: semanticsLabel.toString(),
-      child: card,
-    );
+    ));
   }
 }

@@ -93,11 +93,18 @@ class TodoPage extends ConsumerWidget {
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   child: Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      Container(
-                        margin: const EdgeInsets.only(right: 12),
-                        child: ElevatedButton.icon(
+                      // Meteo a sinistra
+                      const CompactWeather(city: 'Roma,IT'),
+                      // Admin e profilo a destra
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Container(
+                            margin: const EdgeInsets.only(right: 12),
+                            child: ElevatedButton.icon(
                           onPressed: () {
                             Navigator.of(context).push(
                               MaterialPageRoute(
@@ -157,6 +164,8 @@ class TodoPage extends ConsumerWidget {
                             ),
                           ),
                         ),
+                        ],
+                      ),
                     ],
                   ),
                 ),
@@ -295,9 +304,7 @@ class TodoPage extends ConsumerWidget {
                               }),
                             ],
                           ),
-                          const SizedBox(width: 12),
-                          // Compact weather inline with filters
-                          const CompactWeather(city: 'Roma,IT'),
+
                         ],
                       ),
                     ),
@@ -311,8 +318,27 @@ class TodoPage extends ConsumerWidget {
               const EmptyStateSliver()
             else
               SliverPadding(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                sliver: SliverGrid(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                sliver: SliverLayoutBuilder(
+                  builder: (context, constraints) {
+                    // Calcola dimensioni dinamiche per i todo
+                    final screenWidth = constraints.crossAxisExtent;
+                    final minCardWidth = 280.0; // Larghezza minima per leggibilità
+                    final maxCardWidth = 400.0; // Larghezza massima
+                    
+                    // Calcola numero ottimale di colonne
+                    int crossAxisCount = (screenWidth / minCardWidth).floor();
+                    if (crossAxisCount < 1) crossAxisCount = 1;
+                    if (crossAxisCount > 6) crossAxisCount = 6;
+                    
+                    // Calcola larghezza effettiva delle card
+                    final cardWidth = screenWidth / crossAxisCount;
+                    final clampedCardWidth = cardWidth.clamp(minCardWidth, maxCardWidth);
+                    
+                    // Aspect ratio dinamico per altezza ottimale
+                    final aspectRatio = clampedCardWidth / 220.0; // Altezza fissa 220px per vedere tutto
+                    
+                    return SliverGrid(
                   delegate: SliverChildBuilderDelegate(
                     (context, index) {
                       final t = tasks[index];
@@ -326,12 +352,12 @@ class TodoPage extends ConsumerWidget {
                       final isCompleted = t.status == TodoStatus.done;
 
                       return Container(
-                        margin: const EdgeInsets.symmetric(vertical: 2, horizontal: 2),
+                        margin: const EdgeInsets.symmetric(vertical: 2), // Solo margine verticale
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(10),
                           gradient: LinearGradient(
                             colors: isCompleted
-                                ? [Colors.green.shade50, Colors.green.shade100]
+                                ? [Colors.green.shade50.withOpacity(0.3), Colors.green.shade50.withOpacity(0.7)]
                                 : [Colors.white, Colors.grey.shade100], // niente più celestino
                             begin: isCompleted ? Alignment.bottomRight : Alignment.topLeft,
                             end: isCompleted ? Alignment.topLeft : Alignment.bottomRight,
@@ -432,12 +458,14 @@ class TodoPage extends ConsumerWidget {
                     },
                     childCount: tasks.length,
                   ),
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 4, // 4 todo per riga - compromesso perfetto
-                    mainAxisSpacing: 8, // Spazio bilanciato
-                    crossAxisSpacing: 8,
-                    childAspectRatio: 3.0, // Bilanciato per 4 colonne
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: crossAxisCount, // Dinamico!
+                    mainAxisSpacing: 12,
+                    crossAxisSpacing: 12, // Spazio uniforme tra le card
+                    childAspectRatio: aspectRatio, // Dinamico!
                   ),
+                );
+                  },
                 ),
               ),
 
