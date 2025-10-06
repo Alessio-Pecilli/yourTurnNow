@@ -356,15 +356,22 @@ void showTodoAddDialog(BuildContext context, WidgetRef outerRef, {TodoItem? pres
                                 borderRadius: BorderRadius.circular(12),
                                 border: Border.all(color: Colors.grey.shade300),
                               ),
-                              child: GridView.builder(
-                                shrinkWrap: true,
-                                physics: const NeverScrollableScrollPhysics(),
-                                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                                  crossAxisCount: 6, // 6 coinquilini per riga
-                                  childAspectRatio: 1.8, // Riquadri molto più bassi!
-                                  crossAxisSpacing: 4, // Meno spazio = box più piccoli
-                                  mainAxisSpacing: 4, // Meno spazio verticale
-                                ),
+                              child: LayoutBuilder(
+                                builder: (context, constraints) {
+                                // Calcola dimensione dinamica in base alla larghezza
+                                final boxWidth = constraints.maxWidth / 6; // 6 colonne
+                                final minBoxSize = 80.0; // Dimensione minima
+                                final dynamicBoxSize = boxWidth < minBoxSize ? minBoxSize : boxWidth;
+                                
+                                return GridView.builder(
+                                  shrinkWrap: true,
+                                  physics: const NeverScrollableScrollPhysics(),
+                                  gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
+                                    maxCrossAxisExtent: dynamicBoxSize, // Dimensione dinamica
+                                    childAspectRatio: 1.8, // Mantieni proporzioni
+                                    crossAxisSpacing: 4,
+                                    mainAxisSpacing: 4,
+                                  ),
                                 itemCount: roommates.length,
                                 itemBuilder: (context, index) {
                                   final r = roommates[index];
@@ -427,7 +434,8 @@ void showTodoAddDialog(BuildContext context, WidgetRef outerRef, {TodoItem? pres
                                     ),
                                   );
                                 },
-                              ),
+                              );
+                              }),
                             ),
 
                         ],
