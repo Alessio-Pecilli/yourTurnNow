@@ -11,8 +11,8 @@ class AssigneesAvatars extends StatelessWidget {
 
   static const double _r = 18.0;
   static const double _d = _r * 2;
-  static const double _overlap = 14;
-  static const double _step = _d - _overlap;
+  static const double _spacing = 6; // Spazio tra gli avatar invece di overlap
+  static const double _step = _d + _spacing;
 
   @override
   Widget build(BuildContext context) {

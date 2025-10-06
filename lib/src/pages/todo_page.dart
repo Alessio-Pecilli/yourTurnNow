@@ -21,7 +21,7 @@ final todosJustYouFilterProvider = StateProvider<bool>((ref) => false);
 
 // Provider for pagination
 final currentPageProvider = StateProvider<int>((ref) => 0);
-const int todosPerPage = 10;
+const int todosPerPage = 16; // Aumentato per sfruttare la griglia a 4 colonne (4x4 = 16)
 
 // Provider for paginated todos
 final paginatedTodosProvider = Provider<List<TodoItem>>((ref) {
@@ -333,8 +333,8 @@ class TodoPage extends ConsumerWidget {
                             colors: isCompleted
                                 ? [Colors.green.shade50, Colors.green.shade100]
                                 : [Colors.white, Colors.grey.shade100], // niente più celestino
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
+                            begin: isCompleted ? Alignment.bottomRight : Alignment.topLeft,
+                            end: isCompleted ? Alignment.topLeft : Alignment.bottomRight,
                           ),
                           boxShadow: [
                             BoxShadow(
@@ -357,7 +357,7 @@ class TodoPage extends ConsumerWidget {
                             borderRadius: BorderRadius.circular(10),
                             onTap: () => ref.read(todosProvider.notifier).toggleDone(t.id),
                             child: Padding(
-                              padding: const EdgeInsets.all(4), // Ridotto da 5 a 4
+                              padding: const EdgeInsets.all(5), // Bilanciato per 4 colonne
                               child: SingleChildScrollView(
                                 physics: const ClampingScrollPhysics(),
                                 child: Column(
@@ -375,25 +375,13 @@ class TodoPage extends ConsumerWidget {
                                         _buildActions(context, ref, t),
                                       ],
                                     ),
-                                    const SizedBox(height: 3), // Ridotto da 4 a 3
+                                    const SizedBox(height: 6), // Aumentato per migliore separazione
                                     if (assigned.isNotEmpty) ...[
-                                      Row(
-                                        children: [
-                                          Icon(Icons.people_rounded, size: 9, color: Colors.grey.shade600),
-                                          const SizedBox(width: 12), // Aumentato da 2 a 12
-                                          Text(
-                                            'A:',
-                                            style: TextStyle(
-                                              fontSize: 8.5,
-                                              fontWeight: FontWeight.w600,
-                                              color: Colors.grey.shade600,
-                                            ),
-                                          ),
-                                          const SizedBox(width: 2),
-                                          Expanded(child: AssigneesAvatars(assignees: assigned)),
-                                        ],
+                                      Padding(
+                                        padding: const EdgeInsets.only(left: 8),
+                                        child: AssigneesAvatars(assignees: assigned),
                                       ),
-                                      const SizedBox(height: 8), // Aumentato da 2 a 8
+                                      const SizedBox(height: 12), // Aumentato da 6 a 12 per più spazio
                                     ],
                                     Wrap(
                                       spacing: 4,
@@ -445,10 +433,10 @@ class TodoPage extends ConsumerWidget {
                     childCount: tasks.length,
                   ),
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    mainAxisSpacing: 6,
-                    crossAxisSpacing: 6,
-                    childAspectRatio: 5.0, // Aumentato da 4.2 a 5.0 per rendere i card più bassi
+                    crossAxisCount: 4, // 4 todo per riga - compromesso perfetto
+                    mainAxisSpacing: 8, // Spazio bilanciato
+                    crossAxisSpacing: 8,
+                    childAspectRatio: 3.0, // Bilanciato per 4 colonne
                   ),
                 ),
               ),

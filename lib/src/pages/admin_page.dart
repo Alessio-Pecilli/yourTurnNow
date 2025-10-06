@@ -279,9 +279,12 @@ class _AdminPageState extends ConsumerState<AdminPage> {
                         builder: (context, constraints) {
                           final isWide = constraints.maxWidth > 800;
                           if (isWide) {
-                            // Layout desktop: due colonne affiancate
+                            // Layout desktop: istogrammi in alto, poi due colonne affiancate
                             return Column(
                               children: [
+                                // Istogrammi in alto come prima cosa
+                                _buildExpensesChartCard(),
+                                const SizedBox(height: 16),
                                 Row(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
@@ -298,20 +301,18 @@ class _AdminPageState extends ConsumerState<AdminPage> {
                                 ),
                               ],
                             ),
-                            const SizedBox(height: 16),
-                            // Grafico spese sotto coinquilini
-                            _buildExpensesChartCard(),
                           ],
                         );
                       } else {
-                        // Layout mobile: colonne impilate
+                        // Layout mobile: istogrammi in alto, poi colonne impilate
                         return Column(
                           children: [
+                            // Istogrammi in alto come prima cosa
+                            _buildExpensesChartCard(),
+                            const SizedBox(height: 16),
                             _buildCategoriesCard(),
                             const SizedBox(height: 16),
                             _buildRoommatesCard(roommates),
-                            const SizedBox(height: 16),
-                            _buildExpensesChartCard(),
                           ],
                         );
                       }
@@ -495,8 +496,8 @@ class _AdminPageState extends ConsumerState<AdminPage> {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       color: themeColor.shade50,
       child: Container(
-        height: 400, // Altezza fissa per tutti i grafici
-        padding: const EdgeInsets.all(20),
+        height: 420, // Aumentata per contenere tutto senza scroll
+        padding: const EdgeInsets.all(20), // Material Design 3 spacing
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -522,12 +523,12 @@ class _AdminPageState extends ConsumerState<AdminPage> {
                 ),
               ],
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 16), // Material Design 3 standard spacing
             
             if (slices.isEmpty) ...[
               // Stato vuoto con dimensioni fisse per consistenza
               Container(
-                height: 200,
+                height: 160, // Ridotto da 200 a 160
                 child: Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -552,9 +553,9 @@ class _AdminPageState extends ConsumerState<AdminPage> {
                 ),
               ),
               // Aggiungi altezza extra per mantenere consistenza
-              const SizedBox(height: 20),
+              const SizedBox(height: 12), // Ridotto da 20 a 12
               Container(
-                height: 120, // Altezza simile alla legenda quando presente
+                height: 100, // Ridotto da 120 a 100
                 child: Center(
                   child: Text(
                     'Completa alcuni todo di questa categoria per vedere i dati',
@@ -570,12 +571,12 @@ class _AdminPageState extends ConsumerState<AdminPage> {
             ] else ...[
               // Grafico a torta grande
               Container(
-                height: 200,
+                height: 180, // Ottimizzato per visibilità completa
                 child: Stack(
                   alignment: Alignment.center,
                   children: [
                     CustomPaint(
-                      size: const Size(200, 200),
+                      size: const Size(180, 180), // Bilanciato per visibilità
                       painter: PieChartPainter(slices, totalAmount),
                     ),
                     // Centro del grafico con totale
@@ -617,88 +618,81 @@ class _AdminPageState extends ConsumerState<AdminPage> {
                   ],
                 ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 12), // Spazio adeguato per Material Design 3
               
-              // Legenda elegante con altezza fissa
+              // Legenda a griglia per mostrare tutte le categorie
               Expanded(
-                child: SingleChildScrollView(
-                  child: Column(
-                    children: [
-                      ...slices.take(4).map((slice) {
-                        final percentage = (slice.amount / totalAmount * 100);
-                        return Semantics(
-                          label: '${slice.category}: €${slice.amount.toStringAsFixed(2)}, ${percentage.toStringAsFixed(1)}%',
-                          child: Container(
-                            margin: const EdgeInsets.only(bottom: 8),
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: themeColor.shade200),
-                            ),
-                            child: Row(
-                              children: [
-                                Container(
-                                  width: 16,
-                                  height: 16,
-                                  decoration: BoxDecoration(
-                                    color: slice.color,
-                                    borderRadius: BorderRadius.circular(4),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: slice.color.withOpacity(0.3),
-                                        blurRadius: 4,
-                                        offset: const Offset(0, 2),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: Text(
-                                    slice.category,
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w600,
-                                      color: themeColor.shade800,
-                                    ),
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                                Text(
-                                  '${percentage.toStringAsFixed(1)}%',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w500,
-                                    color: themeColor.shade600,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        );
-                      }).toList(),
-                      
-                      if (slices.length > 4)
-                        Container(
-                          margin: const EdgeInsets.only(top: 8),
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                          decoration: BoxDecoration(
-                            color: themeColor.shade100,
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Text(
-                            '... e altre ${slices.length - 4} categorie',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: themeColor.shade600,
-                              fontWeight: FontWeight.w500,
-                              fontStyle: FontStyle.italic,
-                            ),
-                          ),
-                        ),
-                    ],
+                child: GridView.builder(
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 3, // 3 colonne per vedere più categorie
+                    childAspectRatio: 3.2, // Più spazio per leggibilità (a11y)
+                    crossAxisSpacing: 8, // Material Design 3 spacing
+                    mainAxisSpacing: 8,
                   ),
+                  itemCount: slices.length,
+                  itemBuilder: (context, index) {
+                    final slice = slices[index];
+                    final percentage = (slice.amount / totalAmount * 100);
+                    return Semantics(
+                      label: '${slice.category}: €${slice.amount.toStringAsFixed(2)}, ${percentage.toStringAsFixed(1)}% del totale',
+                      hint: 'Categoria di spesa per ${title.toLowerCase()}',
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8), // Material Design 3 touch target
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(12), // Material Design 3 corner radius
+                          border: Border.all(color: themeColor.shade200),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.05),
+                              blurRadius: 2,
+                              offset: const Offset(0, 1),
+                            ),
+                          ],
+                        ),
+                        child: Row(
+                          children: [
+                            Container(
+                              width: 12, // Dimensione minima accessibile
+                              height: 12,
+                              decoration: BoxDecoration(
+                                color: slice.color,
+                                borderRadius: BorderRadius.circular(3), // Material Design 3
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: slice.color.withOpacity(0.3),
+                                    blurRadius: 2,
+                                    offset: const Offset(0, 1),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(width: 8), // Material Design 3 spacing
+                            Expanded(
+                              child: Text(
+                                slice.category,
+                                style: TextStyle(
+                                  fontSize: 12, // Dimensione accessibile (min 12px)
+                                  fontWeight: FontWeight.w500,
+                                  color: themeColor.shade800,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                                maxLines: 1,
+                              ),
+                            ),
+                            Text(
+                              '${percentage.toStringAsFixed(0)}%',
+                              style: TextStyle(
+                                fontSize: 11, // Dimensione accessibile
+                                fontWeight: FontWeight.w500,
+                                color: themeColor.shade600,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
                 ),
               ),
             ], // Fine dell'else condizionale
@@ -763,45 +757,70 @@ class _AdminPageState extends ConsumerState<AdminPage> {
               ),
             ] else ...[
               const SizedBox(height: 20),
-              ...categories.map((c) => Container(
-                    margin: const EdgeInsets.only(bottom: 12),
+              // Griglia di categorie
+              GridView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 4, // 4 item per riga
+                  childAspectRatio: 2.2, // Leggermente più compatto
+                  crossAxisSpacing: 8,
+                  mainAxisSpacing: 8,
+                ),
+                itemCount: categories.length,
+                itemBuilder: (context, index) {
+                  final c = categories[index];
+                  return Container(
                     decoration: BoxDecoration(
                       color: Colors.green.shade50,
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(color: Colors.green.shade200),
                     ),
-                    child: ListTile(
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                      leading: Container(
-                        padding: const EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                          color: _hexToColor(c.color),
-                          borderRadius: BorderRadius.circular(12),
-                          boxShadow: [
-                            BoxShadow(
-                              color: _hexToColor(c.color).withOpacity(0.3),
-                              blurRadius: 4,
-                              offset: const Offset(0, 2),
+                    child: Padding(
+                      padding: const EdgeInsets.all(8), // Ridotto da 12 a 8
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(6), // Ridotto da 8 a 6
+                            decoration: BoxDecoration(
+                              color: _hexToColor(c.color),
+                              borderRadius: BorderRadius.circular(8), // Ridotto da 10 a 8
+                              boxShadow: [
+                                BoxShadow(
+                                  color: _hexToColor(c.color).withOpacity(0.3),
+                                  blurRadius: 4,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
                             ),
-                          ],
-                        ),
-                        child: Icon(c.icon, color: Colors.white, size: 20),
-                      ),
-                      title: Text(
-                        c.name,
-                        style: TextStyle(
-                          fontWeight: FontWeight.w600,
-                          fontSize: 16,
-                          color: Colors.grey.shade800,
-                        ),
-                      ),
-                      trailing: IconButton(
-                        icon: Icon(Icons.delete_rounded, color: Colors.red.shade600),
-                        tooltip: 'Elimina categoria ${c.name}',
-                        onPressed: () => _confirmDeleteCategory(c),
+                            child: Icon(c.icon, color: Colors.white, size: 16), // Ridotto da 18 a 16
+                          ),
+                          const SizedBox(width: 6), // Ridotto da 8 a 6
+                          Expanded(
+                            child: Text(
+                              c.name,
+                              style: TextStyle(
+                                fontWeight: FontWeight.w600,
+                                fontSize: 12, // Ridotto da 14 a 12
+                                color: Colors.grey.shade800,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          IconButton(
+                            icon: Icon(Icons.delete_rounded, color: Colors.red.shade600, size: 16), // Ridotto da 20 a 16
+                            tooltip: 'Elimina categoria ${c.name}',
+                            onPressed: () => _confirmDeleteCategory(c),
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(minWidth: 28, minHeight: 28), // Ridotto da 32 a 28
+                          ),
+                        ],
                       ),
                     ),
-                  )),
+                  );
+                },
+              ),
             ],
             const SizedBox(height: 20),
             _buildAddCategoryForm(),
@@ -851,57 +870,84 @@ class _AdminPageState extends ConsumerState<AdminPage> {
               ),
             ] else ...[
               const SizedBox(height: 20),
-              ...roommates.map((r) => Container(
-                    margin: const EdgeInsets.only(bottom: 12),
+              // Griglia di coinquilini
+              GridView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 4, // 4 item per riga
+                  childAspectRatio: 2.0, // Leggermente più compatto per i pulsanti
+                  crossAxisSpacing: 8,
+                  mainAxisSpacing: 8,
+                ),
+                itemCount: roommates.length,
+                itemBuilder: (context, index) {
+                  final r = roommates[index];
+                  return Container(
                     decoration: BoxDecoration(
                       color: Colors.blue.shade50,
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(color: Colors.blue.shade200),
                     ),
-                    child: ListTile(
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                      leading: CircleAvatar(
-                        radius: 24,
-                        backgroundImage: r.photoUrl != null && r.photoUrl!.isNotEmpty
-                            ? NetworkImage(r.photoUrl!)
-                            : null,
-                        backgroundColor: Colors.blue.shade700,
-                        child: r.photoUrl == null || r.photoUrl!.isEmpty
-                            ? Text(
-                                r.name.isNotEmpty ? r.name[0].toUpperCase() : '?',
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 18,
-                                ),
-                              )
-                            : null,
-                      ),
-                      title: Text(
-                        r.name,
-                        style: TextStyle(
-                          fontWeight: FontWeight.w600,
-                          fontSize: 16,
-                          color: Colors.grey.shade800,
-                        ),
-                      ),
-                      trailing: Row(
-                        mainAxisSize: MainAxisSize.min,
+                    child: Padding(
+                      padding: const EdgeInsets.all(8), // Ridotto da 12 a 8
+                      child: Row(
                         children: [
-                          IconButton(
-                            icon: Icon(Icons.edit_rounded, color: Colors.orange.shade600),
-                            tooltip: 'Modifica ${r.name}',
-                            onPressed: () => _editRoommate(r),
+                          CircleAvatar(
+                            radius: 16, // Ridotto da 20 a 16
+                            backgroundImage: r.photoUrl != null && r.photoUrl!.isNotEmpty
+                                ? NetworkImage(r.photoUrl!)
+                                : null,
+                            backgroundColor: Colors.blue.shade700,
+                            child: r.photoUrl == null || r.photoUrl!.isEmpty
+                                ? Text(
+                                    r.name.isNotEmpty ? r.name[0].toUpperCase() : '?',
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 14, // Ridotto da 16 a 14
+                                    ),
+                                  )
+                                : null,
                           ),
-                          IconButton(
-                            icon: Icon(Icons.delete_rounded, color: Colors.red.shade600),
-                            tooltip: 'Elimina ${r.name}',
-                            onPressed: () => _confirmDeleteRoommate(r),
+                          const SizedBox(width: 8), // Ridotto da 12 a 8
+                          Expanded(
+                            child: Text(
+                              r.name,
+                              style: TextStyle(
+                                fontWeight: FontWeight.w600,
+                                fontSize: 12, // Ridotto da 14 a 12
+                                color: Colors.grey.shade800,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              IconButton(
+                                icon: Icon(Icons.edit_rounded, color: Colors.orange.shade600, size: 16), // Ridotto da 18 a 16
+                                tooltip: 'Modifica ${r.name}',
+                                onPressed: () => _editRoommate(r),
+                                padding: EdgeInsets.zero,
+                                constraints: const BoxConstraints(minWidth: 28, minHeight: 28), // Ridotto da 32 a 28
+                              ),
+                              IconButton(
+                                icon: Icon(Icons.delete_rounded, color: Colors.red.shade600, size: 16), // Ridotto da 18 a 16
+                                tooltip: 'Elimina ${r.name}',
+                                onPressed: () => _confirmDeleteRoommate(r),
+                                padding: EdgeInsets.zero,
+                                constraints: const BoxConstraints(minWidth: 28, minHeight: 28), // Ridotto da 32 a 28
+                              ),
+                            ],
                           ),
                         ],
                       ),
                     ),
-                  )),
+                  );
+                },
+              ),
             ],
             const SizedBox(height: 20),
             _buildAddRoommateForm(),
