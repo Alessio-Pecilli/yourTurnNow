@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:your_turn/src/models/todo_status.dart';
 import 'package:your_turn/src/models/todo_category.dart';
 import 'package:your_turn/src/models/todo_item.dart';
 import 'package:your_turn/src/providers/roommates_provider.dart';
 import 'package:your_turn/src/providers/todo_provider.dart';
-import 'package:your_turn/src/providers/user_provider.dart';
 import 'package:your_turn/src/providers/categories_provider.dart';
 import 'package:your_turn/src/widgets/todo/todo_add_dialog.dart';
 import 'package:your_turn/src/widgets/todo/empty_state.dart';
 import 'package:your_turn/src/widgets/todo/assignees_avatars.dart';
-import 'package:your_turn/src/widgets/weather_widget.dart';
+import 'package:your_turn/src/widgets/weather/weather_card.dart';
 import 'profile_page.dart';
 import 'admin_page.dart';
 
@@ -21,7 +21,7 @@ final todosJustYouFilterProvider = StateProvider<bool>((ref) => false);
 
 // Provider for pagination
 final currentPageProvider = StateProvider<int>((ref) => 0);
-const int todosPerPage = 10;
+const int todosPerPage = 16; // Aumentato per sfruttare la griglia a 4 colonne (4x4 = 16)
 
 // Provider for paginated todos
 final paginatedTodosProvider = Provider<List<TodoItem>>((ref) {
@@ -51,7 +51,7 @@ class TodoPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final user = ref.watch(userProvider);
+
     final categories = ref.watch(categoriesProvider);
     final tasks = ref.watch(paginatedTodosProvider);
     final allTasks = ref.watch(filteredTodosProvider);
@@ -72,7 +72,39 @@ class TodoPage extends ConsumerWidget {
       }
     });
 
-    return Scaffold(
+    
+
+    return RawKeyboardListener(
+  focusNode: FocusNode(),
+  autofocus: true,
+  onKey: (RawKeyEvent event) {
+    if (event is RawKeyDownEvent) {
+      final key = event.logicalKey;
+
+      // 🔹 N = apre dialog nuovo To-Do
+      if (key == LogicalKeyboardKey.keyN) {
+        showTodoAddDialog(context, ref);
+      }
+
+      // 🔹 A = vai alla pagina amministratore
+      if (key == LogicalKeyboardKey.keyA) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const AdminPage()),
+        );
+      }
+
+      // 🔹 P = vai alla pagina profilo
+      if (key == LogicalKeyboardKey.keyP) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const ProfilePage()),
+        );
+      }
+    }
+  },
+
+  child: Scaffold(
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
@@ -93,83 +125,168 @@ class TodoPage extends ConsumerWidget {
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   child: Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      Container(
-                        margin: const EdgeInsets.only(right: 12),
-                        child: ElevatedButton.icon(
-                          onPressed: () {
-                            Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (_) => const AdminPage(),
-                              ),
-                            );
-                          },
-                          icon: const Icon(Icons.admin_panel_settings, size: 18),
-                          label: const Text('Admin'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.orange.shade600,
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            elevation: 3,
+                      // Meteo a sinistra
+                      const CompactWeather(city: 'Roma,IT'),
+                      
+                      Row(
+  crossAxisAlignment: CrossAxisAlignment.center,
+  mainAxisSize: MainAxisSize.min,
+  children: [
+    
+    Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        //  Tasto A - Admin
+        Container(
+          margin: const EdgeInsets.only(right: 8),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Colors.orange.shade400, Colors.orange.shade600],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.orange.withOpacity(0.3),
+                blurRadius: 8,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              borderRadius: BorderRadius.circular(12),
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const AdminPage()),
+              ),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 24,
+                      height: 24,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(4),
+                        border: Border.all(color: Colors.orange.shade700, width: 2),
+                      ),
+                      child: Center(
+                        child: Text(
+                          'A',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.orange.shade700,
+                            fontSize: 14,
                           ),
                         ),
                       ),
-                      if (user != null)
-                        GestureDetector(
-                          onTap: () {
-                            Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (_) => const ProfilePage(),
-                              ),
-                            );
-                          },
-                          child: Container(
-                            width: 44,
-                            height: 44,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              border: Border.all(
-                                color: Colors.blue.shade700,
-                                width: 3,
-                              ),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withOpacity(0.2),
-                                  blurRadius: 6,
-                                  offset: const Offset(0, 3),
-                                ),
-                              ],
-                            ),
-                            child: ClipOval(
-                              child: user.photoUrl?.isNotEmpty == true
-                                  ? Image.network(
-                                      user.photoUrl!,
-                                      width: 44,
-                                      height: 44,
-                                      fit: BoxFit.cover,
-                                      errorBuilder: (_, __, ___) => _fallbackAvatar(user.name),
-                                    )
-                                  : _fallbackAvatar(user.name),
-                            ),
+                    ),
+                    const SizedBox(width: 8),
+                    const Text(
+                      'ADMIN',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 12,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    const Icon(Icons.admin_panel_settings, color: Colors.white, size: 16),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
+    ),
+    const SizedBox(width: 16),
+
+        // � Tasto P - Profilo (stesso stile di Admin)
+        Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Colors.blue.shade400, Colors.blue.shade600],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.blue.withOpacity(0.3),
+                blurRadius: 8,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              borderRadius: BorderRadius.circular(12),
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const ProfilePage()),
+              ),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 24,
+                      height: 24,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(4),
+                        border: Border.all(color: Colors.blue.shade700, width: 2),
+                      ),
+                      child: Center(
+                        child: Text(
+                          'P',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.blue.shade700,
+                            fontSize: 14,
                           ),
                         ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    const Text(
+                      'PROFILO',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 12,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    const Icon(Icons.person, color: Colors.white, size: 16),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+  ],
+),
+
                     ],
                   ),
                 ),
               ),
             ),
             
-            // Widget meteo
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-                child: const WeatherWidget(),
-              ),
-            ),
+           
+            
             
             SliverToBoxAdapter(
               child: Padding(
@@ -303,6 +420,7 @@ class TodoPage extends ConsumerWidget {
                               }),
                             ],
                           ),
+
                         ],
                       ),
                     ),
@@ -316,8 +434,27 @@ class TodoPage extends ConsumerWidget {
               const EmptyStateSliver()
             else
               SliverPadding(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                sliver: SliverGrid(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                sliver: SliverLayoutBuilder(
+                  builder: (context, constraints) {
+                    // Calcola dimensioni dinamiche per i todo
+                    final screenWidth = constraints.crossAxisExtent;
+                    final minCardWidth = 280.0; // Larghezza minima per leggibilità
+                    final maxCardWidth = 400.0; // Larghezza massima
+                    
+                    // Calcola numero ottimale di colonne
+                    int crossAxisCount = (screenWidth / minCardWidth).floor();
+                    if (crossAxisCount < 1) crossAxisCount = 1;
+                    if (crossAxisCount > 6) crossAxisCount = 6;
+                    
+                    // Calcola larghezza effettiva delle card
+                    final cardWidth = screenWidth / crossAxisCount;
+                    final clampedCardWidth = cardWidth.clamp(minCardWidth, maxCardWidth);
+                    
+                    // Aspect ratio dinamico per altezza ottimale
+                    final aspectRatio = clampedCardWidth / 220.0; // Altezza fissa 220px per vedere tutto
+                    
+                    return SliverGrid(
                   delegate: SliverChildBuilderDelegate(
                     (context, index) {
                       final t = tasks[index];
@@ -331,15 +468,15 @@ class TodoPage extends ConsumerWidget {
                       final isCompleted = t.status == TodoStatus.done;
 
                       return Container(
-                        margin: const EdgeInsets.symmetric(vertical: 2, horizontal: 2),
+                        margin: const EdgeInsets.symmetric(vertical: 2), // Solo margine verticale
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(10),
                           gradient: LinearGradient(
                             colors: isCompleted
-                                ? [Colors.green.shade50, Colors.green.shade100]
+                                ? [Colors.green.shade50.withOpacity(0.3), Colors.green.shade50.withOpacity(0.7)]
                                 : [Colors.white, Colors.grey.shade100], // niente più celestino
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
+                            begin: isCompleted ? Alignment.bottomRight : Alignment.topLeft,
+                            end: isCompleted ? Alignment.topLeft : Alignment.bottomRight,
                           ),
                           boxShadow: [
                             BoxShadow(
@@ -362,7 +499,7 @@ class TodoPage extends ConsumerWidget {
                             borderRadius: BorderRadius.circular(10),
                             onTap: () => ref.read(todosProvider.notifier).toggleDone(t.id),
                             child: Padding(
-                              padding: const EdgeInsets.all(4), // Ridotto da 5 a 4
+                              padding: const EdgeInsets.all(5), // Bilanciato per 4 colonne
                               child: SingleChildScrollView(
                                 physics: const ClampingScrollPhysics(),
                                 child: Column(
@@ -380,25 +517,13 @@ class TodoPage extends ConsumerWidget {
                                         _buildActions(context, ref, t),
                                       ],
                                     ),
-                                    const SizedBox(height: 3), // Ridotto da 4 a 3
+                                    const SizedBox(height: 6), // Aumentato per migliore separazione
                                     if (assigned.isNotEmpty) ...[
-                                      Row(
-                                        children: [
-                                          Icon(Icons.people_rounded, size: 9, color: Colors.grey.shade600),
-                                          const SizedBox(width: 12), // Aumentato da 2 a 12
-                                          Text(
-                                            'A:',
-                                            style: TextStyle(
-                                              fontSize: 8.5,
-                                              fontWeight: FontWeight.w600,
-                                              color: Colors.grey.shade600,
-                                            ),
-                                          ),
-                                          const SizedBox(width: 2),
-                                          Expanded(child: AssigneesAvatars(assignees: assigned)),
-                                        ],
+                                      Padding(
+                                        padding: const EdgeInsets.only(left: 8),
+                                        child: AssigneesAvatars(assignees: assigned),
                                       ),
-                                      const SizedBox(height: 8), // Aumentato da 2 a 8
+                                      const SizedBox(height: 12), // Aumentato da 6 a 12 per più spazio
                                     ],
                                     Wrap(
                                       spacing: 4,
@@ -449,12 +574,14 @@ class TodoPage extends ConsumerWidget {
                     },
                     childCount: tasks.length,
                   ),
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    mainAxisSpacing: 6,
-                    crossAxisSpacing: 6,
-                    childAspectRatio: 5.0, // Aumentato da 4.2 a 5.0 per rendere i card più bassi
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: crossAxisCount, // Dinamico!
+                    mainAxisSpacing: 12,
+                    crossAxisSpacing: 12, // Spazio uniforme tra le card
+                    childAspectRatio: aspectRatio, // Dinamico!
                   ),
+                );
+                  },
                 ),
               ),
 
@@ -554,28 +681,39 @@ class TodoPage extends ConsumerWidget {
         onPressed: () => showTodoAddDialog(context, ref),
         backgroundColor: Colors.blue.shade700,
         foregroundColor: Colors.white,
-        icon: const Icon(Icons.add, size: 24),
+        icon: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 20,
+              height: 20,
+              margin: const EdgeInsets.only(right: 6),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(4),
+                border: Border.all(color: Colors.blue.shade700, width: 1.5),
+              ),
+              child: Center(
+                child: Text(
+                  'N',
+                  style: TextStyle(
+                    color: Colors.blue.shade700,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 12,
+                  ),
+                ),
+              ),
+            ),
+            const Icon(Icons.add, size: 24),
+          ],
+        ),
         label: const Text(
           'Nuovo',
           style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
         ),
       ),
-    );
+    ),);
   }
-
-  Widget _fallbackAvatar(String name) => Container(
-    color: Colors.blue.shade700,
-    child: Center(
-      child: Text(
-        name.isNotEmpty ? name[0].toUpperCase() : '?',
-        style: const TextStyle(
-          color: Colors.white,
-          fontWeight: FontWeight.bold,
-          fontSize: 18,
-        ),
-      ),
-    ),
-  );
 
   Widget _buildCheckbox(bool done) => Container(
     width: 28,
@@ -732,6 +870,7 @@ class _ToggleBtn extends StatelessWidget {
   const _ToggleBtn({required this.icon, required this.text});
   @override
   Widget build(BuildContext context) {
+    
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8),
       child: Row(

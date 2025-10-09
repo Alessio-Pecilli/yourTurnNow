@@ -11,8 +11,15 @@ import 'package:your_turn/src/providers/roommates_provider.dart';
 import 'package:your_turn/src/providers/user_provider.dart';
 import 'package:your_turn/src/utils/a11y_scroll_behavior.dart';
 
+// 👉 Aggiungi questo import
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
-void main() => runApp(const ProviderScope(child: MyApp()));
+Future<void> main() async {
+  // Carica le variabili d’ambiente dal file .env
+  await dotenv.load(fileName: ".env");
+
+  runApp(const ProviderScope(child: MyApp()));
+}
 
 class MyApp extends ConsumerWidget {
   const MyApp({super.key});
@@ -20,6 +27,11 @@ class MyApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final utente = ref.watch(userProvider);
+
+    // Esempio di utilizzo di una variabile dal .env
+    final apiKey = dotenv.env['API_KEY'];
+    final baseUrl = dotenv.env['BASE_URL'];
+
 
     // Side-effect post-build
     if (utente != null) {

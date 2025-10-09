@@ -3,7 +3,9 @@ import 'package:http/http.dart' as http;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:your_turn/src/models/user_data.dart';
+import 'package:your_turn/src/models/expense_category.dart';
 import 'package:your_turn/src/providers/roommates_provider.dart';
+import 'package:your_turn/src/providers/transactions_provider.dart';
 import 'package:your_turn/src/providers/user_provider.dart';
 
 
@@ -48,6 +50,9 @@ class AuthController {
         photoUrl: photo,
       );
 
+      // 5) aggiungi transazioni automatiche per il nuovo utente
+      _addInitialTransactions(account.id);
+
       
     } catch (e) {
       // log compatto
@@ -71,5 +76,46 @@ class AuthController {
       return map['picture'] as String?;
     }
     return null;
+  }
+
+  /// Aggiunge transazioni iniziali automatiche per un nuovo utente
+  void _addInitialTransactions(String userId) {
+    final transactionsCtrl = ref.read(transactionsProvider.notifier);
+    final now = DateTime.now();
+
+    // Verifica se l'utente ha già delle transazioni
+    final existingTxs = ref.read(transactionsProvider);
+    final userHasTxs = existingTxs.any((tx) => tx.roommateId == userId);
+    
+    // Se ha già transazioni, non aggiungere nulla
+    if (userHasTxs) return;
+
+    // Lista di transazioni varie e colorate per il profilo
+    final initialTransactions = [
+      // Spese recenti
+      {'amount': -25.0, 'note': 'Spesa supermercato 🛒', 'days': 1, 'category': ExpenseCategory.spesa},
+      {'amount': -45.0, 'note': 'Quota bolletta luce 💡', 'days': 2, 'category': ExpenseCategory.bolletta},
+      {'amount': -12.0, 'note': 'Detersivo cucina 🧴', 'days': 3, 'category': ExpenseCategory.spesa},
+      {'amount': 30.0, 'note': 'Rimborso cena con amici 🍕', 'days': 4, 'category': ExpenseCategory.prestito},
+      {'amount': -60.0, 'note': 'Bolletta gas 🔥', 'days': 5, 'category': ExpenseCategory.bolletta},
+      
+      // Settimana scorsa
+      {'amount': -18.0, 'note': 'Pizza a domicilio 🍕', 'days': 8, 'category': ExpenseCategory.altro},
+      {'amount': -8.0, 'note': 'Prodotti bagno 🚿', 'days': 10, 'category': ExpenseCategory.pulizia},
+      {'amount': 25.0, 'note': 'Prestito Marco per benzina ⛽', 'days': 12, 'category': ExpenseCategory.trasporti},
+      {'amount': -35.0, 'note': 'Internet casa 📶', 'days': 14, 'category': ExpenseCategory.bolletta},
+      {'amount': -22.0, 'note': 'Aperitivo coinquilini 🍻', 'days': 16, 'category': ExpenseCategory.altro},
+    ];
+
+    // Aggiunge ogni transazione
+    for (final txData in initialTransactions) {
+      transactionsCtrl.addTx(
+        roommateId: userId,
+        amount: txData['amount'] as double,
+        note: txData['note'] as String,
+        when: now.subtract(Duration(days: txData['days'] as int)),
+        category: txData['category'] as ExpenseCategory,
+      );
     }
+  }
 }
