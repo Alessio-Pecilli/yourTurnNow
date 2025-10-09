@@ -54,7 +54,7 @@ class LoginScreen extends ConsumerWidget {
                           const SizedBox(height: 12),
 
                           Text(
-                            "Organizza casa insieme: To-do condivisi, spese, e tanta serenità ✨",
+                            "Organizza casa insieme: To-do condivisi, spese, e tanta serenita",
                             textAlign: TextAlign.center,
                             style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                                   color: const Color(0xFF1E40AF), // blu scuro (Tailwind "blue-900")

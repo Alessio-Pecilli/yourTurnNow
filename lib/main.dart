@@ -56,6 +56,7 @@ class MyApp extends ConsumerWidget {
           brightness: b,
           visualDensity: VisualDensity.standard,
           textTheme: baseText,
+          fontFamily: 'SafeFont',
           focusColor: Colors.transparent,
           splashFactory: InkSparkle.splashFactory,
           filledButtonTheme: FilledButtonThemeData(
