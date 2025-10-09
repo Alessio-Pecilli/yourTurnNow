@@ -17,6 +17,12 @@ import 'package:intl/intl.dart';
 import 'package:your_turn/src/utils/csv_web_download_stub.dart'
   if (dart.library.html) 'package:your_turn/src/utils/csv_web_download.dart';
 
+// Modular admin widgets
+import 'package:your_turn/src/widgets/admin/pie_chart.dart';
+import 'package:your_turn/src/widgets/admin/color_picker.dart';
+import 'package:your_turn/src/widgets/admin/icon_grid.dart';
+import 'package:your_turn/src/widgets/admin/cards.dart';
+
 // Classe per l'Intent della shortcut download
 class _DownloadIntent extends Intent {
   const _DownloadIntent();
@@ -103,52 +109,8 @@ class _AdminPageState extends ConsumerState<AdminPage> {
     super.dispose();
   }
 
-  Color _hexToColor(String hex) {
-    return Color(int.parse(hex.substring(1), radix: 16) + 0xFF000000);
-  }
+  // hex color conversion is provided by widgets where needed
 
-  Widget _buildColorPicker() {
-    return Wrap(
-      spacing: 8,
-      children: _availableColors.map((colorData) {
-        final colorHex = colorData['hex']!;
-        final colorName = colorData['name']!;
-        final isSelected = colorHex == _selectedColor;
-        return Semantics(
-          label: 'Colore $colorName',
-          selected: isSelected,
-          child: GestureDetector(
-            onTap: () {
-              setState(() => _selectedColor = colorHex);
-              HapticFeedback.selectionClick();
-            },
-            child: Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: _hexToColor(colorHex),
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: isSelected ? Colors.black87 : Colors.grey.shade300,
-                  width: isSelected ? 3 : 1,
-                ),
-                boxShadow: isSelected ? [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.3),
-                    blurRadius: 8,
-                    offset: const Offset(0, 3),
-                  ),
-                ] : null,
-              ),
-              child: isSelected
-                  ? const Icon(Icons.check, color: Colors.white, size: 20)
-                  : null,
-            ),
-          ),
-        );
-      }).toList(),
-    );
-  }
 
   // Funzione per scaricare i dati dei grafici in formato CSV
   Future<void> _downloadChartsData() async {
@@ -718,432 +680,72 @@ class _AdminPageState extends ConsumerState<AdminPage> {
 
   Widget _buildCategoriesCard() {
     final categories = ref.watch(categoriesProvider);
-    return Card(
-      elevation: 6,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-      color: Colors.white,
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(Icons.category, color: Colors.green.shade700, size: 24),
-                const SizedBox(width: 12),
-                Text(
-                  'Gestione Categorie',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.grey.shade800,
-                  ),
-                ),
-              ],
-            ),
-            if (categories.isEmpty) ...[
-              const SizedBox(height: 20),
-              Center(
-                child: Column(
-                  children: [
-                    Icon(Icons.category_outlined, size: 48, color: Colors.grey.shade400),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Nessuna categoria presente',
-                      style: TextStyle(color: Colors.grey.shade700, fontSize: 16, fontWeight: FontWeight.w500),
-                    ),
-                  ],
-                ),
-              ),
-            ] else ...[
-              const SizedBox(height: 20),
-              // Griglia di categorie
-              GridView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 4, // 4 item per riga
-                  childAspectRatio: 2.2, // Leggermente più compatto
-                  crossAxisSpacing: 8,
-                  mainAxisSpacing: 8,
-                ),
-                itemCount: categories.length,
-                itemBuilder: (context, index) {
-                  final c = categories[index];
-                  return Container(
-                    decoration: BoxDecoration(
-                      color: Colors.green.shade50,
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: Colors.green.shade200),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(8), // Ridotto da 12 a 8
-                      child: Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(6), // Ridotto da 8 a 6
-                            decoration: BoxDecoration(
-                              color: _hexToColor(c.color),
-                              borderRadius: BorderRadius.circular(8), // Ridotto da 10 a 8
-                              boxShadow: [
-                                BoxShadow(
-                                  color: _hexToColor(c.color).withOpacity(0.3),
-                                  blurRadius: 4,
-                                  offset: const Offset(0, 2),
-                                ),
-                              ],
-                            ),
-                            child: Icon(c.icon, color: Colors.white, size: 16), // Ridotto da 18 a 16
-                          ),
-                          const SizedBox(width: 6), // Ridotto da 8 a 6
-                          Expanded(
-                            child: Text(
-                              c.name,
-                              style: TextStyle(
-                                fontWeight: FontWeight.w600,
-                                fontSize: 12, // Ridotto da 14 a 12
-                                color: Colors.grey.shade800,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                          IconButton(
-                            icon: Icon(Icons.delete_rounded, color: Colors.red.shade600, size: 16), // Ridotto da 20 a 16
-                            tooltip: 'Elimina categoria ${c.name}',
-                            onPressed: () => _confirmDeleteCategory(c),
-                            padding: EdgeInsets.zero,
-                            constraints: const BoxConstraints(minWidth: 28, minHeight: 28), // Ridotto da 32 a 28
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ],
-            const SizedBox(height: 20),
-            _buildAddCategoryForm(),
-          ],
-        ),
-      ),
+    return CategoriesCard(
+      categories: categories,
+      onAddCategory: () {},
+      onAddCategoryPressed: () => _showAddCategoryDialog(),
+      onDelete: (c) => _confirmDeleteCategory(c),
     );
   }
 
   Widget _buildRoommatesCard(List<Roommate> roommates) {
-    return Card(
-      elevation: 6,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-      color: Colors.white,
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(Icons.people, color: Colors.blue.shade700, size: 24),
-                const SizedBox(width: 12),
-                Text(
-                  'Gestione Coinquilini',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.grey.shade800,
-                  ),
-                ),
-              ],
-            ),
-            if (roommates.isEmpty) ...[
-              const SizedBox(height: 20),
-              Center(
-                child: Column(
-                  children: [
-                    Icon(Icons.group_off, size: 48, color: Colors.grey.shade400),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Nessun coinquilino presente',
-                      style: TextStyle(color: Colors.grey.shade700, fontSize: 16, fontWeight: FontWeight.w500),
-                    ),
-                  ],
-                ),
-              ),
-            ] else ...[
-              const SizedBox(height: 20),
-              // Griglia di coinquilini
-              GridView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 4, // 4 item per riga
-                  childAspectRatio: 2.0, // Leggermente più compatto per i pulsanti
-                  crossAxisSpacing: 8,
-                  mainAxisSpacing: 8,
-                ),
-                itemCount: roommates.length,
-                itemBuilder: (context, index) {
-                  final r = roommates[index];
-                  return Container(
-                    decoration: BoxDecoration(
-                      color: Colors.blue.shade50,
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: Colors.blue.shade200),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(8), // Ridotto da 12 a 8
-                      child: Row(
-                        children: [
-                          CircleAvatar(
-                            radius: 16, // Ridotto da 20 a 16
-                            backgroundImage: r.photoUrl != null && r.photoUrl!.isNotEmpty
-                                ? NetworkImage(r.photoUrl!)
-                                : null,
-                            backgroundColor: Colors.blue.shade700,
-                            child: r.photoUrl == null || r.photoUrl!.isEmpty
-                                ? Text(
-                                    r.name.isNotEmpty ? r.name[0].toUpperCase() : '?',
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 14, // Ridotto da 16 a 14
-                                    ),
-                                  )
-                                : null,
-                          ),
-                          const SizedBox(width: 8), // Ridotto da 12 a 8
-                          Expanded(
-                            child: Text(
-                              r.name,
-                              style: TextStyle(
-                                fontWeight: FontWeight.w600,
-                                fontSize: 12, // Ridotto da 14 a 12
-                                color: Colors.grey.shade800,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                          Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              IconButton(
-                                icon: Icon(Icons.edit_rounded, color: Colors.orange.shade600, size: 16), // Ridotto da 18 a 16
-                                tooltip: 'Modifica ${r.name}',
-                                onPressed: () => _editRoommate(r),
-                                padding: EdgeInsets.zero,
-                                constraints: const BoxConstraints(minWidth: 28, minHeight: 28), // Ridotto da 32 a 28
-                              ),
-                              IconButton(
-                                icon: Icon(Icons.delete_rounded, color: Colors.red.shade600, size: 16), // Ridotto da 18 a 16
-                                tooltip: 'Elimina ${r.name}',
-                                onPressed: () => _confirmDeleteRoommate(r),
-                                padding: EdgeInsets.zero,
-                                constraints: const BoxConstraints(minWidth: 28, minHeight: 28), // Ridotto da 32 a 28
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ],
-            const SizedBox(height: 20),
-            _buildAddRoommateForm(),
-          ],
-        ),
-      ),
+    return RoommatesCard(
+      roommates: roommates,
+      onEdit: (r) => _editRoommate(r),
+      onDelete: (r) => _confirmDeleteRoommate(r),
+      onAddRoommatePressed: () => _showAddRoommateDialog(),
     );
   }
 
-  Widget _buildAddRoommateForm() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Aggiungi nuovo coinquilino',
-          style: TextStyle(
-            fontWeight: FontWeight.w600,
-            fontSize: 16,
-            color: Colors.grey.shade800,
-          ),
-        ),
-        const SizedBox(height: 12),
-        Row(
-          children: [
-            Expanded(
-              child: TextField(
-                controller: _roommateController,
-                decoration: InputDecoration(
-                  hintText: 'Nome coinquilino',
-                  hintStyle: TextStyle(color: Colors.grey.shade500),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: Colors.grey.shade300),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: Colors.grey.shade300),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: Colors.blue.shade700, width: 2),
-                  ),
-                  prefixIcon: Icon(Icons.person_add, color: Colors.blue.shade600),
-                  filled: true,
-                  fillColor: Colors.grey.shade50,
-                ),
-                style: TextStyle(color: Colors.grey.shade800),
-                textCapitalization: TextCapitalization.words,
-                onSubmitted: (_) => _addRoommate(),
-              ),
-            ),
-            const SizedBox(width: 12),
-            FilledButton(
-              onPressed: _addRoommate,
-              style: FilledButton.styleFrom(
-                backgroundColor: Colors.blue.shade700,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-              ),
-              child: const Icon(Icons.add, size: 20),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-
-  Widget _buildAddCategoryForm() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Aggiungi nuova categoria',
-          style: TextStyle(
-            fontWeight: FontWeight.w600,
-            fontSize: 16,
-            color: Colors.grey.shade800,
-          ),
-        ),
-        const SizedBox(height: 12),
-        TextField(
-          controller: _categoryNameController,
-          decoration: InputDecoration(
-            hintText: 'Nome categoria',
-            hintStyle: TextStyle(color: Colors.grey.shade500),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: Colors.grey.shade300),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: Colors.grey.shade300),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: Colors.green.shade700, width: 2),
-            ),
-            prefixIcon: Icon(Icons.label, color: Colors.green.shade600),
-            filled: true,
-            fillColor: Colors.grey.shade50,
-          ),
-          style: TextStyle(color: Colors.grey.shade800),
+  // Dialog to add roommate
+  void _showAddRoommateDialog() {
+    _roommateController.clear();
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        title: Row(children: [Icon(Icons.person_add, color: Colors.blue.shade700), const SizedBox(width: 8), Text('Aggiungi Coinquilino', style: TextStyle(fontWeight: FontWeight.w600, color: Colors.grey.shade800))]),
+        content: TextField(
+          controller: _roommateController,
+          decoration: InputDecoration(hintText: 'Nome coinquilino', prefixIcon: Icon(Icons.person, color: Colors.blue.shade600)),
           textCapitalization: TextCapitalization.words,
+          onSubmitted: (_) => _addRoommate(),
         ),
-        const SizedBox(height: 16),
-        Text(
-          'Scegli icona',
-          style: TextStyle(
-            fontWeight: FontWeight.w500,
-            color: Colors.grey.shade800,
-          ),
-        ),
-        const SizedBox(height: 8),
-        _buildIconGrid(),
-        const SizedBox(height: 16),
-        Text(
-          'Scegli colore',
-          style: TextStyle(
-            fontWeight: FontWeight.w500,
-            color: Colors.grey.shade800,
-          ),
-        ),
-        const SizedBox(height: 8),
-        _buildColorPicker(),
-        const SizedBox(height: 20),
-        SizedBox(
-          width: double.infinity,
-          child: FilledButton.icon(
-            onPressed: _addCategory,
-            icon: const Icon(Icons.add),
-            label: const Text('Aggiungi Categoria'),
-            style: FilledButton.styleFrom(
-              backgroundColor: Colors.green.shade700,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              padding: const EdgeInsets.symmetric(vertical: 16),
-            ),
-          ),
-        ),
-      ],
+        actions: [
+          TextButton(onPressed: () => context.pop(), child: Text('Annulla', style: TextStyle(color: Colors.grey.shade600))),
+          FilledButton(onPressed: () { _addRoommate(); context.pop(); }, style: FilledButton.styleFrom(backgroundColor: Colors.blue.shade700), child: const Text('Aggiungi')),
+        ],
+      ),
     );
   }
 
-  Widget _buildIconGrid() {
-    final iconKeys = _iconByKey.keys.toList();
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        border: Border.all(color: Colors.grey.shade300),
-        borderRadius: BorderRadius.circular(12),
-        color: Colors.grey.shade50,
-      ),
-      child: GridView.builder(
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 12, // 12 colonne
-          childAspectRatio: 1,
-          crossAxisSpacing: 8,
-          mainAxisSpacing: 8,
+  // Dialog to add category
+  void _showAddCategoryDialog() {
+    _categoryNameController.clear();
+    _selectedIconKey = null;
+    _selectedColor = _availableColors.first['hex']!;
+    showDialog(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          backgroundColor: Colors.white,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+          title: Row(children: [Icon(Icons.label, color: Colors.green.shade700), const SizedBox(width: 8), Text('Aggiungi Categoria', style: TextStyle(fontWeight: FontWeight.w600, color: Colors.grey.shade800))]),
+          content: SingleChildScrollView(
+            child: Column(mainAxisSize: MainAxisSize.min, children: [
+              TextField(controller: _categoryNameController, decoration: InputDecoration(hintText: 'Nome categoria', prefixIcon: Icon(Icons.label, color: Colors.green.shade600)), textCapitalization: TextCapitalization.words),
+              const SizedBox(height: 12),
+              AdminIconGrid(icons: _iconByKey, selectedKey: _selectedIconKey, onSelected: (k) => setDialogState(() => _selectedIconKey = k)),
+              const SizedBox(height: 12),
+              AdminColorPicker(colors: _availableColors, selectedHex: _selectedColor, onSelected: (hex) => setDialogState(() => _selectedColor = hex)),
+            ]),
+          ),
+          actions: [
+            TextButton(onPressed: () => context.pop(), child: Text('Annulla', style: TextStyle(color: Colors.grey.shade600))),
+            FilledButton(onPressed: () { _addCategory(); context.pop(); }, style: FilledButton.styleFrom(backgroundColor: Colors.green.shade700), child: const Text('Aggiungi')),
+          ],
         ),
-        itemCount: 24, // Esattamente 24 icone (2 righe x 12)
-        itemBuilder: (context, index) {
-          if (index >= iconKeys.length) return const SizedBox.shrink();
-          
-          final iconKey = iconKeys[index];
-          final isSelected = _selectedIconKey == iconKey;
-          
-          return GestureDetector(
-            onTap: () {
-              setState(() => _selectedIconKey = iconKey);
-              HapticFeedback.selectionClick();
-            },
-            child: Container(
-              decoration: BoxDecoration(
-                color: isSelected ? Colors.green.shade700 : Colors.white,
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(
-                  color: isSelected ? Colors.green.shade700 : Colors.grey.shade300,
-                  width: isSelected ? 2 : 1,
-                ),
-                boxShadow: isSelected ? [
-                  BoxShadow(
-                    color: Colors.green.shade700.withOpacity(0.3),
-                    blurRadius: 4,
-                    offset: const Offset(0, 2),
-                  ),
-                ] : null,
-              ),
-              child: Icon(
-                _iconByKey[iconKey],
-                color: isSelected ? Colors.white : Colors.grey.shade700,
-                size: 20,
-              ),
-            ),
-          );
-        },
       ),
     );
   }
@@ -1398,67 +1000,4 @@ class _AdminPageState extends ConsumerState<AdminPage> {
   }
 }
 
-// Classi per il grafico a torta
-class ExpenseSlice {
-  final String category;
-  final double amount;
-  final Color color;
-
-  ExpenseSlice({
-    required this.category,
-    required this.amount,
-    required this.color,
-  });
-}
-
-class PieChartPainter extends CustomPainter {
-  final List<ExpenseSlice> slices;
-  final double total;
-
-  PieChartPainter(this.slices, this.total);
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    if (slices.isEmpty || total <= 0) return;
-
-    final center = Offset(size.width / 2, size.height / 2);
-    final radius = math.min(size.width, size.height) / 2 - 10;
-    
-    double startAngle = -math.pi / 2; // Inizia dalle 12
-
-    for (final slice in slices) {
-      final sweepAngle = (slice.amount / total) * 2 * math.pi;
-      
-      final paint = Paint()
-        ..color = slice.color
-        ..style = PaintingStyle.fill;
-      
-      canvas.drawArc(
-        Rect.fromCircle(center: center, radius: radius),
-        startAngle,
-        sweepAngle,
-        true,
-        paint,
-      );
-      
-      // Bordo bianco tra le sezioni
-      final borderPaint = Paint()
-        ..color = Colors.white
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 2;
-      
-      canvas.drawArc(
-        Rect.fromCircle(center: center, radius: radius),
-        startAngle,
-        sweepAngle,
-        true,
-        borderPaint,
-      );
-      
-      startAngle += sweepAngle;
-    }
-  }
-
-  @override
-  bool shouldRepaint(CustomPainter oldDelegate) => true;
-}
+// Pie chart implementation moved to widgets/admin/pie_chart.dart
