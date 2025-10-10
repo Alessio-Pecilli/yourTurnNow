@@ -28,11 +28,6 @@ class MyApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final utente = ref.watch(userProvider);
 
-    // Esempio di utilizzo di una variabile dal .env
-    final apiKey = dotenv.env['API_KEY'];
-    final baseUrl = dotenv.env['BASE_URL'];
-
-
     // Side-effect post-build
     if (utente != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -127,7 +122,7 @@ class MyApp extends ConsumerWidget {
     return MaterialApp.router(
       debugShowCheckedModeBanner: false,
       title: 'Coinquilini',
-      themeMode: ThemeMode.system,
+      themeMode: ThemeMode.light,
       theme: buildTheme(Brightness.light),
       darkTheme: buildTheme(Brightness.dark),
       highContrastTheme: buildTheme(Brightness.light),

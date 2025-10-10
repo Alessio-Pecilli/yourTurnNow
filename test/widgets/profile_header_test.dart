@@ -14,8 +14,7 @@ void main() {
           home: Scaffold(
             body: ProfileHeader(
               roommate: roommate,
-              onDownload: () {},
-              onAddTransaction: () {},
+              
             ),
           ),
         ),

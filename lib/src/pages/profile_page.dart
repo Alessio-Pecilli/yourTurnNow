@@ -9,7 +9,8 @@ import 'package:your_turn/src/models/money_tx.dart';
 import 'package:your_turn/src/models/roommate.dart';
 import 'package:your_turn/src/models/todo_category.dart';
 import 'package:your_turn/src/models/expense_category.dart';
-import 'package:your_turn/src/providers/roommates_provider.dart';
+import 'package:your_turn/src/pages/admin_page.dart';
+import '../providers/roommates_provider.dart';
 import 'package:your_turn/src/providers/transactions_provider.dart';
 import 'package:your_turn/src/providers/user_provider.dart';
 import 'package:your_turn/src/providers/categories_provider.dart';
@@ -20,6 +21,7 @@ import 'package:your_turn/src/widgets/transaction_filters.dart';
 import 'package:your_turn/src/widgets/transaction_tile_card.dart';
 import 'package:your_turn/src/widgets/transaction_dialogs.dart';
 import 'package:your_turn/src/services/csv_export_service.dart';
+import 'package:your_turn/src/widgets/transactions_chart.dart';
 
 class ProfilePage extends ConsumerStatefulWidget {
   const ProfilePage({super.key, this.userId});
@@ -126,13 +128,10 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
         if (event is RawKeyDownEvent) {
           final key = event.logicalKey;
 
-          // 🔹 H = vai alla pagina home/todo
-          if (key == LogicalKeyboardKey.keyH) {
-            context.go('/todo');
-          }
+          
 
           // 🔹 D = download CSV
-          if (key == LogicalKeyboardKey.keyD) {
+          if (key == LogicalKeyboardKey.keyS) {
             final roommates = ref.read(roommatesProvider);
             final user = ref.read(userProvider);
             final currentMe = roommates.firstWhere(
@@ -143,7 +142,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
           }
 
           // 🔹 A = aggiungi transazione
-          if (key == LogicalKeyboardKey.keyA) {
+          if (key == LogicalKeyboardKey.keyT) {
             final roommates = ref.read(roommatesProvider);
             final user = ref.read(userProvider);
             final currentMe = roommates.firstWhere(
@@ -152,6 +151,13 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
             );
             _onAddTransaction(context, currentMe);
           }
+
+          if (key == LogicalKeyboardKey.keyA) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const AdminPage()),
+        );
+      }
         }
       },
       child: Scaffold(
@@ -204,6 +210,10 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
 
 
 ),
+SliverToBoxAdapter(
+  child: TransactionsChart(transactions: txs),
+),
+
                 _buildTransactionsSliver(visibleTxs), // ✅ lista/griglia dinamica
                 _buildPagination(txs),
               ],
@@ -219,7 +229,8 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
       pinned: true,
       backgroundColor: Colors.transparent,
       elevation: 0,
-      leading: IconButton(
+      leading: 
+      IconButton(
         icon: const Icon(Icons.arrow_back_ios_new, color: Colors.blue, size: 24),
         tooltip: 'Indietro',
         onPressed: () {
@@ -229,77 +240,81 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
             context.go('/todo');
           }
         },
+      
       ),
-      title: const Text('', style: TextStyle(color: Colors.transparent)),
+      //title: const Text('', style: TextStyle(color: Colors.transparent)),
       actions: [
         // Bottoni con stesso stile delle altre pagine
         Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // 🏠 Tasto H - Home/Todo
+            
             Container(
-              margin: const EdgeInsets.only(right: 8),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [Colors.purple.shade400, Colors.purple.shade600],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.purple.withOpacity(0.3),
-                    blurRadius: 8,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
+          margin: const EdgeInsets.only(right: 8),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Colors.orange.shade400, Colors.orange.shade600],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.orange.withOpacity(0.3),
+                blurRadius: 8,
+                offset: const Offset(0, 4),
               ),
-              child: Material(
-                color: Colors.transparent,
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(12),
-                  onTap: () => context.go('/todo'),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Container(
-                          width: 24,
-                          height: 24,
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(4),
-                            border: Border.all(color: Colors.purple.shade700, width: 2),
-                          ),
-                          child: Center(
-                            child: Text(
-                              'H',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: Colors.purple.shade700,
-                                fontSize: 14,
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        const Text(
-                          'HOME',
+            ],
+          ),
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              borderRadius: BorderRadius.circular(12),
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const AdminPage()),
+              ),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 24,
+                      height: 24,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(4),
+                        border: Border.all(color: Colors.orange.shade700, width: 2),
+                      ),
+                      child: Center(
+                        child: Text(
+                          'A',
                           style: TextStyle(
-                            color: Colors.white,
                             fontWeight: FontWeight.bold,
-                            fontSize: 12,
+                            color: Colors.orange.shade700,
+                            fontSize: 14,
                           ),
                         ),
-                        const SizedBox(width: 4),
-                        const Icon(Icons.home, color: Colors.white, size: 16),
-                      ],
+                      ),
                     ),
-                  ),
+                    const SizedBox(width: 8),
+                    const Text(
+                      'ADMIN',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 12,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    const Icon(Icons.admin_panel_settings, color: Colors.white, size: 16),
+                  ],
                 ),
               ),
             ),
+          ),
+        ),
             
             // 🟢 Tasto D - Download CSV
             Container(
@@ -348,7 +363,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                           ),
                           child: Center(
                             child: Text(
-                              'D',
+                              'S',
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 color: Colors.green.shade700,
@@ -377,7 +392,9 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
             
             // 🔵 Tasto A - Aggiungi Transazione
             Container(
+              margin: const EdgeInsets.only(right: 12),
               decoration: BoxDecoration(
+                
                 gradient: LinearGradient(
                   colors: [Colors.blue.shade400, Colors.blue.shade600],
                   begin: Alignment.topLeft,
@@ -420,7 +437,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                           ),
                           child: Center(
                             child: Text(
-                              'A',
+                              'T',
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 color: Colors.blue.shade700,
@@ -431,7 +448,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                         ),
                         const SizedBox(width: 8),
                         const Text(
-                          'AGGIUNGI',
+                          'NUOVA',
                           style: TextStyle(
                             color: Colors.white,
                             fontWeight: FontWeight.bold,
@@ -499,7 +516,9 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
     }
 
     // Sempre vista griglia
+    
     return SliverPadding(
+      
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
         sliver: SliverLayoutBuilder(
           builder: (context, constraints) {
