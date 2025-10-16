@@ -122,11 +122,11 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
     final txs = _applyFilters(allTxs);
     final visibleTxs = txs.take(_visibleTxCount).toList();
 
-    return RawKeyboardListener(
+    return KeyboardListener(
       focusNode: FocusNode(),
       autofocus: true,
-      onKey: (RawKeyEvent event) {
-        if (event is RawKeyDownEvent) {
+      onKeyEvent: (KeyEvent event) {
+        if (event is KeyDownEvent) {
           final key = event.logicalKey;
 
           

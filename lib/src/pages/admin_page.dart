@@ -206,21 +206,29 @@ String? _selectedColorHex;
   Widget build(BuildContext context) {
     final roommates = ref.watch(roommatesProvider);
     
-    return RawKeyboardListener(
-      focusNode: _focusNode,
-      autofocus: true,
-      onKey: (RawKeyEvent event) {
-        if (event is RawKeyDownEvent) {
-          final key = event.logicalKey;
+    return KeyboardListener(
+  focusNode: _focusNode,
+  autofocus: true,
+  onKeyEvent: (KeyEvent event) {
+    // Solo al "keydown"
+    if (event is KeyDownEvent) {
+      // Blocca se stai scrivendo in un TextField o simile
+      if (FocusManager.instance.primaryFocus != null &&
+          (FocusManager.instance.primaryFocus!.context?.widget is EditableText)) {
+        return;
+      }
 
-          // 🔹 P = vai alla pagina profilo
-          if (key == LogicalKeyboardKey.keyP) {
+      final key = event.logicalKey;
+
+      // 🔹 P = vai alla pagina profilo
+      if (key == LogicalKeyboardKey.keyP) {
         Navigator.push(
           context,
           MaterialPageRoute(builder: (context) => const ProfilePage()),
         );
       }
 
+      // 🔹 H = vai alla pagina To-Do
       if (key == LogicalKeyboardKey.keyH) {
         Navigator.push(
           context,
@@ -228,96 +236,80 @@ String? _selectedColorHex;
         );
       }
 
-          
-
-          // 🔹 D = download dati grafici
-          if (key == LogicalKeyboardKey.keyD) {
-            _downloadChartsData();
-          }
-
-          
-        }
+      // 🔹 D = download dati grafici
+      if (key == LogicalKeyboardKey.keyD) {
+        _downloadChartsData();
+      }
+    }
+  },
+  child: Shortcuts(
+    shortcuts: <LogicalKeySet, Intent>{
+      LogicalKeySet(LogicalKeyboardKey.alt, LogicalKeyboardKey.keyG):
+          const _DownloadIntent(),
+    },
+    child: Actions(
+      actions: <Type, Action<Intent>>{
+        _DownloadIntent: CallbackAction<_DownloadIntent>(
+          onInvoke: (intent) => _downloadChartsData(),
+        ),
       },
-      child: Shortcuts(
-        shortcuts: <LogicalKeySet, Intent>{
-          LogicalKeySet(LogicalKeyboardKey.alt, LogicalKeyboardKey.keyG): const _DownloadIntent(),
-        },
-        child: Actions(
-          actions: <Type, Action<Intent>>{
-            _DownloadIntent: CallbackAction<_DownloadIntent>(
-              onInvoke: (intent) => _downloadChartsData(),
+      child: Scaffold(
+        body: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Color(0xFFFDF6EC), Color(0xFFE0EAFD)],
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
             ),
-          },
-        child: Scaffold(
-          body: Container(
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                colors: [Color(0xFFFDF6EC), Color(0xFFE0EAFD)],
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-              ),
-            ),
-            child: SafeArea(
-              child: CustomScrollView(
-                slivers: [
-                  _buildAppBar(context),
-                  // Layout a due colonne usando SliverPadding
-                  SliverPadding(
-                    padding: const EdgeInsets.all(16),
-                    sliver: SliverToBoxAdapter(
-                      child: LayoutBuilder(
-                        builder: (context, constraints) {
-                          final isWide = constraints.maxWidth > 800;
-                          if (isWide) {
-                            // Layout desktop: istogrammi in alto, poi due colonne affiancate
-                            return Column(
-                              children: [
-                                // Istogrammi in alto come prima cosa
-                                _buildExpensesChartCard(),
-                                const SizedBox(height: 16),
-                                Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                // Categorie a sinistra
-                                Expanded(
-                                  flex: 1,
-                                  child: _buildCategoriesCard(),
-                                ),
-                                const SizedBox(width: 16),
-                                // Coinquilini a destra  
-                                Expanded(
-                                  flex: 1,
-                                  child: _buildRoommatesCard(roommates),
-                                ),
-                              ],
-                            ),
-                          ],
-                        );
-                      } else {
-                        // Layout mobile: istogrammi in alto, poi colonne impilate
-                        return Column(
-                          children: [
-                            // Istogrammi in alto come prima cosa
-                            _buildExpensesChartCard(),
-                            const SizedBox(height: 16),
-                            _buildCategoriesCard(),
-                            const SizedBox(height: 16),
-                            _buildRoommatesCard(roommates),
-                          ],
-                        );
-                      }
-                    },
+          ),
+          child: SafeArea(
+            child: CustomScrollView(
+              slivers: [
+                _buildAppBar(context),
+                SliverPadding(
+                  padding: const EdgeInsets.all(16),
+                  sliver: SliverToBoxAdapter(
+                    child: LayoutBuilder(
+                      builder: (context, constraints) {
+                        final isWide = constraints.maxWidth > 800;
+                        if (isWide) {
+                          return Column(
+                            children: [
+                              _buildExpensesChartCard(),
+                              const SizedBox(height: 16),
+                              Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Expanded(child: _buildCategoriesCard()),
+                                  const SizedBox(width: 16),
+                                  Expanded(child: _buildRoommatesCard(roommates)),
+                                ],
+                              ),
+                            ],
+                          );
+                        } else {
+                          return Column(
+                            children: [
+                              _buildExpensesChartCard(),
+                              const SizedBox(height: 16),
+                              _buildCategoriesCard(),
+                              const SizedBox(height: 16),
+                              _buildRoommatesCard(roommates),
+                            ],
+                          );
+                        }
+                      },
+                    ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
-        ), // Chiusura di Scaffold
-      ), // Chiusura di Actions
-    ), // Chiusura di Shortcuts
-    ); // Chiusura di RawKeyboardListener
+    ),
+  ),
+);
   }
 
   SliverAppBar _buildAppBar(BuildContext context) {

@@ -76,11 +76,11 @@ class TodoPage extends ConsumerWidget {
 
     
 
-    return RawKeyboardListener(
+    return KeyboardListener(
   focusNode: FocusNode(),
   autofocus: true,
-  onKey: (RawKeyEvent event) {
-    if (event is RawKeyDownEvent) {
+  onKeyEvent: (KeyEvent  event) {
+    if (event is KeyDownEvent) {
       final key = event.logicalKey;
 
       // 🔹 N = apre dialog nuovo To-Do
