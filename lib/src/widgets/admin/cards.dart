@@ -19,46 +19,105 @@ class CategoriesCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      elevation: 6,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-      color: Colors.white,
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Row(children: [Icon(Icons.category, color: Colors.green.shade700, size: 24), const SizedBox(width: 12), Text('Gestione Categorie', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: Colors.grey.shade800))]),
-          if (categories.isEmpty) ...[
-            const SizedBox(height: 20),
-            Center(child: Column(children: [Icon(Icons.category_outlined, size: 48, color: Colors.grey.shade400), const SizedBox(height: 8), Text('Nessuna categoria presente', style: TextStyle(color: Colors.grey.shade700, fontSize: 16, fontWeight: FontWeight.w500))]))
-          ] else ...[
-            const SizedBox(height: 20),
+  elevation: 6,
+  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+  color: Colors.white,
+  child: ConstrainedBox(
+    constraints: const BoxConstraints(minHeight: 360), // altezza identica
+    child: Padding(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(children: [
+            Icon(Icons.category, color: Colors.green.shade700, size: 24),
+            const SizedBox(width: 12),
+            Text('Gestione Categorie',
+                style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.grey.shade800))
+          ]),
+          const SizedBox(height: 20),
+          if (categories.isEmpty)
+            Center(
+              child: Column(children: [
+                Icon(Icons.category_outlined,
+                    size: 48, color: Colors.grey.shade400),
+                const SizedBox(height: 8),
+                Text('Nessuna categoria presente',
+                    style: TextStyle(
+                        color: Colors.grey.shade700,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500))
+              ]),
+            )
+          else
             GridView.builder(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 4, childAspectRatio: 2.2, crossAxisSpacing: 8, mainAxisSpacing: 8),
+              gridDelegate:
+                  const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 4,
+                childAspectRatio: 2.1, // proporzione uniforme
+                crossAxisSpacing: 8,
+                mainAxisSpacing: 8,
+              ),
               itemCount: categories.length,
               itemBuilder: (context, index) {
                 final c = categories[index];
                 return Container(
-                  decoration: BoxDecoration(color: Colors.green.shade50, borderRadius: BorderRadius.circular(16), border: Border.all(color: Colors.green.shade200)),
+                  decoration: BoxDecoration(
+                    color: Colors.green.shade50,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: Colors.green.shade200),
+                  ),
                   child: Padding(
                     padding: const EdgeInsets.all(8),
-                    child: Row(children: [
-                      Container(padding: const EdgeInsets.all(6), decoration: BoxDecoration(color: _hexToColor(c.color), borderRadius: BorderRadius.circular(8)), child: Icon(c.icon, color: Colors.white, size: 16)),
-                      const SizedBox(width: 6),
-                      Expanded(child: Text(c.name, style: TextStyle(fontWeight: FontWeight.w600, fontSize: 12, color: Colors.grey.shade800), maxLines: 1, overflow: TextOverflow.ellipsis)),
-                      IconButton(icon: Icon(Icons.delete_rounded, color: Colors.red.shade600, size: 16), tooltip: 'Elimina categoria ${c.name}', onPressed: () => onDelete(c), padding: EdgeInsets.zero, constraints: const BoxConstraints(minWidth: 28, minHeight: 28)),
-                    ]),
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(6),
+                          decoration: BoxDecoration(
+                            color: _hexToColor(c.color),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Icon(c.icon, color: Colors.white, size: 16),
+                        ),
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: Text(c.name,
+                              style: TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 12,
+                                  color: Colors.grey.shade800),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis),
+                        ),
+                        IconButton(
+                          icon: Icon(Icons.delete_rounded,
+                              color: Colors.red.shade600, size: 16),
+                          tooltip: 'Elimina categoria ${c.name}',
+                          onPressed: () => onDelete(c),
+                          padding: EdgeInsets.zero,
+                          constraints:
+                              const BoxConstraints(minWidth: 28, minHeight: 28),
+                        ),
+                      ],
+                    ),
                   ),
                 );
               },
             ),
-          ],
           const SizedBox(height: 20),
-          // Hook to allow parent render add form
-          ElevatedButton(onPressed: onAddCategoryPressed, child: const Text('Aggiungi Categoria'))
-        ]),
+          ElevatedButton(
+              onPressed: onAddCategoryPressed,
+              child: const Text('Aggiungi Categoria')),
+        ],
       ),
-    );
+    ),
+  ),
+);
   }
 }
 
@@ -73,47 +132,119 @@ class RoommatesCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      elevation: 6,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-      color: Colors.white,
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Row(children: [Icon(Icons.people, color: Colors.blue.shade700, size: 24), const SizedBox(width: 12), Text('Gestione Coinquilini', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: Colors.grey.shade800))]),
-          if (roommates.isEmpty) ...[
-            const SizedBox(height: 20),
-            Center(child: Column(children: [Icon(Icons.group_off, size: 48, color: Colors.grey.shade400), const SizedBox(height: 8), Text('Nessun coinquilino presente', style: TextStyle(color: Colors.grey.shade700, fontSize: 16, fontWeight: FontWeight.w500))]))
-          ] else ...[
-            const SizedBox(height: 20),
+  elevation: 6,
+  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+  color: Colors.white,
+  child: ConstrainedBox(
+    constraints: const BoxConstraints(minHeight: 360), // stessa altezza
+    child: Padding(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(children: [
+            Icon(Icons.people, color: Colors.blue.shade700, size: 24),
+            const SizedBox(width: 12),
+            Text('Gestione Coinquilini',
+                style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.grey.shade800))
+          ]),
+          const SizedBox(height: 20),
+          if (roommates.isEmpty)
+            Center(
+              child: Column(children: [
+                Icon(Icons.group_off,
+                    size: 48, color: Colors.grey.shade400),
+                const SizedBox(height: 8),
+                Text('Nessun coinquilino presente',
+                    style: TextStyle(
+                        color: Colors.grey.shade700,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500))
+              ]),
+            )
+          else
             GridView.builder(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 4, childAspectRatio: 2.0, crossAxisSpacing: 8, mainAxisSpacing: 8),
+              gridDelegate:
+                  const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 4,
+                childAspectRatio: 2.1, // stessa proporzione delle categorie
+                crossAxisSpacing: 8,
+                mainAxisSpacing: 8,
+              ),
               itemCount: roommates.length,
               itemBuilder: (context, index) {
                 final r = roommates[index];
                 return Container(
-                  decoration: BoxDecoration(color: Colors.blue.shade50, borderRadius: BorderRadius.circular(16), border: Border.all(color: Colors.blue.shade200)),
+                  decoration: BoxDecoration(
+                      color: Colors.blue.shade50,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: Colors.blue.shade200)),
                   child: Padding(
                     padding: const EdgeInsets.all(8),
                     child: Row(children: [
-                      CircleAvatar(radius: 16, backgroundImage: r.photoUrl != null && r.photoUrl!.isNotEmpty ? NetworkImage(r.photoUrl!) : null, backgroundColor: Colors.blue.shade700, child: r.photoUrl == null || r.photoUrl!.isEmpty ? Text(r.name.isNotEmpty ? r.name[0].toUpperCase() : '?', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14)) : null),
+                      CircleAvatar(
+                          radius: 16,
+                          backgroundImage: r.photoUrl != null &&
+                                  r.photoUrl!.isNotEmpty
+                              ? NetworkImage(r.photoUrl!)
+                              : null,
+                          backgroundColor: Colors.blue.shade700,
+                          child: r.photoUrl == null || r.photoUrl!.isEmpty
+                              ? Text(
+                                  r.name.isNotEmpty
+                                      ? r.name[0].toUpperCase()
+                                      : '?',
+                                  style: const TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 14))
+                              : null),
                       const SizedBox(width: 8),
-                      Expanded(child: Text(r.name, style: TextStyle(fontWeight: FontWeight.w600, fontSize: 12, color: Colors.grey.shade800), maxLines: 1, overflow: TextOverflow.ellipsis)),
+                      Expanded(
+                          child: Text(r.name,
+                              style: TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 12,
+                                  color: Colors.grey.shade800),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis)),
                       Row(mainAxisSize: MainAxisSize.min, children: [
-                        IconButton(icon: Icon(Icons.edit_rounded, color: Colors.orange.shade600, size: 16), tooltip: 'Modifica ${r.name}', onPressed: () => onEdit(r), padding: EdgeInsets.zero, constraints: const BoxConstraints(minWidth: 28, minHeight: 28)),
-                        IconButton(icon: Icon(Icons.delete_rounded, color: Colors.red.shade600, size: 16), tooltip: 'Elimina ${r.name}', onPressed: () => onDelete(r), padding: EdgeInsets.zero, constraints: const BoxConstraints(minWidth: 28, minHeight: 28)),
+                        IconButton(
+                            icon: Icon(Icons.edit_rounded,
+                                color: Colors.orange.shade600, size: 16),
+                            tooltip: 'Modifica ${r.name}',
+                            onPressed: () => onEdit(r),
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(
+                                minWidth: 28, minHeight: 28)),
+                        IconButton(
+                            icon: Icon(Icons.delete_rounded,
+                                color: Colors.red.shade600, size: 16),
+                            tooltip: 'Elimina ${r.name}',
+                            onPressed: () => onDelete(r),
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(
+                                minWidth: 28, minHeight: 28)),
                       ])
                     ]),
                   ),
                 );
               },
             ),
-          ],
           const SizedBox(height: 20),
-          ElevatedButton(onPressed: onAddRoommatePressed, child: const Text('Aggiungi Coinquilino'))
-        ]),
+          ElevatedButton(
+              onPressed: onAddRoommatePressed,
+              child: const Text('Aggiungi Coinquilino')),
+        ],
       ),
-    );
+    ),
+  ),
+);
+
   }
 }

@@ -8,6 +8,7 @@ import 'package:your_turn/src/models/todo_category.dart';
 import 'package:your_turn/src/providers/roommates_provider.dart';
 import 'package:your_turn/src/providers/todo_provider.dart';
 import 'package:your_turn/src/providers/categories_provider.dart';
+import 'package:your_turn/src/providers/user_provider.dart';
 import 'google_avatar_widget.dart';
 
 // Funzione per schiarire i colori scuri (non usata ma la lascio se ti serve)
@@ -474,6 +475,7 @@ void showTodoAddDialog(BuildContext context, WidgetRef outerRef, {TodoItem? pres
                               title: titleCtrl.text.trim(),
                               notes: notesCtrl.text.trim().isEmpty ? null : notesCtrl.text.trim(),
                               cost: cost,
+                              creatorId:  ref.watch(userProvider)!.id,
                               dueDate: dueDate,
                               assigneeIds: selectedRoommates.toList(),
                               categories: selectedCategories.toList(),

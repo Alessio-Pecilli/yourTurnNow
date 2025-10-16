@@ -10,6 +10,7 @@ import 'package:your_turn/src/models/roommate.dart';
 import 'package:your_turn/src/models/todo_category.dart';
 import 'package:your_turn/src/models/expense_category.dart';
 import 'package:your_turn/src/pages/admin_page.dart';
+import 'package:your_turn/src/pages/todo_page.dart';
 import '../providers/roommates_provider.dart';
 import 'package:your_turn/src/providers/transactions_provider.dart';
 import 'package:your_turn/src/providers/user_provider.dart';
@@ -140,6 +141,13 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
             );
             _downloadTransactionsCsv(currentMe);
           }
+
+          if (key == LogicalKeyboardKey.keyH) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const TodoPage()),
+        );
+      }
 
           // 🔹 A = aggiungi transazione
           if (key == LogicalKeyboardKey.keyT) {
@@ -317,6 +325,73 @@ SliverToBoxAdapter(
         ),
             
             // 🟢 Tasto D - Download CSV
+            Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Colors.purple.shade400, Colors.purple.shade600],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.purple.withOpacity(0.3),
+                blurRadius: 8,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              borderRadius: BorderRadius.circular(12),
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const ProfilePage()),
+              ),
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 24,
+                      height: 24,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(4),
+                        border:
+                            Border.all(color: Colors.purple.shade700, width: 2),
+                      ),
+                      child: Center(
+                        child: Text(
+                          'H',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.purple.shade700,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    const Text(
+                      'TO-DO',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 12,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    const Icon(Icons.person, color: Colors.white, size: 16),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
             Container(
               margin: const EdgeInsets.only(right: 8),
               decoration: BoxDecoration(

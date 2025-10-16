@@ -6,6 +6,7 @@ import 'package:your_turn/src/models/roommate.dart';
 import 'package:your_turn/src/models/todo_category.dart';
 import 'package:your_turn/src/models/todo_status.dart';
 import 'package:your_turn/src/pages/profile_page.dart';
+import 'package:your_turn/src/pages/todo_page.dart';
 import 'package:your_turn/src/providers/roommates_provider.dart';
 import 'package:your_turn/src/providers/user_provider.dart';
 import 'package:your_turn/src/providers/todo_provider.dart';
@@ -39,9 +40,53 @@ class _AdminPageState extends ConsumerState<AdminPage> {
   // Per aggiunta/modifica
   final _roommateController = TextEditingController();
   final _categoryNameController = TextEditingController();
+ 
+String? _selectedColorHex = '#2196F3'; // Blu di default
+// 🔹 tiene traccia del colore selezionato (in HEX)
+
   final _focusNode = FocusNode(); // Per keyboard shortcuts
+  String? _selectedIconKey;
+  String _selectedColor = '#2196F3';
+  static const Map<String, IconData> _iconByKey = {
+    'shopping_cart': Icons.shopping_cart,
+    'kitchen': Icons.kitchen,
+    'cleaning_services': Icons.cleaning_services,
+    'receipt_long': Icons.receipt_long,
+    'celebration': Icons.celebration,
+    'build': Icons.build,
+    'notes': Icons.notes,
+    'home': Icons.home,
+    'work': Icons.work,
+    'school': Icons.school,
+    'restaurant': Icons.restaurant,
+    'local_grocery_store': Icons.local_grocery_store,
+    'fitness_center': Icons.fitness_center,
+    'pets': Icons.pets,
+    'medical_services': Icons.medical_services,
+    'directions_car': Icons.directions_car,
+    'flight': Icons.flight,
+    'movie': Icons.movie,
+    'music_note': Icons.music_note,
+    'sports_soccer': Icons.sports_soccer,
+    'beach_access': Icons.beach_access,
+    'nature': Icons.nature,
+    'computer': Icons.computer,
+    'phone': Icons.phone,
+  };
 
-
+  // Colori predefiniti con nomi accessibili
+  final List<Map<String, String>> _availableColors = [
+    {'hex': '#2196F3', 'name': 'Blu'},
+    {'hex': '#4CAF50', 'name': 'Verde'},
+    {'hex': '#FF9800', 'name': 'Arancione'},
+    {'hex': '#F44336', 'name': 'Rosso'},
+    {'hex': '#9C27B0', 'name': 'Viola'},
+    {'hex': '#E91E63', 'name': 'Rosa'},
+    {'hex': '#00BCD4', 'name': 'Ciano'},
+    {'hex': '#8BC34A', 'name': 'Verde chiaro'},
+    {'hex': '#FFC107', 'name': 'Giallo'},
+    {'hex': '#795548', 'name': 'Marrone'},
+  ];
 
 
 
@@ -65,7 +110,9 @@ class _AdminPageState extends ConsumerState<AdminPage> {
   Future<void> _downloadChartsData() async {
     final todos = ref.read(todosProvider);
     final roommates = ref.read(roommatesProvider);
-    
+    String? _selectedIconKey;
+String? _selectedColorHex;
+
     // Prepara i dati
     final completedTodos = todos.where((t) => t.status == TodoStatus.done).toList();
     final openTodos = todos.where((t) => t.status == TodoStatus.open).toList();
@@ -171,6 +218,13 @@ class _AdminPageState extends ConsumerState<AdminPage> {
         Navigator.push(
           context,
           MaterialPageRoute(builder: (context) => const ProfilePage()),
+        );
+      }
+
+      if (key == LogicalKeyboardKey.keyH) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const TodoPage()),
         );
       }
 
@@ -412,7 +466,74 @@ class _AdminPageState extends ConsumerState<AdminPage> {
                     ),
                     const SizedBox(width: 8),
                     const Text(
-                      'PERSONALE',
+                      'PROFILO',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 12,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    const Icon(Icons.person, color: Colors.white, size: 16),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+        Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Colors.purple.shade400, Colors.purple.shade600],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.purple.withOpacity(0.3),
+                blurRadius: 8,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              borderRadius: BorderRadius.circular(12),
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const ProfilePage()),
+              ),
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 24,
+                      height: 24,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(4),
+                        border:
+                            Border.all(color: Colors.purple.shade700, width: 2),
+                      ),
+                      child: Center(
+                        child: Text(
+                          'H',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.purple.shade700,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    const Text(
+                      'TO-DO',
                       style: TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.bold,
@@ -767,14 +888,591 @@ class _AdminPageState extends ConsumerState<AdminPage> {
     return colorVariations[categoryName.hashCode % colorVariations.length];
   }
 
+  
   Widget _buildCategoriesCard() {
     final categories = ref.watch(categoriesProvider);
     return CategoriesCard(
       categories: categories,
       onAddCategory: () {},
-      onAddCategoryPressed: () => _startAddingCategory(), // Non più dialog, selezione inline
+      onAddCategoryPressed: () => _showAddCategoryDialog(context), // Non più dialog, selezione inline
       onDelete: (c) => _confirmDeleteCategory(c),
     );
+  }
+  
+  void _showAddCategoryDialog(BuildContext context) {
+  showDialog(
+    context: context,
+    useRootNavigator: false,
+    builder: (context) {
+      // Local selections inside the dialog so the dialog can rebuild
+      // independently from the parent State. This allows interactive
+      // selection of icon/color inside the AlertDialog.
+      String? selectedIconKey = _selectedIconKey;
+      String? selectedColorHex = _selectedColorHex;
+
+      return StatefulBuilder(
+        builder: (context, setStateDialog) => AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          insetPadding: const EdgeInsets.all(24),
+          content: ConstrainedBox(
+            constraints: const BoxConstraints(
+              maxWidth: 400,
+              maxHeight: 600,
+            ),
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Title
+                  Text(
+                    'Aggiungi nuova categoria',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 16,
+                      color: Colors.grey.shade800,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+
+                  // Name field (reuse controller)
+                  TextField(
+                    controller: _categoryNameController,
+                    decoration: InputDecoration(
+                      hintText: 'Nome categoria',
+                      hintStyle: TextStyle(color: Colors.grey.shade500),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(color: Colors.grey.shade300),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(color: Colors.grey.shade300),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(color: Colors.green.shade700, width: 2),
+                      ),
+                      prefixIcon: Icon(Icons.label, color: Colors.green.shade600),
+                      filled: true,
+                      fillColor: Colors.grey.shade50,
+                    ),
+                    style: TextStyle(color: Colors.grey.shade800),
+                    textCapitalization: TextCapitalization.words,
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  // Icon selection (Wrap)
+                  Text(
+                    'Scegli icona',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w500,
+                      color: Colors.grey.shade800,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: _iconByKey.entries.map((entry) {
+                      final iconKey = entry.key;
+                      final iconData = entry.value;
+                      final isSelected = selectedIconKey == iconKey;
+
+                      return GestureDetector(
+                        onTap: () => setStateDialog(() => selectedIconKey = iconKey),
+                        child: Container(
+                          width: 44,
+                          height: 44,
+                          decoration: BoxDecoration(
+                            color: isSelected ? Colors.green.shade100 : Colors.grey.shade100,
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(
+                              color: isSelected ? Colors.green.shade700 : Colors.grey.shade300,
+                              width: isSelected ? 2 : 1,
+                            ),
+                          ),
+                          child: Icon(
+                            iconData,
+                            color: isSelected ? Colors.green.shade700 : Colors.grey.shade600,
+                            size: 20,
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  // Color selection
+                  Text(
+                    'Scegli colore',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w500,
+                      color: Colors.grey.shade800,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Wrap(
+                    spacing: 10,
+                    runSpacing: 10,
+                    children: _availableColors.map((colorMap) {
+                      final hex = colorMap['hex']!;
+                      final color = Color(int.parse(hex.substring(1, 7), radix: 16) + 0xFF000000);
+                      final isSelected = selectedColorHex == hex;
+
+                      return GestureDetector(
+                        onTap: () => setStateDialog(() => selectedColorHex = hex),
+                        child: Container(
+                          width: 34,
+                          height: 34,
+                          decoration: BoxDecoration(
+                            color: color,
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: isSelected ? Colors.black : Colors.transparent,
+                              width: 2,
+                            ),
+                            boxShadow: [
+                              if (isSelected)
+                                BoxShadow(
+                                  color: color.withOpacity(0.5),
+                                  blurRadius: 4,
+                                  spreadRadius: 1,
+                                ),
+                            ],
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  // Actions
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      TextButton(
+                        onPressed: () {
+                          // Reset temporary selections back to parent state
+                          _selectedIconKey = selectedIconKey;
+                          _selectedColorHex = selectedColorHex;
+                          Navigator.of(context).pop();
+                        },
+                        child: Text('Annulla', style: TextStyle(color: Colors.grey.shade600)),
+                      ),
+                      const SizedBox(width: 8),
+                      FilledButton(
+                        onPressed: () {
+                          final name = _categoryNameController.text.trim();
+                          if (name.isEmpty || selectedIconKey == null) {
+                            _showErrorDialog('Dati mancanti', 'Inserisci un nome e scegli un\'icona prima di aggiungere la categoria.');
+                            return;
+                          }
+
+                          // Commit: add to provider using selected values
+                          ref.read(categoriesProvider.notifier).addCategory(TodoCategory(
+                            id: DateTime.now().toString(),
+                            name: name,
+                            icon: _iconByKey[selectedIconKey]!,
+                            color: selectedColorHex ?? _selectedColor,
+                          ));
+
+                          // update parent state and cleanup
+                          _categoryNameController.clear();
+                          _selectedIconKey = null;
+                          _selectedColorHex = selectedColorHex ?? _selectedColorHex;
+                          HapticFeedback.lightImpact();
+                          Navigator.of(context).pop();
+                        },
+                        style: FilledButton.styleFrom(
+                          backgroundColor: Colors.green.shade700,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        ),
+                        child: const Text('Aggiungi'),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+    },
+  );
+}
+
+
+
+
+  
+
+
+  Widget _buildAddRoommateForm() {
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Text(
+        'Aggiungi coinquilino',
+        style: TextStyle(
+          fontWeight: FontWeight.w600,
+          fontSize: 14, // più piccolo e bilanciato
+          color: Colors.grey.shade800,
+        ),
+      ),
+      const SizedBox(height: 8),
+      Row(
+        children: [
+          // Campo testo
+          Expanded(
+            child: TextField(
+              controller: _roommateController,
+              decoration: InputDecoration(
+                hintText: 'Nome',
+                hintStyle: TextStyle(color: Colors.grey.shade500, fontSize: 13),
+                contentPadding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 10), // meno spazio interno
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: BorderSide(color: Colors.grey.shade300),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: BorderSide(color: Colors.grey.shade300),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide:
+                      BorderSide(color: Colors.blue.shade700, width: 1.5),
+                ),
+                prefixIcon: Icon(Icons.person_add,
+                    color: Colors.blue.shade600, size: 18),
+                filled: true,
+                fillColor: Colors.grey.shade50,
+              ),
+              style: TextStyle(color: Colors.grey.shade800, fontSize: 13),
+              textCapitalization: TextCapitalization.words,
+              onSubmitted: (_) => _addRoommate(),
+            ),
+          ),
+
+          const SizedBox(width: 8),
+
+          // Bottone compatto
+          FilledButton(
+            onPressed: _addRoommate,
+            style: FilledButton.styleFrom(
+              backgroundColor: Colors.blue.shade700,
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10)),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 14, vertical: 10), // compatto
+              minimumSize: const Size(44, 40), // altezza ridotta
+            ),
+            child: const Icon(Icons.add, size: 18, color: Colors.white),
+          ),
+        ],
+      ),
+    ],
+  );
+}
+
+Widget _buildAddCategoryForm() {
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    mainAxisSize: MainAxisSize.min, // 💡 evita overflow
+    children: [
+      Text(
+        'Aggiungi nuova categoria',
+        style: TextStyle(
+          fontWeight: FontWeight.w600,
+          fontSize: 16,
+          color: Colors.grey.shade800,
+        ),
+      ),
+      const SizedBox(height: 12),
+
+      // 🔹 Nome categoria
+      TextField(
+        controller: _categoryNameController,
+        decoration: InputDecoration(
+          hintText: 'Nome categoria',
+          hintStyle: TextStyle(color: Colors.grey.shade500),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(color: Colors.grey.shade300),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(color: Colors.grey.shade300),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(color: Colors.green.shade700, width: 2),
+          ),
+          prefixIcon: Icon(Icons.label, color: Colors.green.shade600),
+          filled: true,
+          fillColor: Colors.grey.shade50,
+        ),
+        style: TextStyle(color: Colors.grey.shade800),
+        textCapitalization: TextCapitalization.words,
+      ),
+
+      const SizedBox(height: 16),
+
+      // 🔹 Selezione icona
+      Text(
+        'Scegli icona',
+        style: TextStyle(
+          fontWeight: FontWeight.w500,
+          color: Colors.grey.shade800,
+        ),
+      ),
+      const SizedBox(height: 8),
+
+      // Use a Wrap instead of GridView inside AlertDialog content.
+      // AlertDialog can measure intrinsic dimensions which causes
+      // RenderShrinkWrappingViewport errors when children use
+      // shrink-wrapping scrollables. Wrap provides a non-scrollable
+      // responsive grid-like layout and avoids intrinsic layout calls.
+      Wrap(
+        spacing: 8,
+        runSpacing: 8,
+        children: _iconByKey.entries.map((entry) {
+          final iconKey = entry.key;
+          final iconData = entry.value;
+          final isSelected = _selectedIconKey == iconKey;
+
+          return GestureDetector(
+            onTap: () => setState(() => _selectedIconKey = iconKey),
+            child: Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: isSelected ? Colors.green.shade100 : Colors.grey.shade100,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color: isSelected ? Colors.green.shade700 : Colors.grey.shade300,
+                  width: isSelected ? 2 : 1,
+                ),
+              ),
+              child: Icon(
+                iconData,
+                color: isSelected ? Colors.green.shade700 : Colors.grey.shade600,
+                size: 20,
+              ),
+            ),
+          );
+        }).toList(),
+      ),
+
+      const SizedBox(height: 16),
+
+      // 🔹 Selezione colore
+      Text(
+        'Scegli colore',
+        style: TextStyle(
+          fontWeight: FontWeight.w500,
+          color: Colors.grey.shade800,
+        ),
+      ),
+      const SizedBox(height: 8),
+
+      Wrap(
+        spacing: 10,
+        runSpacing: 10,
+        children: _availableColors.map((colorMap) {
+          final hex = colorMap['hex']!;
+          final color = Color(
+              int.parse(hex.substring(1, 7), radix: 16) + 0xFF000000);
+          final isSelected = _selectedColorHex == hex;
+
+          return GestureDetector(
+            onTap: () => setState(() => _selectedColorHex = hex),
+            child: Container(
+              width: 34,
+              height: 34,
+              decoration: BoxDecoration(
+                color: color,
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color:
+                      isSelected ? Colors.black : Colors.transparent,
+                  width: 2,
+                ),
+                boxShadow: [
+                  if (isSelected)
+                    BoxShadow(
+                      color: color.withOpacity(0.5),
+                      blurRadius: 4,
+                      spreadRadius: 1,
+                    ),
+                ],
+              ),
+            ),
+          );
+        }).toList(),
+      ),
+
+      const SizedBox(height: 20),
+
+      // 🔹 Bottone finale
+      SizedBox(
+        width: double.infinity,
+        child: FilledButton.icon(
+          onPressed: _addCategory,
+          icon: const Icon(Icons.add),
+          label: const Text('Aggiungi Categoria'),
+          style: FilledButton.styleFrom(
+            backgroundColor: Colors.green.shade700,
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12)),
+            padding: const EdgeInsets.symmetric(vertical: 16),
+          ),
+        ),
+      ),
+    ],
+  );
+}
+
+
+
+
+  Color _hexToColor(String hex) {
+    return Color(int.parse(hex.substring(1), radix: 16) + 0xFF000000);
+  }
+
+  Widget _buildColorPicker() {
+    return Wrap(
+      spacing: 8,
+      children: _availableColors.map((colorData) {
+        final colorHex = colorData['hex']!;
+        final colorName = colorData['name']!;
+        final isSelected = colorHex == _selectedColor;
+        return Semantics(
+          label: 'Colore $colorName',
+          selected: isSelected,
+          child: GestureDetector(
+            onTap: () {
+              setState(() => _selectedColor = colorHex);
+              HapticFeedback.selectionClick();
+            },
+            child: Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: _hexToColor(colorHex),
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: isSelected ? Colors.black87 : Colors.grey.shade300,
+                  width: isSelected ? 3 : 1,
+                ),
+                boxShadow: isSelected ? [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.3),
+                    blurRadius: 8,
+                    offset: const Offset(0, 3),
+                  ),
+                ] : null,
+              ),
+              child: isSelected
+                  ? const Icon(Icons.check, color: Colors.white, size: 20)
+                  : null,
+            ),
+          ),
+        );
+      }).toList(),
+    );
+  }
+  Widget _buildIconGrid() {
+    final iconKeys = _iconByKey.keys.toList();
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.grey.shade300),
+        borderRadius: BorderRadius.circular(12),
+        color: Colors.grey.shade50,
+      ),
+      child: GridView.builder(
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 12, // 12 colonne
+          childAspectRatio: 1,
+          crossAxisSpacing: 8,
+          mainAxisSpacing: 8,
+        ),
+        itemCount: 24, // Esattamente 24 icone (2 righe x 12)
+        itemBuilder: (context, index) {
+          if (index >= iconKeys.length) return const SizedBox.shrink();
+          
+          final iconKey = iconKeys[index];
+          final isSelected = _selectedIconKey == iconKey;
+          
+          return GestureDetector(
+            onTap: () {
+              setState(() => _selectedIconKey = iconKey);
+              HapticFeedback.selectionClick();
+            },
+            child: Container(
+              decoration: BoxDecoration(
+                color: isSelected ? Colors.green.shade700 : Colors.white,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color: isSelected ? Colors.green.shade700 : Colors.grey.shade300,
+                  width: isSelected ? 2 : 1,
+                ),
+                boxShadow: isSelected ? [
+                  BoxShadow(
+                    color: Colors.green.shade700.withOpacity(0.3),
+                    blurRadius: 4,
+                    offset: const Offset(0, 2),
+                  ),
+                ] : null,
+              ),
+              child: Icon(
+                _iconByKey[iconKey],
+                color: isSelected ? Colors.white : Colors.grey.shade700,
+                size: 20,
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+
+  
+
+  void _addRoommate() {
+    if (_roommateController.text.trim().isNotEmpty) {
+      // Use provider to add new roommate with random avatar
+      ref.read(roommatesProvider.notifier).ensure(
+        DateTime.now().toString(),
+        name: _roommateController.text.trim(),
+        photoUrl: 'https://api.dicebear.com/7.x/adventurer/png?seed=${_roommateController.text.trim()}&backgroundColor=ffd5dc,b6e3f4,ffdfbf&scale=80',
+      );
+      _roommateController.clear();
+      HapticFeedback.lightImpact();
+    }
+  }
+
+  void _addCategory() {
+    if (_categoryNameController.text.trim().isNotEmpty && _selectedIconKey != null) {
+      ref.read(categoriesProvider.notifier).addCategory(TodoCategory(
+        id: DateTime.now().toString(),
+        name: _categoryNameController.text.trim(),
+        icon: _iconByKey[_selectedIconKey!]!,
+        color: _selectedColor,
+      ));
+      _categoryNameController.clear();
+      _selectedIconKey = null;
+      HapticFeedback.lightImpact();
+    }
   }
 
   Widget _buildRoommatesCard(List<Roommate> roommates) {
@@ -782,52 +1480,32 @@ class _AdminPageState extends ConsumerState<AdminPage> {
       roommates: roommates,
       onEdit: (r) => _editRoommate(r),
       onDelete: (r) => _confirmDeleteRoommate(r),
-      onAddRoommatePressed: () => _startAddingRoommate(), // Selezione inline
+      onAddRoommatePressed: () => _showAddRoommateDialog(context),
+
     );
   }
 
-  // Aggiunge coinquilino direttamente senza dialog
-  void _startAddingRoommate() {
-    // Crea un nuovo coinquilino con nome predefinito
-    final newRoommate = Roommate(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
-      name: 'Nuovo Coinquilino',
-      photoUrl: 'https://i.pravatar.cc/150?img=${DateTime.now().millisecondsSinceEpoch % 70}',
-    );
-    
-    ref.read(roommatesProvider.notifier).ensure(
-      newRoommate.id,
-      name: newRoommate.name,
-      photoUrl: newRoommate.photoUrl,
-    );
-    
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Coinquilino aggiunto! Tocca per modificare nome'),
-        duration: Duration(seconds: 2),
+  void _showAddRoommateDialog(BuildContext context) {
+  showDialog(
+    context: context,
+    builder: (context) => AlertDialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      backgroundColor: Colors.white,
+      contentPadding: const EdgeInsets.all(16),
+      content: ConstrainedBox(
+        constraints: const BoxConstraints(
+          maxWidth: 360, // 🔹 larghezza massima
+          maxHeight: 200, // 🔹 altezza massima
+        ),
+        child: SingleChildScrollView(
+          child: _buildAddRoommateForm(),
+        ),
       ),
-    );
-  }
+    ),
+  );
+}
 
-  // Aggiunge categoria direttamente senza dialog  
-  void _startAddingCategory() {
-    // Crea una nuova categoria con valori predefiniti
-    final newCategory = TodoCategory(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
-      name: 'Nuova Categoria',
-      icon: Icons.category,
-      color: '#42A5F5', // Blu default come stringa hex
-    );
-    
-    ref.read(categoriesProvider).add(newCategory);
-    
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Categoria aggiunta! Tocca per modificare nome e icona'),
-        duration: Duration(seconds: 2),
-      ),
-    );
-  }
+
 
   void _editRoommate(Roommate roommate) {
     _roommateController.text = roommate.name;

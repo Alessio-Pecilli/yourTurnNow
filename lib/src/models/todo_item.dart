@@ -8,6 +8,7 @@ class TodoItem {
   final String title;
   final String? notes;
   final List<String> assigneeIds;
+  final String creatorId;
   final double? cost;
   final DateTime? dueDate;
   final TodoStatus status;
@@ -18,6 +19,7 @@ class TodoItem {
   const TodoItem({
     required this.id,
     required this.title,
+    required this.creatorId,
     this.notes,
     this.assigneeIds = const [],
     this.cost,
@@ -46,6 +48,7 @@ class TodoItem {
       cost: cost ?? this.cost,
       dueDate: dueDate ?? this.dueDate,
       status: status ?? this.status,
+      creatorId: creatorId ?? this.creatorId,
       createdAt: createdAt,
       completedAt: completedAt ?? this.completedAt,
       categories: categories ?? this.categories,

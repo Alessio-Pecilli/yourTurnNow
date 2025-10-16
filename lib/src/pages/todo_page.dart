@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:your_turn/src/models/roommate.dart';
 import 'package:your_turn/src/models/todo_status.dart';
 import 'package:your_turn/src/models/todo_category.dart';
 import 'package:your_turn/src/models/todo_item.dart';
@@ -12,6 +13,7 @@ import 'package:your_turn/src/widgets/todo/empty_state.dart';
 import 'package:your_turn/src/widgets/todo/assignees_avatars.dart';
 import 'package:your_turn/src/widgets/weather/weather_card.dart';
 import 'profile_page.dart';
+import 'package:intl/intl.dart';
 import 'admin_page.dart';
 
 final todosCategoryFilterProvider = StateProvider<TodoCategory?>((ref) => null);
@@ -21,7 +23,7 @@ final todosJustYouFilterProvider = StateProvider<bool>((ref) => false);
 
 // Provider for pagination
 final currentPageProvider = StateProvider<int>((ref) => 0);
-const int todosPerPage = 16; // Aumentato per sfruttare la griglia a 4 colonne (4x4 = 16)
+const int todosPerPage = 7; // Aumentato per sfruttare la griglia a 4 colonne (4x6 = 24)
 
 // Provider for paginated todos
 final paginatedTodosProvider = Provider<List<TodoItem>>((ref) {
@@ -101,6 +103,8 @@ class TodoPage extends ConsumerWidget {
           MaterialPageRoute(builder: (context) => const ProfilePage()),
         );
       }
+
+      
     }
   },
 
@@ -214,14 +218,14 @@ class TodoPage extends ConsumerWidget {
         Container(
           decoration: BoxDecoration(
             gradient: LinearGradient(
-              colors: [Colors.blue.shade400, Colors.blue.shade600],
+              colors: [Colors.purple.shade400, Colors.purple.shade600],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
             borderRadius: BorderRadius.circular(12),
             boxShadow: [
               BoxShadow(
-                color: Colors.blue.withOpacity(0.3),
+                color: Colors.purple.withOpacity(0.3),
                 blurRadius: 8,
                 offset: const Offset(0, 4),
               ),
@@ -236,7 +240,8 @@ class TodoPage extends ConsumerWidget {
                 MaterialPageRoute(builder: (context) => const ProfilePage()),
               ),
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -246,14 +251,15 @@ class TodoPage extends ConsumerWidget {
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(4),
-                        border: Border.all(color: Colors.blue.shade700, width: 2),
+                        border:
+                            Border.all(color: Colors.purple.shade700, width: 2),
                       ),
                       child: Center(
                         child: Text(
                           'P',
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
-                            color: Colors.blue.shade700,
+                            color: Colors.purple.shade700,
                             fontSize: 14,
                           ),
                         ),
@@ -443,143 +449,44 @@ class TodoPage extends ConsumerWidget {
                     final maxCardWidth = 400.0; // Larghezza massima
                     
                     // Calcola numero ottimale di colonne
-                    int crossAxisCount = (screenWidth / minCardWidth).floor();
-                    if (crossAxisCount < 1) crossAxisCount = 1;
-                    if (crossAxisCount > 6) crossAxisCount = 6;
+                    int crossAxisCount = 1;
+                    //int crossAxisCount = (screenWidth / minCardWidth).floor();
+                    //if (crossAxisCount < 1) crossAxisCount = 1;
+                    //if (crossAxisCount > 6) crossAxisCount = 6;
                     
                     // Calcola larghezza effettiva delle card
                     final cardWidth = screenWidth / crossAxisCount;
                     final clampedCardWidth = cardWidth.clamp(minCardWidth, maxCardWidth);
                     
                     // Aspect ratio dinamico per altezza ottimale
-                    final aspectRatio = clampedCardWidth / 220.0; // Altezza fissa 220px per vedere tutto
+                    final aspectRatio = clampedCardWidth /90.0;
+                    // Altezza fissa per vedere tutto
                     
                     return SliverGrid(
                   delegate: SliverChildBuilderDelegate(
-                    (context, index) {
-                      final t = tasks[index];
-                      final assigned = roommates.where((r) => t.assigneeIds.contains(r.id)).toList();
-                      final dueStr = t.dueDate == null
-                          ? null
-                          : MaterialLocalizations.of(context).formatShortDate(t.dueDate!.toLocal());
-                      final completedStr = (t.status == TodoStatus.done && t.completedAt != null)
-                          ? MaterialLocalizations.of(context).formatShortDate(t.completedAt!.toLocal())
-                          : null;
-                      final isCompleted = t.status == TodoStatus.done;
+  (context, index) {
+    final t = tasks[index];
+    final assigned = roommates.where((r) => t.assigneeIds.contains(r.id)).toList();
 
-                      return Container(
-                        margin: const EdgeInsets.symmetric(vertical: 2), // Solo margine verticale
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(10),
-                          gradient: LinearGradient(
-                            colors: isCompleted
-                                ? [Colors.green.shade50.withOpacity(0.3), Colors.green.shade50.withOpacity(0.7)]
-                                : [Colors.white, Colors.grey.shade100], // niente più celestino
-                            begin: isCompleted ? Alignment.bottomRight : Alignment.topLeft,
-                            end: isCompleted ? Alignment.topLeft : Alignment.bottomRight,
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: (isCompleted
-                                  ? Colors.green
-                                  : Colors.blue)
-                                  .withOpacity(0.07),
-                              blurRadius: 2,
-                              offset: const Offset(0, 1),
-                            ),
-                          ],
-                          border: Border.all(
-                            color: isCompleted ? Colors.green.shade200 : Colors.blue.shade200,
-                            width: 0.7,
-                          ),
-                        ),
-                        child: Material(
-                          color: Colors.transparent,
-                          child: InkWell(
-                            borderRadius: BorderRadius.circular(10),
-                            onTap: () => ref.read(todosProvider.notifier).toggleDone(t.id),
-                            child: Padding(
-                              padding: const EdgeInsets.all(5), // Bilanciato per 4 colonne
-                              child: SingleChildScrollView(
-                                physics: const ClampingScrollPhysics(),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Row(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        _buildCheckbox(isCompleted),
-                                        const SizedBox(width: 4),
-                                        Expanded(
-                                          child: _buildTitleArea(t, isCompleted, maxLines: 1),
-                                        ),
-                                        _buildActions(context, ref, t),
-                                      ],
-                                    ),
-                                    const SizedBox(height: 6), // Aumentato per migliore separazione
-                                    if (assigned.isNotEmpty) ...[
-                                      Padding(
-                                        padding: const EdgeInsets.only(left: 8),
-                                        child: AssigneesAvatars(assignees: assigned),
-                                      ),
-                                      const SizedBox(height: 12), // Aumentato da 6 a 12 per più spazio
-                                    ],
-                                    Wrap(
-                                      spacing: 4,
-                                      runSpacing: 4,
-                                      children: [
-                                        for (final cat in t.categories)
-                                          _buildCategoryChip(
-                                            _hexColor(cat.color),
-                                            cat.icon,
-                                            cat.name,
-                                          ),
-                                        if (t.cost != null)
-                                          _infoChip(
-                                            bg: Colors.green.shade100,
-                                            border: Colors.green.shade300,
-                                            icon: Icons.euro_rounded,
-                                            iconColor: Colors.green.shade700,
-                                            text: 'EUR ${t.cost!.toStringAsFixed(2)}',
-                                            textColor: Colors.green.shade700,
-                                          ),
-                                        if (dueStr != null)
-                                          _infoChip(
-                                            bg: Colors.orange.shade100,
-                                            border: Colors.orange.shade300,
-                                            icon: Icons.schedule_rounded,
-                                            iconColor: Colors.orange.shade700,
-                                            text: 'Scade: $dueStr',
-                                            textColor: Colors.orange.shade700,
-                                          ),
-                                        if (completedStr != null)
-                                          _infoChip(
-                                            bg: Colors.green.shade100,
-                                            border: Colors.green.shade300,
-                                            icon: Icons.check_circle_rounded,
-                                            iconColor: Colors.green.shade700,
-                                            text: 'Fatto: $completedStr',
-                                            textColor: Colors.green.shade700,
-                                          ),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      );
-                    },
-                    childCount: tasks.length,
-                  ),
-                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: crossAxisCount, // Dinamico!
-                    mainAxisSpacing: 12,
-                    crossAxisSpacing: 12, // Spazio uniforme tra le card
-                    childAspectRatio: aspectRatio, // Dinamico!
-                  ),
+    final completedStr = (t.status == TodoStatus.done && t.completedAt != null)
+        ? DateFormat('d/M', 'it_IT').format(t.completedAt!.toLocal())
+        : null;
+    final isCompleted = t.status == TodoStatus.done;
+    final dueStr = DateFormat('d/M', 'it_IT').format(t.createdAt.toLocal());
+
+    // ✅ Chiudi qui la funzione builder
+    return _buildTodoCard(context, ref, t, roommates);
+  },
+  // ✅ Poi fuori dalla funzione metti childCount
+  childCount: tasks.length,
+),
+
+                  gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
+  maxCrossAxisExtent: 9999,
+  mainAxisExtent: 140,
+  mainAxisSpacing: 8,
+  crossAxisSpacing: 8,
+),
                 );
                   },
                 ),
@@ -611,6 +518,7 @@ class TodoPage extends ConsumerWidget {
                       ...List.generate(totalPages, (index) {
                         final isCurrentPage = index == currentPage;
                         return Container(
+
                           margin: const EdgeInsets.symmetric(horizontal: 4),
                           child: GestureDetector(
                             onTap: () => ref.read(currentPageProvider.notifier).state = index,
@@ -677,43 +585,350 @@ class TodoPage extends ConsumerWidget {
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => showTodoAddDialog(context, ref),
-        backgroundColor: Colors.blue.shade700,
-        foregroundColor: Colors.white,
-        icon: Row(
+      
+      floatingActionButton: Container(
+  decoration: BoxDecoration(
+    gradient: LinearGradient(
+      colors: [Colors.blue.shade400, Colors.blue.shade600],
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+    ),
+    borderRadius: BorderRadius.circular(12),
+    boxShadow: [
+      BoxShadow(
+        color: Colors.blue.withOpacity(0.3),
+        blurRadius: 8,
+        offset: const Offset(0, 4),
+      ),
+    ],
+  ),
+  child: Material(
+    color: Colors.transparent,
+    child: InkWell(
+      borderRadius: BorderRadius.circular(12),
+      onTap: () => showTodoAddDialog(context, ref),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              width: 20,
-              height: 20,
-              margin: const EdgeInsets.only(right: 6),
+              width: 24,
+              height: 24,
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(4),
-                border: Border.all(color: Colors.blue.shade700, width: 1.5),
+                border: Border.all(color: Colors.blue.shade700, width: 2),
               ),
               child: Center(
                 child: Text(
                   'N',
                   style: TextStyle(
-                    color: Colors.blue.shade700,
                     fontWeight: FontWeight.bold,
-                    fontSize: 12,
+                    color: Colors.blue.shade700,
+                    fontSize: 14,
                   ),
                 ),
               ),
             ),
-            const Icon(Icons.add, size: 24),
+            const SizedBox(width: 8),
+            const Text(
+              'NUOVO',
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+                fontSize: 13,
+                letterSpacing: 0.5,
+              ),
+            ),
           ],
         ),
-        label: const Text(
-          'Nuovo',
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-        ),
       ),
+    ),
+  ),
+),
+
     ),);
   }
+
+ Widget _buildTodoCard(BuildContext context, WidgetRef ref, TodoItem t, List<Roommate> roommates) {
+  final isCompleted = t.status == TodoStatus.done;
+  final createdStr = DateFormat('d MMM yyyy, HH:mm', 'it_IT').format(t.createdAt.toLocal());
+
+  // 👤 Creator (con fallback automatico)
+  final creator = roommates.firstWhere(
+    (r) => r.id == t.creatorId,
+    orElse: () => Roommate(
+      id: 'none',
+      name: '—',
+      photoUrl:
+          "https://api.dicebear.com/7.x/adventurer/png?seed=Ale&backgroundColor=ffdfbf,c0aede,d1d4f9&scale=80",
+    ),
+  );
+
+  // 👥 Assegnati
+  final assigned = roommates.where((r) => t.assigneeIds.contains(r.id)).toList();
+
+  return InkWell(
+    borderRadius: BorderRadius.circular(10),
+    onTap: () => ref.read(todosProvider.notifier).toggleDone(t.id),
+    child: AnimatedContainer(
+      duration: const Duration(milliseconds: 200),
+      margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 2),
+      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+      decoration: BoxDecoration(
+        color: isCompleted ? Colors.green.shade50 : Colors.white,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(
+          color: isCompleted ? Colors.green.shade200 : Colors.grey.shade300,
+          width: 0.8,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.shade200.withOpacity(0.7),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          // Checkbox
+          Padding(
+            padding: const EdgeInsets.only(right: 10),
+            child: _buildCheckbox(isCompleted),
+          ),
+
+          // TITOLO
+          Expanded(
+            flex: 3,
+            child: Text(
+              t.title,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontWeight: FontWeight.w600,
+                fontSize: 15,
+                color: isCompleted ? Colors.grey.shade600 : Colors.black87,
+                decoration: isCompleted ? TextDecoration.lineThrough : null,
+              ),
+            ),
+          ),
+
+          // CATEGORIE (mostra tutte le categorie come chips)
+          Expanded(
+            flex: 3,
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Wrap(
+                spacing: 6,
+                runSpacing: 4,
+                children: [
+                  for (final cat in t.categories)
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      margin: const EdgeInsets.only(right: 6),
+                      decoration: BoxDecoration(
+                        color: _hexColor(cat.color),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.grey.shade300),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(cat.icon, size: 14, color: Colors.white),
+                          const SizedBox(width: 4),
+                          Text(
+                            cat.name,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: Colors.white,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ),
+
+          // COSTO (chip)
+          Expanded(
+            flex: 1,
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Colors.green.shade50,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.green.shade200),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.euro_rounded, size: 14, color: Colors.green.shade800),
+                    const SizedBox(width: 4),
+                    Text(
+                      t.cost != null ? t.cost!.toStringAsFixed(2) : '—',
+                      style: TextStyle(
+                        color: Colors.green.shade800,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+
+          // DATA (chip) + etichetta 'Creato il' in bold sotto
+          Expanded(
+            flex: 2,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                RichText(
+                  text: TextSpan(
+                    children: [
+                      TextSpan(text: 'Data creazione ', style: TextStyle(fontWeight: FontWeight.w700, color: Colors.grey.shade800, fontSize: 12)),
+                     
+                    ],
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.blue.shade50,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.blue.shade200),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.calendar_today_rounded, size: 14, color: Colors.blue.shade700),
+                      const SizedBox(width: 4),
+                      Text(
+                        createdStr,
+                        style: TextStyle(
+                          color: Colors.blue.shade700,
+                          fontWeight: FontWeight.w500,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 6),
+                
+              ],
+            ),
+          ),
+
+          // 👤 CREATORE (avatar + nome) - migliorata leggibilit e0
+          Expanded(
+            flex: 2,
+            child: Row(
+              children: [
+                CircleAvatar(
+                  radius: 14,
+                  backgroundImage: creator.photoUrl != null && creator.photoUrl!.isNotEmpty
+                      ? NetworkImage(creator.photoUrl!)
+                      : null,
+                  backgroundColor: Colors.grey.shade300,
+                  child: (creator.photoUrl == null || creator.photoUrl!.isEmpty)
+                      ? const Icon(Icons.person, size: 16, color: Colors.white)
+                      : null,
+                ),
+                const SizedBox(width: 6),
+                Flexible(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        creator.name,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(fontSize: 12, color: Colors.grey.shade800, fontWeight: FontWeight.w600),
+                      ),
+                      Text('Autore', style: TextStyle(fontSize: 10, color: Colors.grey.shade500)),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // 👥 ASSEGNATI (avatar compact + label)
+          Expanded(
+            flex: 3,
+            child: Row(
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text('Assegnato a:', style: TextStyle(fontWeight: FontWeight.w700, color: Colors.grey.shade800, fontSize: 12)),
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        for (int i = 0; i < assigned.length && i < 4; i++)
+                          Padding(
+                            padding: const EdgeInsets.only(right: 6),
+                            child: Tooltip(
+                              message: assigned[i].name,
+                              child: CircleAvatar(
+                                radius: 14,
+                                backgroundImage: NetworkImage(assigned[i].photoUrl ?? ''),
+                                backgroundColor: Colors.grey.shade200,
+                                child: assigned[i].photoUrl == null ? const Icon(Icons.person, size: 16, color: Colors.grey) : null,
+                              ),
+                            ),
+                          ),
+                        if (assigned.length > 4)
+                          Container(
+                            width: 28,
+                            height: 28,
+                            alignment: Alignment.center,
+                            decoration: BoxDecoration(
+                              color: Colors.grey.shade300,
+                              borderRadius: BorderRadius.circular(50),
+                            ),
+                            child: Text('+${assigned.length - 4}', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500)),
+                          ),
+                      ],
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+
+          // AZIONI
+          Row(
+            children: [
+              IconButton(
+                icon: Icon(Icons.edit, color: Colors.blue.shade600),
+                onPressed: () => showTodoAddDialog(context, ref, preset: t),
+                tooltip: 'Modifica',
+              ),
+              IconButton(
+                icon: Icon(Icons.delete, color: Colors.red.shade400),
+                onPressed: () => ref.read(todosProvider.notifier).remove(t.id),
+                tooltip: 'Elimina',
+              ),
+            ],
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
+
 
   Widget _buildCheckbox(bool done) => Container(
     width: 28,
@@ -793,7 +1008,7 @@ class TodoPage extends ConsumerWidget {
       const SizedBox(width: 8),
       Container(
         decoration: BoxDecoration(
-          color: Colors.red.shade100,
+          color: Colors.blue.shade100,
           borderRadius: BorderRadius.circular(12),
         ),
         child: IconButton(

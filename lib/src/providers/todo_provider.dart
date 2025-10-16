@@ -27,6 +27,7 @@ class TodosCtrl extends StateNotifier<List<TodoItem>> {
   void add({
     required String title,
     String? notes,
+    required String creatorId,
     List<String> assigneeIds = const [],
     double? cost,
     DateTime? dueDate,
@@ -44,6 +45,7 @@ class TodosCtrl extends StateNotifier<List<TodoItem>> {
         status: TodoStatus.open,
         createdAt: now,
         completedAt: null,
+        creatorId: creatorId,
         categories: List.unmodifiable(categories),
       ),
       ...state,
