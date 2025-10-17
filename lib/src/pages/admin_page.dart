@@ -8,6 +8,7 @@ import 'package:your_turn/src/models/todo_status.dart';
 import 'package:your_turn/src/pages/profile_page.dart';
 import 'package:your_turn/src/pages/todo_page.dart';
 import 'package:your_turn/src/providers/roommates_provider.dart';
+import 'package:your_turn/src/providers/transactions_provider.dart';
 import 'package:your_turn/src/providers/user_provider.dart';
 import 'package:your_turn/src/providers/todo_provider.dart';
 import 'package:your_turn/src/providers/categories_provider.dart';
@@ -15,6 +16,8 @@ import 'package:your_turn/src/providers/categories_provider.dart';
 import 'dart:convert';
 import 'dart:typed_data';
 import 'package:intl/intl.dart';
+import 'package:your_turn/src/services/csv_export_service.dart';
+import 'package:your_turn/src/services/pdf_export_service.dart';
 
 import 'package:your_turn/src/utils/csv_web_download_stub.dart'
   if (dart.library.html) 'package:your_turn/src/utils/csv_web_download.dart';
@@ -107,93 +110,9 @@ String? _selectedColorHex = '#2196F3'; // Blu di default
 
 
   // Funzione per scaricare i dati dei grafici in formato CSV
-  Future<void> _downloadChartsData() async {
-    final todos = ref.read(todosProvider);
-    final roommates = ref.read(roommatesProvider);
-    String? _selectedIconKey;
-String? _selectedColorHex;
 
-    // Prepara i dati
-    final completedTodos = todos.where((t) => t.status == TodoStatus.done).toList();
-    final openTodos = todos.where((t) => t.status == TodoStatus.open).toList();
-    
-    // Calcola i dati per i 3 grafici
-    
-    // 1. Spese per categoria
-    final Map<String, double> expensesByCategory = {};
-    for (final todo in completedTodos) {
-      if (todo.cost != null && todo.cost! > 0) {
-        final categoryName = todo.categories.isNotEmpty ? todo.categories.first.name : 'Senza categoria';
-        expensesByCategory[categoryName] = (expensesByCategory[categoryName] ?? 0) + todo.cost!;
-      }
-    }
-    
-    // 2. Statistiche coinquilini (task completati)
-    final Map<String, int> tasksByRoommate = {};
-    for (final roommate in roommates) {
-      tasksByRoommate[roommate.name] = roommate.tasksCompleted;
-    }
-    
-    // 3. Status todos
-    final todoStats = {
-      'Completati': completedTodos.length,
-      'Aperti': openTodos.length,
-    };
-    
-    // Genera CSV
-    final List<String> csvLines = [];
-    
-    // Sezione 1: Spese per categoria
-    csvLines.add('=== SPESE PER CATEGORIA ===');
-    csvLines.add('Categoria;Importo (€)');
-    for (final entry in expensesByCategory.entries) {
-      csvLines.add('${_escapeCSV(entry.key)};${entry.value.toStringAsFixed(2)}');
-    }
-    csvLines.add('TOTALE;${expensesByCategory.values.fold(0.0, (a, b) => a + b).toStringAsFixed(2)}');
-    csvLines.add('');
-    
-    // Sezione 2: Task completati per coinquilino
-    csvLines.add('=== TASK COMPLETATI PER COINQUILINO ===');
-    csvLines.add('Coinquilino;Task Completati');
-    for (final entry in tasksByRoommate.entries) {
-      csvLines.add('${_escapeCSV(entry.key)};${entry.value}');
-    }
-    csvLines.add('TOTALE;${tasksByRoommate.values.fold(0, (a, b) => a + b)}');
-    csvLines.add('');
-    
-    // Sezione 3: Status todos
-    csvLines.add('=== STATUS TODOS ===');
-    csvLines.add('Status;Quantità');
-    for (final entry in todoStats.entries) {
-      csvLines.add('${_escapeCSV(entry.key)};${entry.value}');
-    }
-    csvLines.add('TOTALE;${todoStats.values.fold(0, (a, b) => a + b)}');
-    csvLines.add('');
-    
-    // Aggiungi timestamp
-    final now = DateTime.now();
-    final timestamp = DateFormat('yyyy-MM-dd HH:mm:ss').format(now);
-    csvLines.add('Generato il: $timestamp');
-    
-    // Crea il file
-    final content = csvLines.join('\r\n');
-    final bytes = Uint8List.fromList([
-      ...const [0xEF, 0xBB, 0xBF], // BOM UTF-8 per Excel
-      ...utf8.encode(content),
-    ]);
-    
-    // Download
-    final filename = 'admin_grafici_${DateFormat('yyyyMMdd_HHmmss').format(now)}.csv';
-    triggerDownloadCsv(filename, bytes);
-    
-    // Mostra messaggio di conferma
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Dati grafici esportati in $filename'),
-        backgroundColor: Colors.green.shade600,
-      ),
-    );
-  }
+  
+
   
   String _escapeCSV(String text) {
     if (text.contains(';') || text.contains('"') || text.contains('\n')) {
@@ -205,7 +124,11 @@ String? _selectedColorHex;
   @override
   Widget build(BuildContext context) {
     final roommates = ref.watch(roommatesProvider);
-    
+    final user = ref.read(userProvider);
+        final currentMe = roommates.firstWhere(
+              (r) => r.id == user?.id,
+              orElse: () => Roommate(id: user?.id ?? 'me', name: user?.name ?? 'Tu'),
+            );
     return KeyboardListener(
   focusNode: _focusNode,
   autofocus: true,
@@ -238,6 +161,7 @@ String? _selectedColorHex;
 
       // 🔹 D = download dati grafici
       if (key == LogicalKeyboardKey.keyD) {
+        
         _downloadChartsData();
       }
     }
@@ -359,6 +283,12 @@ String? _selectedColorHex;
             child: InkWell(
               borderRadius: BorderRadius.circular(12),
               onTap: () {
+                final roommates = ref.read(roommatesProvider);
+  final user = ref.read(userProvider);
+  final currentMe = roommates.firstWhere(
+    (r) => r.id == user?.id,
+    orElse: () => Roommate(id: user?.id ?? 'me', name: user?.name ?? 'Tu'),
+  );
                 _downloadChartsData();
               },
               child: Container(
@@ -387,7 +317,7 @@ String? _selectedColorHex;
                         ),
                       ),
                     ),
-                    const SizedBox(width: 8),
+                    const SizedBox(width: 4),
                     const Text(
                       'DOWNLOAD',
                       style: TextStyle(
@@ -396,7 +326,7 @@ String? _selectedColorHex;
                         fontSize: 12,
                       ),
                     ),
-                    const SizedBox(width: 4),
+                    
                     const Icon(Icons.download, color: Colors.white, size: 16),
                   ],
                 ),
@@ -404,7 +334,7 @@ String? _selectedColorHex;
             ),
           ),
         ),
-
+        const SizedBox(width: 4),
         // 👤 Tasto PAGINA PERSONALE
         Container(
           decoration: BoxDecoration(
@@ -473,6 +403,7 @@ String? _selectedColorHex;
             ),
           ),
         ),
+        const SizedBox(width:16),
         Container(
           decoration: BoxDecoration(
             gradient: LinearGradient(
@@ -1694,6 +1625,95 @@ Widget _buildAddCategoryForm() {
       ),
     );
   }
+
+    Future<void> _downloadChartsData() async {
+    final todos = ref.read(todosProvider);
+    final roommates = ref.read(roommatesProvider);
+    String? _selectedIconKey;
+String? _selectedColorHex;
+
+    // Prepara i dati
+    final completedTodos = todos.where((t) => t.status == TodoStatus.done).toList();
+    final openTodos = todos.where((t) => t.status == TodoStatus.open).toList();
+    
+    // Calcola i dati per i 3 grafici
+    
+    // 1. Spese per categoria
+    final Map<String, double> expensesByCategory = {};
+    for (final todo in completedTodos) {
+      if (todo.cost != null && todo.cost! > 0) {
+        final categoryName = todo.categories.isNotEmpty ? todo.categories.first.name : 'Senza categoria';
+        expensesByCategory[categoryName] = (expensesByCategory[categoryName] ?? 0) + todo.cost!;
+      }
+    }
+    
+    // 2. Statistiche coinquilini (task completati)
+    final Map<String, int> tasksByRoommate = {};
+    for (final roommate in roommates) {
+      tasksByRoommate[roommate.name] = roommate.tasksCompleted;
+    }
+    
+    // 3. Status todos
+    final todoStats = {
+      'Completati': completedTodos.length,
+      'Aperti': openTodos.length,
+    };
+    
+    // Genera CSV
+    final List<String> csvLines = [];
+    
+    // Sezione 1: Spese per categoria
+    csvLines.add('=== SPESE PER CATEGORIA ===');
+    csvLines.add('Categoria;Importo (€)');
+    for (final entry in expensesByCategory.entries) {
+      csvLines.add('${_escapeCSV(entry.key)};${entry.value.toStringAsFixed(2)}');
+    }
+    csvLines.add('TOTALE;${expensesByCategory.values.fold(0.0, (a, b) => a + b).toStringAsFixed(2)}');
+    csvLines.add('');
+    
+    // Sezione 2: Task completati per coinquilino
+    csvLines.add('=== TASK COMPLETATI PER COINQUILINO ===');
+    csvLines.add('Coinquilino;Task Completati');
+    for (final entry in tasksByRoommate.entries) {
+      csvLines.add('${_escapeCSV(entry.key)};${entry.value}');
+    }
+    csvLines.add('TOTALE;${tasksByRoommate.values.fold(0, (a, b) => a + b)}');
+    csvLines.add('');
+    
+    // Sezione 3: Status todos
+    csvLines.add('=== STATUS TODOS ===');
+    csvLines.add('Status;Quantità');
+    for (final entry in todoStats.entries) {
+      csvLines.add('${_escapeCSV(entry.key)};${entry.value}');
+    }
+    csvLines.add('TOTALE;${todoStats.values.fold(0, (a, b) => a + b)}');
+    csvLines.add('');
+    
+    // Aggiungi timestamp
+    final now = DateTime.now();
+    final timestamp = DateFormat('yyyy-MM-dd HH:mm:ss').format(now);
+    csvLines.add('Generato il: $timestamp');
+    
+    // Crea il file
+    final content = csvLines.join('\r\n');
+    final bytes = Uint8List.fromList([
+      ...const [0xEF, 0xBB, 0xBF], // BOM UTF-8 per Excel
+      ...utf8.encode(content),
+    ]);
+    
+    // Download
+    final filename = 'admin_grafici_${DateFormat('yyyyMMdd_HHmmss').format(now)}.csv';
+    triggerDownloadCsv(filename, bytes);
+    
+    // Mostra messaggio di conferma
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Dati grafici esportati in $filename'),
+        backgroundColor: Colors.green.shade600,
+      ),
+    );
+  }
+
 
   void _showErrorDialog(String title, String message) {
     showDialog(

@@ -1,4 +1,6 @@
 // lib/pages/profile_page.dart
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -9,8 +11,11 @@ import 'package:your_turn/src/models/money_tx.dart';
 import 'package:your_turn/src/models/roommate.dart';
 import 'package:your_turn/src/models/todo_category.dart';
 import 'package:your_turn/src/models/expense_category.dart';
+import 'package:your_turn/src/models/todo_status.dart';
 import 'package:your_turn/src/pages/admin_page.dart';
 import 'package:your_turn/src/pages/todo_page.dart';
+import 'package:your_turn/src/providers/todo_provider.dart';
+import 'package:your_turn/src/utils/csv_web_download.dart';
 import '../providers/roommates_provider.dart';
 import 'package:your_turn/src/providers/transactions_provider.dart';
 import 'package:your_turn/src/providers/user_provider.dart';
@@ -22,6 +27,7 @@ import 'package:your_turn/src/widgets/transaction_filters.dart';
 import 'package:your_turn/src/widgets/transaction_tile_card.dart';
 import 'package:your_turn/src/widgets/transaction_dialogs.dart';
 import 'package:your_turn/src/services/csv_export_service.dart';
+import 'package:your_turn/src/services/pdf_export_service.dart';
 import 'package:your_turn/src/widgets/transactions_chart.dart';
 
 class ProfilePage extends ConsumerStatefulWidget {
@@ -139,7 +145,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
               (r) => r.id == user?.id,
               orElse: () => Roommate(id: user?.id ?? 'me', name: user?.name ?? 'Tu'),
             );
-            _downloadTransactionsCsv(currentMe);
+            _downloadTransactions(currentMe);
           }
 
           if (key == LogicalKeyboardKey.keyH) {
@@ -323,7 +329,7 @@ SliverToBoxAdapter(
             ),
           ),
         ),
-            
+            const SizedBox(width: 4),
             // 🟢 Tasto D - Download CSV
             Container(
           decoration: BoxDecoration(
@@ -392,6 +398,7 @@ SliverToBoxAdapter(
             ),
           ),
         ),
+        const SizedBox(width: 4),
             Container(
               margin: const EdgeInsets.only(right: 8),
               decoration: BoxDecoration(
@@ -421,7 +428,7 @@ SliverToBoxAdapter(
                       (r) => r.id == user?.id,
                       orElse: () => Roommate(id: user?.id ?? 'me', name: user?.name ?? 'Tu'),
                     );
-                    _downloadTransactionsCsv(me);
+                    _downloadTransactions(me);
                   },
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -464,7 +471,7 @@ SliverToBoxAdapter(
                 ),
               ),
             ),
-            
+            const SizedBox(width: 4),
             // 🔵 Tasto A - Aggiungi Transazione
             Container(
               margin: const EdgeInsets.only(right: 12),
@@ -705,14 +712,48 @@ SliverToBoxAdapter(
       );
   }
 
-  Future<void> _downloadTransactionsCsv(Roommate me) async {
-    final txs = ref.read(userTransactionsProvider(me.id));
-    await CsvExportService.exportTransactionsCsv(txs, me, context);
+  
+
+  String _escapeCSV(String text) {
+    if (text.contains(';') || text.contains('"') || text.contains('\n')) {
+      return '"${text.replaceAll('"', '""')}"';
+    }
+    return text;
   }
 
   Future<void> _onAddTransaction(BuildContext context, Roommate me) async {
     await TransactionDialogs.showAddDialog(context, ref, me);
   }
+  Future<void> _downloadTransactions(Roommate me) async {
+  final txs = ref.read(userTransactionsProvider(me.id));
+
+  // 🔹 Mostra popup di scelta
+  final choice = await showDialog<String>(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: const Text('Scarica transazioni'),
+        content: const Text('In quale formato vuoi scaricare i dati?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, 'csv'),
+            child: const Text('CSV'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, 'pdf'),
+            child: const Text('PDF'),
+          ),
+        ],
+      );
+    },
+  );
+
+  if (choice == 'csv') {
+    await CsvExportService.exportTransactionsCsv(txs, me, context);
+  } else if (choice == 'pdf') {
+    await PdfExportService.exportTransactionsPdf(txs, me, context);
+  }
+}
 }
 
 

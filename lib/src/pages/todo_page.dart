@@ -691,17 +691,22 @@ class TodoPage extends ConsumerWidget {
           ),
         ],
       ),
-      child: Row(
-        children: [
-          // Checkbox
-          Padding(
-            padding: const EdgeInsets.only(right: 10),
-            child: _buildCheckbox(isCompleted),
+      child: SingleChildScrollView(
+  scrollDirection: Axis.horizontal,
+  physics: const BouncingScrollPhysics(),
+  child: Row(
+    mainAxisSize: MainAxisSize.min,
+    crossAxisAlignment: CrossAxisAlignment.center,
+    children: [
+      // Checkbox
+      Padding(
+        padding: const EdgeInsets.only(right: 10),
+        child: _buildCheckbox(isCompleted),
           ),
 
           // TITOLO
-          Expanded(
-            flex: 3,
+          ConstrainedBox(
+        constraints: const BoxConstraints(minWidth: 250),
             child: Text(
               t.title,
               overflow: TextOverflow.ellipsis,
@@ -715,8 +720,8 @@ class TodoPage extends ConsumerWidget {
           ),
 
           // CATEGORIE (mostra tutte le categorie come chips)
-          Expanded(
-            flex: 3,
+          ConstrainedBox(
+        constraints: const BoxConstraints(minWidth: 400),
             child: SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: Wrap(
@@ -754,8 +759,8 @@ class TodoPage extends ConsumerWidget {
           ),
 
           // COSTO (chip)
-          Expanded(
-            flex: 1,
+          ConstrainedBox(
+        constraints: const BoxConstraints(minWidth: 250),
             child: Align(
               alignment: Alignment.centerLeft,
               child: Container(
@@ -785,8 +790,8 @@ class TodoPage extends ConsumerWidget {
           ),
 
           // DATA (chip) + etichetta 'Creato il' in bold sotto
-          Expanded(
-            flex: 2,
+          ConstrainedBox(
+        constraints: const BoxConstraints(minWidth: 250),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
@@ -829,8 +834,8 @@ class TodoPage extends ConsumerWidget {
           ),
 
           // 👤 CREATORE (avatar + nome) - migliorata leggibilit e0
-          Expanded(
-            flex: 2,
+          ConstrainedBox(
+        constraints: const BoxConstraints(minWidth: 250),
             child: Row(
               children: [
                 CircleAvatar(
@@ -844,7 +849,8 @@ class TodoPage extends ConsumerWidget {
                       : null,
                 ),
                 const SizedBox(width: 6),
-                Flexible(
+                ConstrainedBox(
+          constraints: const BoxConstraints(minWidth: 120, maxWidth: 250),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisSize: MainAxisSize.min,
@@ -863,8 +869,8 @@ class TodoPage extends ConsumerWidget {
           ),
 
           // 👥 ASSEGNATI (avatar compact + label)
-          Expanded(
-            flex: 3,
+          ConstrainedBox(
+        constraints: const BoxConstraints(minWidth: 250),
             child: Row(
               children: [
                 Column(
@@ -925,7 +931,7 @@ class TodoPage extends ConsumerWidget {
         ],
       ),
     ),
-  );
+  ),);
 }
 
 

@@ -26,7 +26,10 @@ final mockTodos = <TodoItem>[
     status: TodoStatus.done,
     createdAt: DateTime(2025, 8, 17, 10, 15),
     completedAt: DateTime(2025, 8, 17, 11, 05),
-    categories: [stockCategories.firstWhere((c) => c.id == 'spesa')],
+    categories: [
+      stockCategories.firstWhere((c) => c.id == 'spesa'),
+      stockCategories.firstWhere((c) => c.id == 'varie'),
+    ],
   ),
   TodoItem(
     id: "t2",
@@ -38,7 +41,10 @@ final mockTodos = <TodoItem>[
     status: TodoStatus.done,
     createdAt: DateTime(2025, 8, 24, 16, 00),
     completedAt: DateTime(2025, 8, 24, 17, 10),
-    categories: [stockCategories.firstWhere((c) => c.id == 'pulizie')],
+    categories: [
+      stockCategories.firstWhere((c) => c.id == 'pulizie'),
+      stockCategories.firstWhere((c) => c.id == 'cucina'),
+    ],
   ),
   TodoItem(
     id: "t3",
@@ -49,7 +55,10 @@ final mockTodos = <TodoItem>[
     status: TodoStatus.done,
     createdAt: DateTime(2025, 9, 28, 20, 20),
     completedAt: DateTime(2025, 9, 28, 20, 45),
-    categories: [stockCategories.firstWhere((c) => c.id == 'bollette')],
+    categories: [
+      stockCategories.firstWhere((c) => c.id == 'bollette'),
+      stockCategories.firstWhere((c) => c.id == 'manutenzione'),
+    ],
   ),
   TodoItem(
     id: "t4",
@@ -61,7 +70,11 @@ final mockTodos = <TodoItem>[
     status: TodoStatus.done,
     createdAt: DateTime(2025, 8, 30, 18, 30),
     completedAt: DateTime(2025, 8, 30, 22, 15),
-    categories: [stockCategories.firstWhere((c) => c.id == 'divertimento')],
+    categories: [
+      stockCategories.firstWhere((c) => c.id == 'divertimento'),
+      stockCategories.firstWhere((c) => c.id == 'spesa'),
+      stockCategories.firstWhere((c) => c.id == 'cucina'),
+    ],
   ),
   TodoItem(
     id: "t5",
@@ -73,7 +86,10 @@ final mockTodos = <TodoItem>[
     status: TodoStatus.done,
     createdAt: DateTime(2025, 9, 2, 15, 10),
     completedAt: DateTime(2025, 9, 2, 16, 00),
-    categories: [stockCategories.firstWhere((c) => c.id == 'manutenzione')],
+    categories: [
+      stockCategories.firstWhere((c) => c.id == 'manutenzione'),
+      stockCategories.firstWhere((c) => c.id == 'varie'),
+    ],
   ),
   TodoItem(
     id: "t6",
@@ -85,7 +101,10 @@ final mockTodos = <TodoItem>[
     status: TodoStatus.done,
     createdAt: DateTime(2025, 9, 7, 10, 40),
     completedAt: DateTime(2025, 9, 7, 11, 30),
-    categories: [stockCategories.firstWhere((c) => c.id == 'spesa')],
+    categories: [
+      stockCategories.firstWhere((c) => c.id == 'spesa'),
+      stockCategories.firstWhere((c) => c.id == 'cucina'),
+    ],
   ),
   TodoItem(
     id: "t7",
@@ -96,7 +115,10 @@ final mockTodos = <TodoItem>[
     status: TodoStatus.done,
     createdAt: DateTime(2025, 9, 15, 21, 05),
     completedAt: DateTime(2025, 9, 15, 21, 20),
-    categories: [stockCategories.firstWhere((c) => c.id == 'bollette')],
+    categories: [
+      stockCategories.firstWhere((c) => c.id == 'bollette'),
+      stockCategories.firstWhere((c) => c.id == 'manutenzione'),
+    ],
   ),
   TodoItem(
     id: "t8",
@@ -108,7 +130,10 @@ final mockTodos = <TodoItem>[
     status: TodoStatus.done,
     createdAt: DateTime(2025, 8, 20, 14, 15),
     completedAt: DateTime(2025, 8, 20, 15, 00),
-    categories: [stockCategories.firstWhere((c) => c.id == 'manutenzione')],
+    categories: [
+      stockCategories.firstWhere((c) => c.id == 'manutenzione'),
+      stockCategories.firstWhere((c) => c.id == 'cucina'),
+    ],
   ),
   TodoItem(
     id: "t9",
@@ -119,7 +144,10 @@ final mockTodos = <TodoItem>[
     cost: 12,
     status: TodoStatus.open,
     createdAt: DateTime(2025, 10, 12, 18, 25),
-    categories: [stockCategories.firstWhere((c) => c.id == 'manutenzione')],
+    categories: [
+      stockCategories.firstWhere((c) => c.id == 'manutenzione'),
+      stockCategories.firstWhere((c) => c.id == 'varie'),
+    ],
   ),
   TodoItem(
     id: "t10",
@@ -130,7 +158,11 @@ final mockTodos = <TodoItem>[
     cost: 35,
     status: TodoStatus.open,
     createdAt: DateTime(2025, 10, 11, 13, 45),
-    categories: [stockCategories.firstWhere((c) => c.id == 'divertimento')],
+    categories: [
+      stockCategories.firstWhere((c) => c.id == 'divertimento'),
+      stockCategories.firstWhere((c) => c.id == 'cucina'),
+      stockCategories.firstWhere((c) => c.id == 'spesa'),
+    ],
   ),
   TodoItem(
     id: "t11",
@@ -140,7 +172,10 @@ final mockTodos = <TodoItem>[
     cost: 3,
     status: TodoStatus.open,
     createdAt: DateTime(2025, 10, 14, 12, 20),
-    categories: [stockCategories.firstWhere((c) => c.id == 'pulizie')],
+    categories: [
+      stockCategories.firstWhere((c) => c.id == 'pulizie'),
+      stockCategories.firstWhere((c) => c.id == 'cucina'),
+    ],
   ),
   TodoItem(
     id: "t12",
@@ -150,7 +185,10 @@ final mockTodos = <TodoItem>[
     cost: 2,
     status: TodoStatus.open,
     createdAt: DateTime(2025, 10, 14, 19, 10),
-    categories: [stockCategories.firstWhere((c) => c.id == 'pulizie')],
+    categories: [
+      stockCategories.firstWhere((c) => c.id == 'pulizie'),
+      stockCategories.firstWhere((c) => c.id == 'varie'),
+    ],
   ),
   TodoItem(
     id: "t13",
@@ -160,7 +198,10 @@ final mockTodos = <TodoItem>[
     cost: 60,
     status: TodoStatus.open,
     createdAt: DateTime(2025, 10, 9, 21, 30),
-    categories: [stockCategories.firstWhere((c) => c.id == 'bollette')],
+    categories: [
+      stockCategories.firstWhere((c) => c.id == 'bollette'),
+      stockCategories.firstWhere((c) => c.id == 'manutenzione'),
+    ],
   ),
   TodoItem(
     id: "t14",
@@ -170,7 +211,10 @@ final mockTodos = <TodoItem>[
     cost: 8,
     status: TodoStatus.open,
     createdAt: DateTime(2025, 10, 13, 10, 05),
-    categories: [stockCategories.firstWhere((c) => c.id == 'pulizie')],
+    categories: [
+      stockCategories.firstWhere((c) => c.id == 'pulizie'),
+      stockCategories.firstWhere((c) => c.id == 'manutenzione'),
+    ],
   ),
   TodoItem(
     id: "t15",
@@ -180,7 +224,10 @@ final mockTodos = <TodoItem>[
     cost: 4,
     status: TodoStatus.open,
     createdAt: DateTime(2025, 10, 14, 8, 35),
-    categories: [stockCategories.firstWhere((c) => c.id == 'pulizie')],
+    categories: [
+      stockCategories.firstWhere((c) => c.id == 'pulizie'),
+      stockCategories.firstWhere((c) => c.id == 'varie'),
+    ],
   ),
   TodoItem(
     id: "t16",
@@ -190,7 +237,10 @@ final mockTodos = <TodoItem>[
     cost: 900,
     status: TodoStatus.open,
     createdAt: DateTime(2025, 10, 1, 20, 00),
-    categories: [stockCategories.firstWhere((c) => c.id == 'bollette')],
+    categories: [
+      stockCategories.firstWhere((c) => c.id == 'bollette'),
+      stockCategories.firstWhere((c) => c.id == 'varie'),
+    ],
   ),
   TodoItem(
     id: "t17",
@@ -200,7 +250,10 @@ final mockTodos = <TodoItem>[
     cost: 5,
     status: TodoStatus.open,
     createdAt: DateTime(2025, 10, 14, 17, 20),
-    categories: [stockCategories.firstWhere((c) => c.id == 'spesa')],
+    categories: [
+      stockCategories.firstWhere((c) => c.id == 'spesa'),
+      stockCategories.firstWhere((c) => c.id == 'varie'),
+    ],
   ),
   TodoItem(
     id: "t18",
@@ -211,7 +264,10 @@ final mockTodos = <TodoItem>[
     status: TodoStatus.done,
     createdAt: DateTime(2025, 8, 18, 11, 10),
     completedAt: DateTime(2025, 8, 18, 12, 00),
-    categories: [stockCategories.firstWhere((c) => c.id == 'pulizie')],
+    categories: [
+      stockCategories.firstWhere((c) => c.id == 'pulizie'),
+      stockCategories.firstWhere((c) => c.id == 'varie'),
+    ],
   ),
   TodoItem(
     id: "t19",
@@ -221,7 +277,10 @@ final mockTodos = <TodoItem>[
     cost: 40,
     status: TodoStatus.open,
     createdAt: DateTime(2025, 9, 26, 21, 10),
-    categories: [stockCategories.firstWhere((c) => c.id == 'bollette')],
+    categories: [
+      stockCategories.firstWhere((c) => c.id == 'bollette'),
+      stockCategories.firstWhere((c) => c.id == 'manutenzione'),
+    ],
   ),
   TodoItem(
     id: "t20",
@@ -231,109 +290,13 @@ final mockTodos = <TodoItem>[
     cost: 18,
     status: TodoStatus.open,
     createdAt: DateTime(2025, 10, 11, 21, 00),
-    categories: [stockCategories.firstWhere((c) => c.id == 'divertimento')],
-  ),
-  TodoItem(
-    id: "t21",
-    title: "Riparare porta ingresso 🚪",
-    assigneeIds: ["u1", "u5"],
-    creatorId: "u1",
-    cost: 45,
-    status: TodoStatus.open,
-    createdAt: DateTime(2025, 10, 8, 16, 40),
-    categories: [stockCategories.firstWhere((c) => c.id == 'manutenzione')],
-  ),
-  TodoItem(
-    id: "t22",
-    title: "Comprare detersivo 🧴",
-    assigneeIds: ["u3"],
-    creatorId: "u2",
-    cost: 8,
-    status: TodoStatus.open,
-    createdAt: DateTime(2025, 10, 14, 18, 10),
-    categories: [stockCategories.firstWhere((c) => c.id == 'spesa')],
-  ),
-  TodoItem(
-    id: "t23",
-    title: "Pulire scale condominio 🧹",
-    assigneeIds: ["u2", "u5"],
-    creatorId: "u3",
-    cost: 3,
-    status: TodoStatus.open,
-    createdAt: DateTime(2025, 10, 13, 9, 20),
-    categories: [stockCategories.firstWhere((c) => c.id == 'pulizie')],
-  ),
-  TodoItem(
-    id: "t24",
-    title: "Pagare internet 📶",
-    assigneeIds: ["u1"],
-    creatorId: "u4",
-    cost: 35,
-    status: TodoStatus.open,
-    createdAt: DateTime(2025, 9, 29, 21, 30),
-    categories: [stockCategories.firstWhere((c) => c.id == 'bollette')],
-  ),
-  TodoItem(
-    id: "t25",
-    title: "Organizzare pranzo domenicale 🍝",
-    assigneeIds: ["u2", "u3", "u5"],
-    creatorId: "u5",
-    cost: 25,
-    status: TodoStatus.open,
-    createdAt: DateTime(2025, 10, 12, 11, 50),
-    categories: [stockCategories.firstWhere((c) => c.id == 'divertimento')],
-  ),
-  TodoItem(
-    id: "t26",
-    title: "Riparare lampadina corridoio 💡",
-    assigneeIds: ["u3", "u4"],
-    creatorId: "u1",
-    cost: 12,
-    status: TodoStatus.open,
-    createdAt: DateTime(2025, 10, 13, 19, 40),
-    categories: [stockCategories.firstWhere((c) => c.id == 'manutenzione')],
-  ),
-  TodoItem(
-    id: "t27",
-    title: "Comprare pane 🥖",
-    assigneeIds: ["u1", "u5"],
-    creatorId: "u2",
-    cost: 3,
-    status: TodoStatus.open,
-    createdAt: DateTime(2025, 10, 14, 19, 30),
-    categories: [stockCategories.firstWhere((c) => c.id == 'spesa')],
-  ),
-  TodoItem(
-    id: "t28",
-    title: "Pulire finestre 🪟",
-    assigneeIds: ["u2"],
-    creatorId: "u3",
-    cost: 7,
-    status: TodoStatus.open,
-    createdAt: DateTime(2025, 10, 13, 15, 00),
-    categories: [stockCategories.firstWhere((c) => c.id == 'pulizie')],
-  ),
-  TodoItem(
-    id: "t29",
-    title: "Pagare Netflix 🎥",
-    assigneeIds: ["u3"],
-    creatorId: "u4",
-    cost: 15,
-    status: TodoStatus.open,
-    createdAt: DateTime(2025, 10, 1, 22, 10),
-    categories: [stockCategories.firstWhere((c) => c.id == 'bollette')],
-  ),
-  TodoItem(
-    id: "t30",
-    title: "Organizzare torneo di carte 🃏",
-    assigneeIds: ["u1", "u2", "u3", "u4", "u5"],
-    creatorId: "u5",
-    cost: 5,
-    status: TodoStatus.open,
-    createdAt: DateTime(2025, 10, 10, 20, 45),
-    categories: [stockCategories.firstWhere((c) => c.id == 'divertimento')],
+    categories: [
+      stockCategories.firstWhere((c) => c.id == 'divertimento'),
+      stockCategories.firstWhere((c) => c.id == 'varie'),
+    ],
   ),
 ];
+
 
 
 /// Transazioni finte (date fissate e coerenti con le todo)
