@@ -10,7 +10,6 @@ import 'package:go_router/go_router.dart';
 import 'package:your_turn/src/models/money_tx.dart';
 import 'package:your_turn/src/models/roommate.dart';
 import 'package:your_turn/src/models/todo_category.dart';
-import 'package:your_turn/src/models/expense_category.dart';
 import 'package:your_turn/src/models/todo_status.dart';
 import 'package:your_turn/src/pages/admin_page.dart';
 import 'package:your_turn/src/pages/todo_page.dart';
@@ -29,6 +28,7 @@ import 'package:your_turn/src/widgets/transaction_dialogs.dart';
 import 'package:your_turn/src/services/csv_export_service.dart';
 import 'package:your_turn/src/services/pdf_export_service.dart';
 import 'package:your_turn/src/widgets/transactions_chart.dart';
+import 'package:your_turn/src/widgets/common_action_button.dart';
 
 class ProfilePage extends ConsumerStatefulWidget {
   const ProfilePage({super.key, this.userId});
@@ -39,16 +39,15 @@ class ProfilePage extends ConsumerStatefulWidget {
 }
 
 // Solo vista griglia - lista rimossa
-
 class _ProfilePageState extends ConsumerState<ProfilePage> {
   int _visibleTxCount = 10;
+  
   final NumberFormat _money = NumberFormat.currency(locale: 'it_IT', symbol: '€');
 
-  TodoCategory? _selectedCategory;
+  TodoCategory? _selectedCategory; 
   DateTimeRange? _selectedDateRange;
   bool _showHelp = false;
-    // Solo vista griglia - rimossa selezione vista
-  
+
   // Paginazione griglia 4x4
   int _currentPage = 0;
   static const int _rowsPerPage = 4; // 4 righe per pagina, colonne dinamiche
@@ -56,57 +55,61 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
   static const String _shortcutInfo =
       'Scorciatoie: H = Home • D = Scarica CSV • A = Aggiungi Transazione';
 
-
-
   Card _sectionCard({required Widget child, EdgeInsetsGeometry? margin}) => Card(
-    margin: margin ?? const EdgeInsets.fromLTRB(16, 12, 16, 8),
-    elevation: 6,
-    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-    color: Colors.white,
-    child: Padding(padding: const EdgeInsets.all(20), child: child),
-  );
+        margin: margin ?? const EdgeInsets.fromLTRB(16, 12, 16, 8),
+        elevation: 6,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        color: Colors.white,
+        child: Padding(padding: const EdgeInsets.all(20), child: child),
+      );
 
-  // Mappatura da TodoCategory a ExpenseCategory
-  ExpenseCategory? _mapTodoToExpenseCategory(TodoCategory? todoCategory) {
-    if (todoCategory == null) return null;
-    
-    switch (todoCategory.id) {
-      case 'spesa':
-        return ExpenseCategory.spesa;
-      case 'bollette':
-        return ExpenseCategory.bolletta;
-      case 'pulizie':
-        return ExpenseCategory.pulizia;
-      case 'manutenzione':
-      case 'cucina':
-      case 'divertimento':
-      case 'varie':
-      default:
-        return ExpenseCategory.altro;
-    }
-  }
-
+  // 🔹 Filtro per transazioni
   List<MoneyTx> _applyFilters(List<MoneyTx> all) {
-    var out = all;
-    if (_selectedCategory != null) {
-      final expenseCategory = _mapTodoToExpenseCategory(_selectedCategory);
-      if (expenseCategory != null) {
-        out = out.where((t) => t.category == expenseCategory).toList();
+  var out = all;
+
+  if (_selectedCategory != null) {
+    out = out.where((t) {
+      // Normalizza il nome della categoria selezionata
+      String selectedName;
+      if (_selectedCategory is TodoCategory) {
+        selectedName = (_selectedCategory as TodoCategory).name.toLowerCase();
+      } else {
+        return false;
       }
-    }
-    if (_selectedDateRange != null) {
-      final r = _selectedDateRange!;
-      out = out.where((t) => !t.createdAt.isBefore(r.start) && !t.createdAt.isAfter(r.end)).toList();
-    }
-    out.sort((a, b) => b.createdAt.compareTo(a.createdAt));
-    return out;
+
+      // Cerca match nelle categorie della transazione
+      final matchExpense = t.category.any(
+        (c) => c.name.toLowerCase() == selectedName,
+      );
+
+      // Cerca match anche su customCategoryName se presente
+      final matchCustom = (t.customCategoryName != null &&
+          t.customCategoryName!.toLowerCase() == selectedName);
+
+      return matchExpense || matchCustom;
+    }).toList();
   }
+
+  if (_selectedDateRange != null) {
+    final r = _selectedDateRange!;
+    out = out
+        .where((t) =>
+            !t.createdAt.isBefore(r.start) &&
+            !t.createdAt.isAfter(r.end))
+        .toList();
+  }
+
+  out.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+  return out;
+}
+
+
+
 
   @override
   Widget build(BuildContext context) {
     final roommates = ref.watch(roommatesProvider);
     final user = ref.watch(userProvider);
-    final categories = ref.watch(categoriesProvider);
 
     final Roommate? me = widget.userId != null
         ? roommates.firstWhere(
@@ -117,16 +120,22 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
             ? null
             : roommates.firstWhere(
                 (r) => r.id == user.id,
-                orElse: () => Roommate(id: user.id, name: user.name, photoUrl: user.photoUrl),
+                orElse: () => Roommate(
+                    id: user.id, name: user.name, photoUrl: user.photoUrl),
               ));
 
     if (me == null) {
-      return const Scaffold(body: Center(child: Text('Effettua il login per vedere il profilo.')));
+      return const Scaffold(
+          body: Center(child: Text('Effettua il login per vedere il profilo.')));
     }
 
     final allTxs = ref.watch(userTransactionsProvider(me.id));
     final txs = _applyFilters(allTxs);
     final visibleTxs = txs.take(_visibleTxCount).toList();
+    final todoCategories = ref.watch(categoriesProvider);
+    final allCategories = [
+  ...todoCategories,  
+];
 
     return KeyboardListener(
       focusNode: FocusNode(),
@@ -135,43 +144,33 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
         if (event is KeyDownEvent) {
           final key = event.logicalKey;
 
-          
-
-          // 🔹 D = download CSV
+          // 🔹 S = download CSV
           if (key == LogicalKeyboardKey.keyS) {
             final roommates = ref.read(roommatesProvider);
             final user = ref.read(userProvider);
             final currentMe = roommates.firstWhere(
               (r) => r.id == user?.id,
-              orElse: () => Roommate(id: user?.id ?? 'me', name: user?.name ?? 'Tu'),
+              orElse: () =>
+                  Roommate(id: user?.id ?? 'me', name: user?.name ?? 'Tu'),
             );
             _downloadTransactions(currentMe);
           }
 
+          // 🔹 H = TodoPage
           if (key == LogicalKeyboardKey.keyH) {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const TodoPage()),
-        );
-      }
-
-          // 🔹 A = aggiungi transazione
-          if (key == LogicalKeyboardKey.keyT) {
-            final roommates = ref.read(roommatesProvider);
-            final user = ref.read(userProvider);
-            final currentMe = roommates.firstWhere(
-              (r) => r.id == user?.id,
-              orElse: () => Roommate(id: user?.id ?? 'me', name: user?.name ?? 'Tu'),
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const TodoPage()),
             );
-            _onAddTransaction(context, currentMe);
           }
 
+          // 🔹 A = AdminPage
           if (key == LogicalKeyboardKey.keyA) {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const AdminPage()),
-        );
-      }
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const AdminPage()),
+            );
+          }
         }
       },
       child: Scaffold(
@@ -188,47 +187,43 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
               slivers: [
                 _buildAppBar(context),
                 SliverToBoxAdapter(
-  child: Padding(
-  padding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
-  child: Row(
-    crossAxisAlignment: CrossAxisAlignment.center,
-    children: [
-      // Foto profilo
-      ProfileHeader(roommate: me),
-
-      const SizedBox(width: 20),
-
-      // Filtri espandibili
-      Expanded(
-        child: Align(
-          alignment: Alignment.centerLeft,
-          child: TransactionFilters(
-            categories: categories,
-            selectedCategory: _selectedCategory,
-            selectedDateRange: _selectedDateRange,
-            onCategoryChanged: (category) =>
-                setState(() => _selectedCategory = category),
-            onDateRangeChanged: (dateRange) =>
-                setState(() => _selectedDateRange = dateRange),
-            onReset: () => setState(() {
-              _selectedCategory = null;
-              _selectedDateRange = null;
-              _currentPage = 0;
-            }),
-          ),
-        ),
-      ),
-    ],
-  ),
-),
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        // Foto profilo
+                        ProfileHeader(roommate: me),
+                        const SizedBox(width: 20),
 
 
-),
-SliverToBoxAdapter(
-  child: TransactionsChart(transactions: txs),
-),
-
-                _buildTransactionsSliver(visibleTxs), // ✅ lista/griglia dinamica
+                        Expanded(
+                          child: Align(
+                            alignment: Alignment.centerLeft,
+                            child: TransactionFilters(
+                              categories: allCategories,
+                              selectedCategory: _selectedCategory,
+                              selectedDateRange: _selectedDateRange,
+                              onCategoryChanged: (category) => setState(
+                                  () => _selectedCategory = category),
+                              onDateRangeChanged: (dateRange) =>
+                                  setState(() => _selectedDateRange = dateRange),
+                              onReset: () => setState(() {
+                                _selectedCategory = null;
+                                _selectedDateRange = null;
+                                _currentPage = 0;
+                              }),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                SliverToBoxAdapter(
+                  child: TransactionsChart(transactions: txs),
+                ),
+                _buildTransactionsSliver(visibleTxs),
                 _buildPagination(txs),
               ],
             ),
@@ -238,319 +233,81 @@ SliverToBoxAdapter(
     );
   }
 
-  SliverAppBar _buildAppBar(BuildContext context) {
-    return SliverAppBar(
-      pinned: true,
-      backgroundColor: Colors.transparent,
-      elevation: 0,
-      leading: 
-      IconButton(
-        icon: const Icon(Icons.arrow_back_ios_new, color: Colors.blue, size: 24),
-        tooltip: 'Indietro',
-        onPressed: () {
-          if (Navigator.canPop(context)) {
-            Navigator.pop(context);
-          } else {
-            context.go('/todo');
-          }
-        },
-      
-      ),
-      //title: const Text('', style: TextStyle(color: Colors.transparent)),
-      actions: [
-        // Bottoni con stesso stile delle altre pagine
-        Row(
+
+ SliverAppBar _buildAppBar(BuildContext context) {
+  return SliverAppBar(
+    pinned: true,
+    automaticallyImplyLeading: false,
+    backgroundColor: Colors.transparent,
+    elevation: 0,
+    leading: null,
+    actions: [
+      Padding(
+        padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
+        child: Row(
           mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            
-            Container(
-          margin: const EdgeInsets.only(right: 8),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [Colors.orange.shade400, Colors.orange.shade600],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-            borderRadius: BorderRadius.circular(12),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.orange.withOpacity(0.3),
-                blurRadius: 8,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          child: Material(
-            color: Colors.transparent,
-            child: InkWell(
-              borderRadius: BorderRadius.circular(12),
-              onTap: () => Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const AdminPage()),
-              ),
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(
-                      width: 24,
-                      height: 24,
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(4),
-                        border: Border.all(color: Colors.orange.shade700, width: 2),
-                      ),
-                      child: Center(
-                        child: Text(
-                          'A',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: Colors.orange.shade700,
-                            fontSize: 14,
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    const Text(
-                      'ADMIN',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 12,
-                      ),
-                    ),
-                    const SizedBox(width: 4),
-                    const Icon(Icons.admin_panel_settings, color: Colors.white, size: 16),
-                  ],
+            // Pulsante A - Admin
+            SizedBox(
+              height: 46,
+              child: CommonActionButton(
+                letter: 'A',
+                label: 'ADMIN',
+                color: Colors.blue,
+                icon: Icons.admin_panel_settings,
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const AdminPage()),
                 ),
               ),
             ),
-          ),
-        ),
-            const SizedBox(width: 4),
-            // 🟢 Tasto D - Download CSV
-            Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [Colors.purple.shade400, Colors.purple.shade600],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-            borderRadius: BorderRadius.circular(12),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.purple.withOpacity(0.3),
-                blurRadius: 8,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          child: Material(
-            color: Colors.transparent,
-            child: InkWell(
-              borderRadius: BorderRadius.circular(12),
-              onTap: () => Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const ProfilePage()),
-              ),
-              child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(
-                      width: 24,
-                      height: 24,
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(4),
-                        border:
-                            Border.all(color: Colors.purple.shade700, width: 2),
-                      ),
-                      child: Center(
-                        child: Text(
-                          'H',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: Colors.purple.shade700,
-                            fontSize: 14,
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    const Text(
-                      'TO-DO',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 12,
-                      ),
-                    ),
-                    const SizedBox(width: 4),
-                    const Icon(Icons.person, color: Colors.white, size: 16),
-                  ],
+            const SizedBox(width: 12),
+
+            // Pulsante H - To-Do
+            SizedBox(
+              height: 46,
+              child: CommonActionButton(
+                letter: 'H',
+                label: 'TO-DO',
+                color: Colors.blue,
+                icon: Icons.check_circle_outline,
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const ProfilePage()),
                 ),
               ),
             ),
-          ),
-        ),
-        const SizedBox(width: 4),
-            Container(
-              margin: const EdgeInsets.only(right: 8),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [Colors.green.shade400, Colors.green.shade600],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.green.withOpacity(0.3),
-                    blurRadius: 8,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: Material(
-                color: Colors.transparent,
-                child: InkWell(
-                  
-                  borderRadius: BorderRadius.circular(12),
-                  onTap: () {
-                    final roommates = ref.read(roommatesProvider);
-                    final user = ref.read(userProvider);
-                    final me = roommates.firstWhere(
-                      (r) => r.id == user?.id,
-                      orElse: () => Roommate(id: user?.id ?? 'me', name: user?.name ?? 'Tu'),
-                    );
-                    _downloadTransactions(me);
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Container(
-                          width: 24,
-                          height: 24,
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(4),
-                            border: Border.all(color: Colors.green.shade700, width: 2),
-                          ),
-                          child: Center(
-                            child: Text(
-                              'S',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: Colors.green.shade700,
-                                fontSize: 14,
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        const Text(
-                          'DOWNLOAD',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 12,
-                          ),
-                        ),
-                        const SizedBox(width: 4),
-                        const Icon(Icons.download, color: Colors.white, size: 16),
-                      ],
-                    ),
-                  ),
-                ),
+            const SizedBox(width: 12),
+
+            // Pulsante S - Download
+            SizedBox(
+              height: 46,
+              child: CommonActionButton(
+                letter: 'S',
+                label: 'DOWNLOAD',
+                color: Colors.blue,
+                icon: Icons.download_rounded,
+                onTap: () {
+                  final roommates = ref.read(roommatesProvider);
+                  final user = ref.read(userProvider);
+                  final me = roommates.firstWhere(
+                    (r) => r.id == user?.id,
+                    orElse: () =>
+                        Roommate(id: user?.id ?? 'me', name: user?.name ?? 'Tu'),
+                  );
+                  _downloadTransactions(me);
+                },
               ),
             ),
-            const SizedBox(width: 4),
-            // 🔵 Tasto A - Aggiungi Transazione
-            Container(
-              margin: const EdgeInsets.only(right: 12),
-              decoration: BoxDecoration(
-                
-                gradient: LinearGradient(
-                  colors: [Colors.blue.shade400, Colors.blue.shade600],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.blue.withOpacity(0.3),
-                    blurRadius: 8,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: Material(
-                color: Colors.transparent,
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(12),
-                  onTap: () {
-                    final roommates = ref.read(roommatesProvider);
-                    final user = ref.read(userProvider);
-                    final me = roommates.firstWhere(
-                      (r) => r.id == user?.id,
-                      orElse: () => Roommate(id: user?.id ?? 'me', name: user?.name ?? 'Tu'),
-                    );
-                    _onAddTransaction(context, me);
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Container(
-                          width: 24,
-                          height: 24,
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(4),
-                            border: Border.all(color: Colors.blue.shade700, width: 2),
-                          ),
-                          child: Center(
-                            child: Text(
-                              'T',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: Colors.blue.shade700,
-                                fontSize: 14,
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        const Text(
-                          'NUOVA',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 12,
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        const Icon(Icons.add_circle, color: Colors.white, size: 16),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ),
+            const SizedBox(width: 12),
           ],
         ),
-        
-      ],
-    );
-  }
+      ),
+    ],
+  );
+}
+
 
 
 
@@ -755,5 +512,6 @@ SliverToBoxAdapter(
   }
 }
 }
+
 
 

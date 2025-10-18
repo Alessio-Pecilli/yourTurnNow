@@ -1,39 +1,39 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:your_turn/src/models/expense_category.dart';
+import 'package:your_turn/src/models/todo_category.dart';
 
 void main() {
-  group('ExpenseCategory Tests', () {
-    test('tutti gli enum devono avere label e icon', () {
-      for (final category in ExpenseCategory.values) {
-        expect(category.label.isNotEmpty, true, reason: '${category.name} deve avere label');
-        expect(category.icon, isNotNull, reason: '${category.name} deve avere icon');
-        expect(category.color, isNotNull, reason: '${category.name} deve avere color');
+  group('TodoCategory Tests', () {
+    test('tutte le categorie devono avere nome, icona e colore validi', () {
+      for (final category in stockCategories) {
+        expect(category.name.isNotEmpty, true, reason: '${category.id} deve avere un name valido');
+        expect(category.icon, isNotNull, reason: '${category.id} deve avere una icon');
+        expect(category.color.isNotEmpty, true, reason: '${category.id} deve avere un color valido');
       }
     });
 
-    test('i colori devono essere validi', () {
-      for (final category in ExpenseCategory.values) {
-        // Test che il colore sia un Color valido (non null e non trasparente)
-        expect(category.color.value, greaterThan(0));
+    test('i colori devono essere in formato esadecimale valido', () {
+      final hexColorRegex = RegExp(r'^#(?:[0-9a-fA-F]{6})$');
+      for (final category in stockCategories) {
+        expect(hexColorRegex.hasMatch(category.color), true,
+            reason: '${category.id} ha un colore non valido: ${category.color}');
       }
     });
 
-    test('le label devono essere uniche', () {
-      final labels = ExpenseCategory.values.map((c) => c.label).toSet();
-      expect(labels.length, ExpenseCategory.values.length, reason: 'Label duplicate trovate');
+    test('gli id devono essere unici', () {
+      final ids = stockCategories.map((c) => c.id).toSet();
+      expect(ids.length, stockCategories.length, reason: 'Id duplicati trovati');
     });
 
-    test('enum values specifici devono esistere', () {
-      expect(ExpenseCategory.values, contains(ExpenseCategory.spesa));
-      expect(ExpenseCategory.values, contains(ExpenseCategory.bolletta));
-      expect(ExpenseCategory.values, contains(ExpenseCategory.pulizia));
-      expect(ExpenseCategory.values, contains(ExpenseCategory.altro));
+    test('categorie specifiche devono esistere', () {
+      final ids = stockCategories.map((c) => c.id).toList();
+      expect(ids, containsAll(['spesa', 'bollette', 'pulizie', 'varie']));
     });
 
-    test('ExpenseCategory.spesa deve avere proprietà corrette', () {
-      expect(ExpenseCategory.spesa.label, 'Spesa');
-      expect(ExpenseCategory.spesa.icon, isNotNull);
-      expect(ExpenseCategory.spesa.color, isNotNull);
+    test('la categoria spesa deve avere proprietà corrette', () {
+      final spesa = stockCategories.firstWhere((c) => c.id == 'spesa');
+      expect(spesa.name, 'Spesa');
+      expect(spesa.icon, isNotNull);
+      expect(spesa.color, '#4CAF50');
     });
   });
 }

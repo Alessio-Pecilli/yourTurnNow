@@ -6,7 +6,6 @@ import 'package:intl/intl.dart';
 import 'package:your_turn/src/models/money_tx.dart';
 import 'package:your_turn/src/models/roommate.dart';
 import 'package:your_turn/src/models/todo_category.dart';
-import 'package:your_turn/src/models/expense_category.dart';
 import 'package:your_turn/src/providers/categories_provider.dart';
 import 'package:your_turn/src/providers/roommates_provider.dart';
 import 'package:your_turn/src/providers/transactions_provider.dart';
@@ -43,7 +42,7 @@ class TransactionDialogs {
         ),
       ),
     );
-    
+
     if (confirmed == true) {
       ref.read(transactionsProvider.notifier).removeTx(tx.id);
       if (context.mounted) {
@@ -63,8 +62,11 @@ class TransactionDialogs {
     final amountCtrl = TextEditingController(text: tx.amount.toString());
     final noteCtrl = TextEditingController(text: tx.note);
     final formKey = GlobalKey<FormState>();
-    ExpenseCategory? selectedCategory = tx.category;
+
+    List<TodoCategory> selectedCategories = [...tx.category];
     DateTime? selectedDate = tx.createdAt;
+
+    final allCategories = ref.read(categoriesProvider);
 
     final ok = await showDialog<bool>(
       context: context,
@@ -75,7 +77,8 @@ class TransactionDialogs {
             title: const Text('Modifica transazione'),
             backgroundColor: Colors.white,
             surfaceTintColor: Colors.white,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
             content: Form(
               key: formKey,
               child: SingleChildScrollView(
@@ -85,8 +88,9 @@ class TransactionDialogs {
                   children: [
                     _buildAmountField(amountCtrl),
                     const SizedBox(height: 16),
-                    _buildExpenseCategorySelector(selectedCategory, (cat) {
-                      setState(() => selectedCategory = cat);
+                    _buildMultiCategorySelector(allCategories, selectedCategories,
+                        (newList) {
+                      setState(() => selectedCategories = newList);
                     }),
                     const SizedBox(height: 16),
                     _buildNoteField(noteCtrl),
@@ -124,7 +128,7 @@ class TransactionDialogs {
         amount: amount,
         note: note,
         createdAt: when,
-        category: selectedCategory,
+        category: selectedCategories,
       );
       ref.read(transactionsProvider.notifier).updateTx(updated);
       if (context.mounted) {
@@ -145,7 +149,8 @@ class TransactionDialogs {
     final amountCtrl = TextEditingController();
     final noteCtrl = TextEditingController();
     final formKey = GlobalKey<FormState>();
-    TodoCategory? selectedCategory = categories.isNotEmpty ? categories.first : null;
+
+    List<TodoCategory> selectedCategories = [];
     DateTime? selectedDate;
 
     final ok = await showDialog<bool>(
@@ -157,7 +162,8 @@ class TransactionDialogs {
             title: const Text('Nuova transazione'),
             backgroundColor: Colors.white,
             surfaceTintColor: Colors.white,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
             content: Form(
               key: formKey,
               child: SingleChildScrollView(
@@ -167,8 +173,9 @@ class TransactionDialogs {
                   children: [
                     _buildAmountField(amountCtrl),
                     const SizedBox(height: 16),
-                    _buildTodoCategorySelector(categories, selectedCategory, (cat) {
-                      setState(() => selectedCategory = cat);
+                    _buildMultiCategorySelector(categories, selectedCategories,
+                        (newList) {
+                      setState(() => selectedCategories = newList);
                     }),
                     const SizedBox(height: 16),
                     _buildNoteField(noteCtrl),
@@ -210,17 +217,21 @@ class TransactionDialogs {
       roommateId: roommate.id,
       amount: amount,
       note: note,
-      category: _mapTodoCategoryToExpense(selectedCategory),
+      category: selectedCategories,
       when: when,
     );
   }
 
-  // Helper widgets per costruire i campi del form
+  // --- CAMPI ---
+
   static Widget _buildAmountField(TextEditingController controller) {
     return TextFormField(
       controller: controller,
-      keyboardType: const TextInputType.numberWithOptions(decimal: true, signed: true),
-      inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[0-9,.\-]'))],
+      keyboardType:
+          const TextInputType.numberWithOptions(decimal: true, signed: true),
+      inputFormatters: [
+        FilteringTextInputFormatter.allow(RegExp(r'[0-9,.\-]'))
+      ],
       decoration: const InputDecoration(
         labelText: 'Importo (€)',
         hintText: 'positivo = accredito, negativo = addebito',
@@ -244,73 +255,45 @@ class TransactionDialogs {
     );
   }
 
-  static Widget _buildExpenseCategorySelector(
-    ExpenseCategory? selectedCategory,
-    void Function(ExpenseCategory?) onChanged,
-  ) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text('Categoria', style: TextStyle(fontWeight: FontWeight.bold)),
-        const SizedBox(height: 8),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: ExpenseCategory.values.map((category) {
-            final sel = selectedCategory == category;
-            return ChoiceChip(
-              label: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(category.icon, size: 18, color: sel ? Colors.white : category.color),
-                  const SizedBox(width: 6),
-                  Text(category.label),
-                ],
-              ),
-              selected: sel,
-              onSelected: (_) => onChanged(category),
-              backgroundColor: sel ? category.color : Colors.white,
-              selectedColor: category.color,
-              side: BorderSide(color: category.color, width: 1.5),
-              labelStyle: TextStyle(
-                color: sel ? Colors.white : category.color,
-                fontWeight: FontWeight.w600,
-              ),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            );
-          }).toList(),
-        ),
-      ],
-    );
-  }
-
-  static Widget _buildTodoCategorySelector(
+  /// 🔹 Nuovo: selezione multipla categorie
+  static Widget _buildMultiCategorySelector(
     List<TodoCategory> categories,
-    TodoCategory? selectedCategory,
-    void Function(TodoCategory?) onChanged,
+    List<TodoCategory> selectedCategories,
+    void Function(List<TodoCategory>) onChanged,
   ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Categoria', style: TextStyle(fontWeight: FontWeight.bold)),
+        const Text('Categorie', style: TextStyle(fontWeight: FontWeight.bold)),
         const SizedBox(height: 8),
         Wrap(
           spacing: 8,
           runSpacing: 8,
           children: categories.map((category) {
-            final sel = selectedCategory?.id == category.id;
-            final categoryColor = Color(int.parse(category.color.substring(1), radix: 16) + 0xFF000000);
-            return ChoiceChip(
+            final sel = selectedCategories.any((c) => c.id == category.id);
+            final categoryColor = Color(
+                int.parse(category.color.substring(1), radix: 16) + 0xFF000000);
+
+            return FilterChip(
               label: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(category.icon, size: 18, color: sel ? Colors.white : categoryColor),
+                  Icon(category.icon,
+                      size: 18, color: sel ? Colors.white : categoryColor),
                   const SizedBox(width: 6),
                   Text(category.name),
                 ],
               ),
               selected: sel,
-              onSelected: (_) => onChanged(category),
+              onSelected: (_) {
+                final newList = [...selectedCategories];
+                if (sel) {
+                  newList.removeWhere((c) => c.id == category.id);
+                } else {
+                  newList.add(category);
+                }
+                onChanged(newList);
+              },
               backgroundColor: sel ? categoryColor : Colors.white,
               selectedColor: categoryColor,
               side: BorderSide(color: categoryColor, width: 1.5),
@@ -318,7 +301,9 @@ class TransactionDialogs {
                 color: sel ? Colors.white : categoryColor,
                 fontWeight: FontWeight.w600,
               ),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
             );
           }).toList(),
         ),
@@ -358,26 +343,5 @@ class TransactionDialogs {
         ),
       ],
     );
-  }
-
-  // Funzione di mapping da TodoCategory a ExpenseCategory
-  static ExpenseCategory _mapTodoCategoryToExpense(TodoCategory? todoCategory) {
-    if (todoCategory == null) return ExpenseCategory.altro;
-    
-    switch (todoCategory.id) {
-      case 'spesa':
-        return ExpenseCategory.spesa;
-      case 'bollette':
-        return ExpenseCategory.bolletta; // bollette (plurale) → bolletta (singolare)
-      case 'pulizie':
-        return ExpenseCategory.pulizia; // pulizie (plurale) → pulizia (singolare)
-      case 'cucina':
-      case 'divertimento':
-      case 'manutenzione':
-      case 'varie':
-        return ExpenseCategory.altro;
-      default:
-        return ExpenseCategory.altro;
-    }
   }
 }

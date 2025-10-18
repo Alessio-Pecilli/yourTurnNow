@@ -3,7 +3,18 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import 'package:your_turn/src/models/money_tx.dart';
+import 'package:your_turn/src/models/todo_category.dart';
 import 'package:your_turn/src/widgets/expense_category_chip.dart';
+// ✅ nuovo nome coerente
+
+// Estensione per convertire stringhe hex in Color
+extension HexColorExtension on String {
+  Color toColor() {
+    var hex = replaceAll('#', '');
+    if (hex.length == 6) hex = 'FF$hex'; // aggiunge alpha pieno se mancante
+    return Color(int.parse(hex, radix: 16));
+  }
+}
 
 class TxTile extends StatelessWidget {
   const TxTile({
@@ -13,6 +24,7 @@ class TxTile extends StatelessWidget {
     this.onEdit,
     this.onDelete,
   });
+
   final MoneyTx tx;
   final NumberFormat money;
   final VoidCallback? onEdit;
@@ -53,14 +65,22 @@ class TxTile extends StatelessWidget {
               children: [
                 CircleAvatar(
                   radius: 11,
-                  backgroundColor: tx.category.color.withOpacity(0.18),
-                  child: Icon(tx.category.icon, color: tx.category.color, size: 11),
+                  backgroundColor: tx.category[0].color.toColor().withOpacity(0.18),
+                  child: Icon(
+                    tx.category[0].icon,
+                    color: tx.category[0].color.toColor(),
+                    size: 11,
+                  ),
                 ),
                 const SizedBox(width: 4),
                 Expanded(
                   child: Text(
                     tx.note,
-                    style: TextStyle(fontWeight: FontWeight.w600, fontSize: 11, color: Colors.grey.shade800),
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 11,
+                      color: Colors.grey.shade800,
+                    ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -71,8 +91,14 @@ class TxTile extends StatelessWidget {
                     if (value == 'delete' && onDelete != null) onDelete!();
                   },
                   itemBuilder: (context) => [
-                    const PopupMenuItem(value: 'edit', child: Text('Modifica', style: TextStyle(fontSize: 12))),
-                    const PopupMenuItem(value: 'delete', child: Text('Elimina', style: TextStyle(fontSize: 12))),
+                    const PopupMenuItem(
+                      value: 'edit',
+                      child: Text('Modifica', style: TextStyle(fontSize: 12)),
+                    ),
+                    const PopupMenuItem(
+                      value: 'delete',
+                      child: Text('Elimina', style: TextStyle(fontSize: 12)),
+                    ),
                   ],
                   icon: const Icon(Icons.more_vert, size: 13),
                   tooltip: 'Azioni',
@@ -82,13 +108,17 @@ class TxTile extends StatelessWidget {
             const SizedBox(height: 2),
             Row(
               children: [
-                ExpenseCategoryChip(category: tx.category, isSmall: true),
+                TodoCategoryChip(category: tx.category[0], isSmall: true), // ✅ aggiornato
                 const Spacer(),
                 Icon(Icons.schedule, size: 9, color: Colors.grey.shade500),
                 const SizedBox(width: 1),
                 Text(
                   dateText,
-                  style: TextStyle(fontSize: 8.5, color: Colors.grey.shade600, fontWeight: FontWeight.w500),
+                  style: TextStyle(
+                    fontSize: 8.5,
+                    color: Colors.grey.shade600,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
               ],
             ),

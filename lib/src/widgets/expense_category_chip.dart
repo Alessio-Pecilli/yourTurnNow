@@ -1,5 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:your_turn/src/models/expense_category.dart';
+import 'package:your_turn/src/models/todo_category.dart';
+
+/// Funzione per convertire stringa esadecimale in Color
+Color _hexToColor(String hex) {
+  hex = hex.replaceAll('#', '');
+  return Color(int.parse('FF$hex', radix: 16));
+}
 
 /// Funzione per schiarire i colori scuri
 Color lighten(Color color, [double amount = .4]) {
@@ -8,12 +14,12 @@ Color lighten(Color color, [double amount = .4]) {
   return hsl.withLightness(light).toColor();
 }
 
-/// Widget chip per visualizzare la categoria di spesa con icona e colore
-class ExpenseCategoryChip extends StatelessWidget {
-  final ExpenseCategory category;
+/// Widget chip per visualizzare la categoria con icona e colore
+class TodoCategoryChip extends StatelessWidget {
+  final TodoCategory category;
   final bool isSmall;
 
-  const ExpenseCategoryChip({
+  const TodoCategoryChip({
     super.key,
     required this.category,
     this.isSmall = false,
@@ -21,13 +27,14 @@ class ExpenseCategoryChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final isDark = category.color.computeLuminance() < 0.35;
-    final chipBg = isDark ? lighten(category.color, 0.7) : category.color.withOpacity(0.10);
-    final chipText = isDark ? Colors.black : category.color;
+    final baseColor = _hexToColor(category.color);
+    final isDark = baseColor.computeLuminance() < 0.35;
+    final chipBg =
+        isDark ? lighten(baseColor, 0.7) : baseColor.withOpacity(0.10);
+    final chipText = isDark ? Colors.black : baseColor;
 
     return Semantics(
-      label: 'Categoria: ${category.label}',
+      label: 'Categoria: ${category.name}',
       child: Chip(
         avatar: Icon(
           category.icon,
@@ -35,7 +42,7 @@ class ExpenseCategoryChip extends StatelessWidget {
           color: chipText,
         ),
         label: Text(
-          category.label,
+          category.name,
           style: TextStyle(
             fontSize: isSmall ? 12 : 14,
             fontWeight: FontWeight.w500,
@@ -52,39 +59,43 @@ class ExpenseCategoryChip extends StatelessWidget {
           vertical: isSmall ? 2 : 4,
         ),
         materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-        visualDensity: isSmall ? VisualDensity.compact : VisualDensity.standard,
+        visualDensity:
+            isSmall ? VisualDensity.compact : VisualDensity.standard,
       ),
     );
   }
 }
 
-/// Widget per selezionare una categoria di spesa
-class ExpenseCategorySelector extends StatelessWidget {
-  final ExpenseCategory? selectedCategory;
-  final ValueChanged<ExpenseCategory> onCategorySelected;
+/// Widget per selezionare una categoria (con icone e colori)
+class TodoCategorySelector extends StatelessWidget {
+  final TodoCategory? selectedCategory;
+  final ValueChanged<TodoCategory> onCategorySelected;
+  final List<TodoCategory> categories;
   final bool wrap;
 
-  const ExpenseCategorySelector({
+  const TodoCategorySelector({
     super.key,
     this.selectedCategory,
     required this.onCategorySelected,
+    required this.categories,
     this.wrap = true,
   });
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    final chips = ExpenseCategory.values.map((category) {
-      final isSelected = selectedCategory == category;
-      final isDark = category.color.computeLuminance() < 0.35;
-      final chipBg = isDark ? lighten(category.color, 0.7) : category.color.withOpacity(0.10);
-      final chipSelectedBg = isDark ? lighten(category.color, 0.5) : category.color.withOpacity(0.30);
-      final chipText = isDark ? Colors.black : category.color;
+    final chips = categories.map((category) {
+      final baseColor = _hexToColor(category.color);
+      final isSelected = selectedCategory?.id == category.id;
+      final isDark = baseColor.computeLuminance() < 0.35;
+      final chipBg =
+          isDark ? lighten(baseColor, 0.7) : baseColor.withOpacity(0.10);
+      final chipSelectedBg =
+          isDark ? lighten(baseColor, 0.5) : baseColor.withOpacity(0.30);
+      final chipText = isDark ? Colors.black : baseColor;
 
       return Semantics(
         button: true,
-        label: 'Seleziona categoria ${category.label}',
+        label: 'Seleziona categoria ${category.name}',
         selected: isSelected,
         child: FilterChip(
           avatar: Icon(
@@ -93,7 +104,7 @@ class ExpenseCategorySelector extends StatelessWidget {
             color: chipText,
           ),
           label: Text(
-            category.label,
+            category.name,
             style: TextStyle(
               fontWeight: FontWeight.w500,
               color: chipText,

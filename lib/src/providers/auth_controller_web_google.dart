@@ -1,9 +1,10 @@
 import 'dart:convert';
+import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:your_turn/src/models/todo_category.dart';
 import 'package:your_turn/src/models/user_data.dart';
-import 'package:your_turn/src/models/expense_category.dart';
 import 'package:your_turn/src/providers/roommates_provider.dart';
 import 'package:your_turn/src/providers/transactions_provider.dart';
 import 'package:your_turn/src/providers/user_provider.dart';
@@ -91,31 +92,133 @@ class AuthController {
     if (userHasTxs) return;
 
     // Lista di transazioni varie e colorate per il profilo
-    final initialTransactions = [
-      // Spese recenti
-      {'amount': -25.0, 'note': 'Spesa supermercato 🛒', 'days': 1, 'category': ExpenseCategory.spesa},
-      {'amount': -45.0, 'note': 'Quota bolletta luce 💡', 'days': 2, 'category': ExpenseCategory.bolletta},
-      {'amount': -12.0, 'note': 'Detersivo cucina 🧴', 'days': 3, 'category': ExpenseCategory.spesa},
-      {'amount': 30.0, 'note': 'Rimborso cena con amici 🍕', 'days': 4, 'category': ExpenseCategory.prestito},
-      {'amount': -60.0, 'note': 'Bolletta gas 🔥', 'days': 5, 'category': ExpenseCategory.bolletta},
-      
-      // Settimana scorsa
-      {'amount': -18.0, 'note': 'Pizza a domicilio 🍕', 'days': 8, 'category': ExpenseCategory.altro},
-      {'amount': -8.0, 'note': 'Prodotti bagno 🚿', 'days': 10, 'category': ExpenseCategory.pulizia},
-      {'amount': 25.0, 'note': 'Prestito Marco per benzina ⛽', 'days': 12, 'category': ExpenseCategory.trasporti},
-      {'amount': -35.0, 'note': 'Internet casa 📶', 'days': 14, 'category': ExpenseCategory.bolletta},
-      {'amount': -22.0, 'note': 'Aperitivo coinquilini 🍻', 'days': 16, 'category': ExpenseCategory.altro},
-    ];
+    // Lista di transazioni varie e colorate per il profilo
+final initialTransactions = [
+  // Spese recenti
+  {
+    'amount': -25.0,
+    'note': 'Spesa supermercato 🛒',
+    'days': 1,
+    'category': const TodoCategory(
+      id: 'spesa',
+      name: 'Spesa',
+      icon: Icons.shopping_cart,
+      color: '#4CAF50',
+    ),
+  },
+  {
+    'amount': -45.0,
+    'note': 'Quota bolletta luce 💡',
+    'days': 2,
+    'category': const TodoCategory(
+      id: 'bollette',
+      name: 'Bollette',
+      icon: Icons.receipt_long,
+      color: '#F44336',
+    ),
+  },
+  {
+    'amount': -12.0,
+    'note': 'Detersivo cucina 🧴',
+    'days': 3,
+    'category': const TodoCategory(
+      id: 'cucina',
+      name: 'Cucina',
+      icon: Icons.kitchen,
+      color: '#FF9800',
+    ),
+  },
+  {
+    'amount': 30.0,
+    'note': 'Rimborso cena con amici 🍕',
+    'days': 4,
+    'category': const TodoCategory(
+      id: 'varie',
+      name: 'Varie',
+      icon: Icons.notes,
+      color: '#795548',
+    ),
+  },
+  {
+    'amount': -60.0,
+    'note': 'Bolletta gas 🔥',
+    'days': 5,
+    'category': const TodoCategory(
+      id: 'bollette',
+      name: 'Bollette',
+      icon: Icons.receipt_long,
+      color: '#F44336',
+    ),
+  },
 
-    // Aggiunge ogni transazione
-    for (final txData in initialTransactions) {
-      transactionsCtrl.addTx(
-        roommateId: userId,
-        amount: txData['amount'] as double,
-        note: txData['note'] as String,
-        when: now.subtract(Duration(days: txData['days'] as int)),
-        category: txData['category'] as ExpenseCategory,
-      );
-    }
+  // Settimana scorsa
+  {
+    'amount': -18.0,
+    'note': 'Pizza a domicilio 🍕',
+    'days': 8,
+    'category': const TodoCategory(
+      id: 'divertimento',
+      name: 'Divertimento',
+      icon: Icons.celebration,
+      color: '#9C27B0',
+    ),
+  },
+  {
+    'amount': -8.0,
+    'note': 'Prodotti bagno 🚿',
+    'days': 10,
+    'category': const TodoCategory(
+      id: 'pulizie',
+      name: 'Pulizie',
+      icon: Icons.cleaning_services,
+      color: '#2196F3',
+    ),
+  },
+  {
+    'amount': 25.0,
+    'note': 'Prestito Marco per benzina ⛽',
+    'days': 12,
+    'category': const TodoCategory(
+      id: 'varie',
+      name: 'Varie',
+      icon: Icons.notes,
+      color: '#795548',
+    ),
+  },
+  {
+    'amount': -35.0,
+    'note': 'Internet casa 📶',
+    'days': 14,
+    'category': const TodoCategory(
+      id: 'bollette',
+      name: 'Bollette',
+      icon: Icons.receipt_long,
+      color: '#F44336',
+    ),
+  },
+  {
+    'amount': -22.0,
+    'note': 'Aperitivo coinquilini 🍻',
+    'days': 16,
+    'category': const TodoCategory(
+      id: 'divertimento',
+      name: 'Divertimento',
+      icon: Icons.celebration,
+      color: '#9C27B0',
+    ),
+  },
+];
+
+// Aggiunge ogni transazione
+for (final txData in initialTransactions) {
+  transactionsCtrl.addTx(
+    roommateId: userId,
+    amount: txData['amount'] as double,
+    note: txData['note'] as String,
+    when: now.subtract(Duration(days: txData['days'] as int)),
+    category: [txData['category'] as TodoCategory],
+  );
+}
+
   }
 }

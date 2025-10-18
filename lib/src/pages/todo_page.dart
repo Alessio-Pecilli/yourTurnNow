@@ -15,6 +15,7 @@ import 'package:your_turn/src/widgets/weather/weather_card.dart';
 import 'profile_page.dart';
 import 'package:intl/intl.dart';
 import 'admin_page.dart';
+import 'package:your_turn/src/widgets/common_action_button.dart';
 
 final todosCategoryFilterProvider = StateProvider<TodoCategory?>((ref) => null);
 
@@ -50,6 +51,69 @@ class TodoPage extends ConsumerWidget {
     final value = int.parse(hex.substring(1), radix: 16) + 0xFF000000;
     return Color(value);
   }
+
+  
+Widget _buildActionButton(
+  BuildContext context, {
+  required String letter,
+  required String label,
+  required MaterialColor color,
+  required IconData icon,
+  required VoidCallback onTap,
+}) {
+  return InkWell(
+    borderRadius: BorderRadius.circular(14),
+    onTap: onTap,
+    child: Container(
+      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [color.withOpacity(0.85), color],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(14),
+        
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 26,
+            height: 56,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              shape: BoxShape.circle,
+              border: Border.all(color: color.shade700, width: 2),
+            ),
+            child: Center(
+              child: Text(
+                letter,
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: color.shade700,
+                  fontSize: 13,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 10),
+          Text(
+            label,
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.w600,
+              fontSize: 13,
+              letterSpacing: 0.5,
+            ),
+          ),
+          const SizedBox(width: 8),
+          Icon(icon, color: Colors.white, size: 18),
+        ],
+      ),
+    ),
+  );
+}
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -135,161 +199,59 @@ class TodoPage extends ConsumerWidget {
                       // Meteo a sinistra
                       const CompactWeather(city: 'Roma,IT'),
                       
-                      Row(
+                     Row(
   crossAxisAlignment: CrossAxisAlignment.center,
   mainAxisSize: MainAxisSize.min,
   children: [
-    
-    Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        //  Tasto A - Admin
-        Container(
-          margin: const EdgeInsets.only(right: 8),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [Colors.orange.shade400, Colors.orange.shade600],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-            borderRadius: BorderRadius.circular(12),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.orange.withOpacity(0.3),
-                blurRadius: 8,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          child: Material(
-            color: Colors.transparent,
-            child: InkWell(
-              borderRadius: BorderRadius.circular(12),
-              onTap: () => Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const AdminPage()),
-              ),
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(
-                      width: 24,
-                      height: 24,
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(4),
-                        border: Border.all(color: Colors.orange.shade700, width: 2),
-                      ),
-                      child: Center(
-                        child: Text(
-                          'A',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: Colors.orange.shade700,
-                            fontSize: 14,
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    const Text(
-                      'ADMIN',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 12,
-                      ),
-                    ),
-                    const SizedBox(width: 4),
-                    const Icon(Icons.admin_panel_settings, color: Colors.white, size: 16),
-                  ],
-                ),
-              ),
-            ),
+    // Pulsante A - Admin
+    Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: SizedBox(
+        height: 46,
+        child: _buildActionButton(
+          context,
+          letter: 'A',
+          label: 'ADMIN',
+          color: Colors.blue,
+          icon: Icons.admin_panel_settings,
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const AdminPage()),
           ),
         ),
-      ],
+      ),
     ),
     const SizedBox(width: 16),
 
-        // � Tasto P - Profilo (stesso stile di Admin)
-        Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [Colors.purple.shade400, Colors.purple.shade600],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-            borderRadius: BorderRadius.circular(12),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.purple.withOpacity(0.3),
-                blurRadius: 8,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          child: Material(
-            color: Colors.transparent,
-            child: InkWell(
-              borderRadius: BorderRadius.circular(12),
-              onTap: () => Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const ProfilePage()),
-              ),
-              child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(
-                      width: 24,
-                      height: 24,
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(4),
-                        border:
-                            Border.all(color: Colors.purple.shade700, width: 2),
-                      ),
-                      child: Center(
-                        child: Text(
-                          'P',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: Colors.purple.shade700,
-                            fontSize: 14,
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    const Text(
-                      'PROFILO',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 12,
-                      ),
-                    ),
-                    const SizedBox(width: 4),
-                    const Icon(Icons.person, color: Colors.white, size: 16),
-                  ],
-                ),
-              ),
-            ),
+    // Pulsante P - Profilo
+    Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: SizedBox(
+        height: 46,
+        child: _buildActionButton(
+          context,
+          letter: 'P',
+          label: 'PROFILO',
+          color: Colors.blue,
+          icon: Icons.person,
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const ProfilePage()),
           ),
         ),
+      ),
+    ),
   ],
-),
+)
+
 
                     ],
                   ),
                 ),
               ),
             ),
+
+            
             
            
             

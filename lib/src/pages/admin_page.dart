@@ -26,6 +26,7 @@ import 'package:your_turn/src/utils/csv_web_download_stub.dart'
 import 'package:your_turn/src/widgets/admin/pie_chart.dart';
 
 import 'package:your_turn/src/widgets/admin/cards.dart';
+import 'package:your_turn/src/widgets/common_action_button.dart';
 
 // Classe per l'Intent della shortcut download
 class _DownloadIntent extends Intent {
@@ -235,246 +236,57 @@ String? _selectedColorHex = '#2196F3'; // Blu di default
   ),
 );
   }
+ 
+
 
   SliverAppBar _buildAppBar(BuildContext context) {
     return SliverAppBar(
       pinned: true,
       backgroundColor: Colors.transparent,
       elevation: 0,
-      leading: 
-      IconButton(
-        icon: const Icon(Icons.arrow_back_ios_new, color: Colors.blue, size: 24),
-        tooltip: 'Indietro',
-        onPressed: () {
-          if (Navigator.canPop(context)) {
-            Navigator.pop(context);
-          } else {
-            context.go('/todo');
-          }
-        },
-      
-      ),
+      automaticallyImplyLeading: false,
+      leading:null,
       actions: [
-  Padding(
-    padding: const EdgeInsets.only(right: 16), // spazio dal bordo destro
-    child: Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        // ⬇️ Tasto DOWNLOAD CSV (stesso colore di ProfilePage)
-        Container(
-          margin: const EdgeInsets.only(right: 8),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [Colors.green.shade400, Colors.green.shade600],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-            borderRadius: BorderRadius.circular(12),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.green.withOpacity(0.3),
-                blurRadius: 8,
-                offset: const Offset(0, 4),
+        Padding(
+          padding: const EdgeInsets.only(right: 16),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              CommonActionButton(
+                letter: 'D',
+                label: 'DOWNLOAD',
+                color: Colors.green,
+                icon: Icons.download,
+                onTap: () {
+                  _downloadChartsData();
+                },
               ),
-            ],
-          ),
-          child: Material(
-            color: Colors.transparent,
-            child: InkWell(
-              borderRadius: BorderRadius.circular(12),
-              onTap: () {
-                final roommates = ref.read(roommatesProvider);
-  final user = ref.read(userProvider);
-  final currentMe = roommates.firstWhere(
-    (r) => r.id == user?.id,
-    orElse: () => Roommate(id: user?.id ?? 'me', name: user?.name ?? 'Tu'),
-  );
-                _downloadChartsData();
-              },
-              child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(
-                      width: 24,
-                      height: 24,
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(4),
-                        border:
-                            Border.all(color: Colors.green.shade700, width: 2),
-                      ),
-                      child: Center(
-                        child: Text(
-                          'D',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: Colors.green.shade700,
-                            fontSize: 14,
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 4),
-                    const Text(
-                      'DOWNLOAD',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 12,
-                      ),
-                    ),
-                    
-                    const Icon(Icons.download, color: Colors.white, size: 16),
-                  ],
+              const SizedBox(width: 12),
+              CommonActionButton(
+                letter: 'P',
+                label: 'PROFILO',
+                color: Colors.blue,
+                icon: Icons.person,
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const ProfilePage()),
                 ),
               ),
-            ),
-          ),
-        ),
-        const SizedBox(width: 4),
-        // 👤 Tasto PAGINA PERSONALE
-        Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [Colors.purple.shade400, Colors.purple.shade600],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-            borderRadius: BorderRadius.circular(12),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.purple.withOpacity(0.3),
-                blurRadius: 8,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          child: Material(
-            color: Colors.transparent,
-            child: InkWell(
-              borderRadius: BorderRadius.circular(12),
-              onTap: () => Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const ProfilePage()),
-              ),
-              child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(
-                      width: 24,
-                      height: 24,
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(4),
-                        border:
-                            Border.all(color: Colors.purple.shade700, width: 2),
-                      ),
-                      child: Center(
-                        child: Text(
-                          'P',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: Colors.purple.shade700,
-                            fontSize: 14,
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    const Text(
-                      'PROFILO',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 12,
-                      ),
-                    ),
-                    const SizedBox(width: 4),
-                    const Icon(Icons.person, color: Colors.white, size: 16),
-                  ],
+              const SizedBox(width: 12),
+              CommonActionButton(
+                letter: 'H',
+                label: 'TO-DO',
+                color: Colors.blue,
+                icon: Icons.check_circle_outline,
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const TodoPage()),
                 ),
               ),
-            ),
-          ),
-        ),
-        const SizedBox(width:16),
-        Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [Colors.purple.shade400, Colors.purple.shade600],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-            borderRadius: BorderRadius.circular(12),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.purple.withOpacity(0.3),
-                blurRadius: 8,
-                offset: const Offset(0, 4),
-              ),
             ],
-          ),
-          child: Material(
-            color: Colors.transparent,
-            child: InkWell(
-              borderRadius: BorderRadius.circular(12),
-              onTap: () => Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const ProfilePage()),
-              ),
-              child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(
-                      width: 24,
-                      height: 24,
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(4),
-                        border:
-                            Border.all(color: Colors.purple.shade700, width: 2),
-                      ),
-                      child: Center(
-                        child: Text(
-                          'H',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: Colors.purple.shade700,
-                            fontSize: 14,
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    const Text(
-                      'TO-DO',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 12,
-                      ),
-                    ),
-                    const SizedBox(width: 4),
-                    const Icon(Icons.person, color: Colors.white, size: 16),
-                  ],
-                ),
-              ),
-            ),
           ),
         ),
       ],
-    ),
-  ),
-],
     );
   }
 

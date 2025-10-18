@@ -3,7 +3,7 @@ import 'package:your_turn/src/models/todo_item.dart';
 import 'package:your_turn/src/models/todo_status.dart';
 import 'package:your_turn/src/models/todo_category.dart';
 import 'package:your_turn/src/models/money_tx.dart';
-import 'package:your_turn/src/models/expense_category.dart';
+
 
 
 /// Coinquilini finti con foto profilo carine e colorate
@@ -156,7 +156,7 @@ final mockTodos = <TodoItem>[
     assigneeIds: ["u1", "u3", "u5"],
     creatorId: "u5",
     cost: 35,
-    status: TodoStatus.open,
+    status: TodoStatus.done,
     createdAt: DateTime(2025, 10, 11, 13, 45),
     categories: [
       stockCategories.firstWhere((c) => c.id == 'divertimento'),
@@ -209,7 +209,7 @@ final mockTodos = <TodoItem>[
     assigneeIds: ["u2", "u4"],
     creatorId: "u4",
     cost: 8,
-    status: TodoStatus.open,
+    status: TodoStatus.done,
     createdAt: DateTime(2025, 10, 13, 10, 05),
     categories: [
       stockCategories.firstWhere((c) => c.id == 'pulizie'),
@@ -248,7 +248,7 @@ final mockTodos = <TodoItem>[
     assigneeIds: ["u2"],
     creatorId: "u2",
     cost: 5,
-    status: TodoStatus.open,
+    status: TodoStatus.done,
     createdAt: DateTime(2025, 10, 14, 17, 20),
     categories: [
       stockCategories.firstWhere((c) => c.id == 'spesa'),
@@ -275,7 +275,7 @@ final mockTodos = <TodoItem>[
     assigneeIds: ["u1"],
     creatorId: "u4",
     cost: 40,
-    status: TodoStatus.open,
+    status: TodoStatus.done,
     createdAt: DateTime(2025, 9, 26, 21, 10),
     categories: [
       stockCategories.firstWhere((c) => c.id == 'bollette'),
@@ -297,32 +297,79 @@ final mockTodos = <TodoItem>[
   ),
 ];
 
-
-
-/// Transazioni finte (date fissate e coerenti con le todo)
 final mockTransactions = <MoneyTx>[
   MoneyTx(
     id: "x1",
     roommateId: "u1",
     amount: -45,
-    note: "Quota bolletta luce",
-    createdAt: DateTime(2025, 9, 28, 21, 00), // poco dopo il pagamento luce
-    category: ExpenseCategory.bolletta,
+    note: "Quota bolletta luce e acqua",
+    createdAt: DateTime(2025, 9, 28, 21, 00),
+    category: [
+      stockCategories.firstWhere((c) => c.id == 'bollette'),
+      stockCategories.firstWhere((c) => c.id == 'varie'),
+    ],
   ),
   MoneyTx(
     id: "x2",
     roommateId: "u2",
     amount: -10,
-    note: "Spesa condivisa",
-    createdAt: DateTime(2025, 9, 7, 12, 00), // dopo spesa ingredienti pizza
-    category: ExpenseCategory.spesa,
+    note: "Spesa condivisa per pizza fatta in casa",
+    createdAt: DateTime(2025, 9, 7, 12, 00),
+    category: [
+      stockCategories.firstWhere((c) => c.id == 'spesa'),
+      stockCategories.firstWhere((c) => c.id == 'pulizie'),
+    ],
   ),
   MoneyTx(
     id: "x3",
     roommateId: "u3",
     amount: 30,
-    note: "Rimborso anticipo",
-    createdAt: DateTime(2025, 10, 13, 16, 20), // rientro rimborso prima della cena
-    category: ExpenseCategory.prestito,
+    note: "Rimborso anticipo cena",
+    createdAt: DateTime(2025, 10, 13, 16, 20),
+    category: [
+      stockCategories.firstWhere((c) => c.id == 'divertimento'),
+    ],
+  ),
+  MoneyTx(
+    id: "x4",
+    roommateId: "u1",
+    amount: -250,
+    note: "Affitto mensile ottobre",
+    createdAt: DateTime(2025, 10, 1, 10, 00),
+    category: [
+      stockCategories.firstWhere((c) => c.id == 'manutenzione'),
+    ],
+  ),
+  MoneyTx(
+    id: "x5",
+    roommateId: "u2",
+    amount: -18,
+    note: "Biglietti autobus e metro",
+    createdAt: DateTime(2025, 10, 10, 8, 45),
+    category: [
+      stockCategories.firstWhere((c) => c.id == 'varie'),
+    ],
+  ),
+  MoneyTx(
+    id: "x6",
+    roommateId: "u3",
+    amount: -12,
+    note: "Detersivi e spugne cucina",
+    createdAt: DateTime(2025, 10, 5, 17, 30),
+    category: [
+      stockCategories.firstWhere((c) => c.id == 'pulizie'),
+      stockCategories.firstWhere((c) => c.id == 'spesa'),
+    ],
+  ),
+  MoneyTx(
+    id: "x7",
+    roommateId: "u1",
+    amount: 15,
+    note: "Rimborso extra pulizie",
+    createdAt: DateTime(2025, 10, 15, 19, 10),
+    category: [
+      stockCategories.firstWhere((c) => c.id == 'varie'),
+      stockCategories.firstWhere((c) => c.id == 'pulizie'),
+    ],
   ),
 ];

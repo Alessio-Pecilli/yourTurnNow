@@ -1,13 +1,15 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:your_turn/src/mock_db.dart';
 import 'package:your_turn/src/models/todo_item.dart';
 import 'package:your_turn/src/models/todo_status.dart';
 import 'package:your_turn/src/models/todo_category.dart';
-import 'package:your_turn/src/models/expense_category.dart';
 import 'package:your_turn/src/providers/roommates_provider.dart';
 import 'package:your_turn/src/providers/user_provider.dart';
 import 'package:your_turn/src/providers/transactions_provider.dart';
 import 'package:your_turn/src/pages/todo_page.dart';
+import 'package:your_turn/src/providers/categories_provider.dart';
+
 
 /// 🔹 Provider filtro stato (null = tutti)
 final todosFilterProvider = StateProvider<TodoStatus?>((ref) => null);
@@ -84,81 +86,115 @@ class TodosCtrl extends StateNotifier<List<TodoItem>> {
     ];
   }
 
-  /// Toggle con side-effects: completedAt, tasksCompleted, budget per-head, log transazione
-  void toggleDone(String id) {
-    final idx = state.indexWhere((e) => e.id == id);
-    if (idx < 0) return;
-    final t = state[idx];
-    final toDone = t.status != TodoStatus.done;
+void toggleDone(String id) {
+  final idx = state.indexWhere((e) => e.id == id);
+  if (idx < 0) return;
+  final t = state[idx];
+  final toDone = t.status != TodoStatus.done;
 
-    // aggiorna stato
-    final updated = t.copyWith(
-      status: toDone ? TodoStatus.done : TodoStatus.open,
-      completedAt: toDone ? (t.completedAt ?? DateTime.now()) : null,
-    );
-    state = [...state]..[idx] = updated;
+  // 🔹 Aggiorna stato del Todo
+  final updated = t.copyWith(
+    status: toDone ? TodoStatus.done : TodoStatus.open,
+    completedAt: toDone ? (t.completedAt ?? DateTime.now()) : null,
+  );
+  state = [...state]..[idx] = updated;
 
-    // side-effects
-    final ass = t.assigneeIds;
-    if (ass.isEmpty) return;
+  // 🔹 Se non ha assegnatari, esci
+  final ass = t.assigneeIds;
+  if (ass.isEmpty) return;
 
-    // conteggio task
-    final deltaCompleted = toDone ? 1 : -1;
-    for (final uid in ass) {
-      ref.read(roommatesProvider.notifier).adjustCompletedFor(uid, deltaCompleted);
+  // 🔹 Aggiorna contatore completati
+  final deltaCompleted = toDone ? 1 : -1;
+  for (final uid in ass) {
+    ref.read(roommatesProvider.notifier).adjustCompletedFor(uid, deltaCompleted);
+  }
+
+  // 🔹 Budget + transazioni
+  if (t.cost != null && t.cost! > 0) {
+    final perHead = t.cost! / ass.length;
+    final sign = toDone ? -1.0 : 1.0; // done = soldi che escono
+    final deltaBudget = sign * perHead;
+    final txNote = toDone
+        ? 'Task "${t.title}" completato'
+        : 'Task "${t.title}" riaperto (rimborso)';
+
+    // stessa data del completamento
+    final txWhen = toDone ? updated.completedAt : DateTime.now();
+
+    // 🔹 Mappa le categorie del todo alla transazione
+    final txCategories = <TodoCategory>[];
+
+    if (t.categories.isNotEmpty) {
+      // Tutte le categorie disponibili (stock + custom)
+      List<TodoCategory> allCategories = stockCategories;
+
+      // Aggiungi anche quelle custom, se disponibili
+      try {
+        final customCats = ref.read(categoriesProvider);
+        if (customCats.isNotEmpty) {
+          allCategories = [...allCategories, ...customCats];
+        }
+      } catch (_) {
+        // Ignora se non disponibile (es. in test)
+      }
+
+      // Per ogni categoria del todo, cerca quella corrispondente
+      for (final todoCat in t.categories) {
+        final matched = allCategories.firstWhere(
+          (cat) =>
+              cat.id == todoCat.id ||
+              cat.name.toLowerCase() == todoCat.name.toLowerCase(),
+          orElse: () => const TodoCategory(
+            id: 'varie',
+            name: 'Varie',
+            icon: Icons.notes,
+            color: '#795548',
+          ),
+        );
+        txCategories.add(matched);
+      }
+    } else {
+      // Nessuna categoria → fallback "Varie"
+      txCategories.add(const TodoCategory(
+        id: 'varie',
+        name: 'Varie',
+        icon: Icons.notes,
+        color: '#795548',
+      ));
     }
 
-    // budget + transazioni
-    if (t.cost != null && t.cost! > 0) {
-      final perHead = t.cost! / ass.length;
-      final sign = toDone ? -1.0 : 1.0; // done = soldi che escono
-      final deltaBudget = sign * perHead;
-      final txNote = toDone
-          ? 'Task "${t.title}" completato'
-          : 'Task "${t.title}" riaperto (rimborso)';
-
-      // stessa data del completamento
-      final txWhen = toDone ? updated.completedAt : DateTime.now();
-
-      // Mappa la categoria del todo a quella della transazione
-      ExpenseCategory? txCategory;
-      if (t.categories.isNotEmpty) {
-        final todoCategoryId = t.categories.first.id;
-        switch (todoCategoryId) {
-          case 'spesa':
-            txCategory = ExpenseCategory.spesa;
-            break;
-          case 'bollette':
-            txCategory = ExpenseCategory.bolletta;
-            break;
-          case 'pulizie':
-            txCategory = ExpenseCategory.pulizia;
-            break;
-          case 'manutenzione':
-          case 'varie':
-            txCategory = ExpenseCategory.altro;
-            break;
-          case 'divertimento':
-          case 'cucina':
-            txCategory = ExpenseCategory.altro;
-            break;
-          default:
-            txCategory = ExpenseCategory.altro;
-        }
+    // 🔹 Se la categoria non è predefinita, salva anche il nome custom
+    String? customCategoryName;
+    if (t.categories.isNotEmpty) {
+      final todoCategoryId = t.categories.first.id;
+      final idsPredefinite = [
+        'spesa',
+        'bollette',
+        'pulizie',
+        'manutenzione',
+        'varie',
+        'divertimento',
+        'cucina'
+      ];
+      if (!idsPredefinite.contains(todoCategoryId)) {
+        customCategoryName = t.categories.first.name;
       }
+    }
 
-      for (final uid in ass) {
-        ref.read(roommatesProvider.notifier).adjustBudgetFor(uid, deltaBudget);
-        ref.read(transactionsProvider.notifier).addTx(
-          roommateId: uid,
-          amount: deltaBudget,
-          note: txNote,
-          when: txWhen,
-          category: txCategory,
-        );
-      }
+    // 🔹 Aggiorna budget e aggiungi transazioni
+    for (final uid in ass) {
+      ref.read(roommatesProvider.notifier).adjustBudgetFor(uid, deltaBudget);
+      ref.read(transactionsProvider.notifier).addTx(
+        roommateId: uid,
+        amount: deltaBudget,
+        note: txNote,
+        when: txWhen,
+        category: txCategories,
+      );
     }
   }
+}
+
 
   void setAssignees(String id, List<String> assigneeIds) {
     final i = state.indexWhere((e) => e.id == id);

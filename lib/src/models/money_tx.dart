@@ -1,14 +1,14 @@
 import 'package:flutter/foundation.dart';
-import 'package:your_turn/src/models/expense_category.dart';
-
+import 'package:your_turn/src/models/todo_category.dart';
 @immutable
 class MoneyTx {
   final String id;
   final String roommateId;
-  final double amount;      // positivo = accredito, negativo = addebito
+  final double amount;
   final String note;
   final DateTime createdAt;
-  final ExpenseCategory category;
+  final List<TodoCategory> category;
+  final String? customCategoryName;
 
   const MoneyTx({
     required this.id,
@@ -16,24 +16,28 @@ class MoneyTx {
     required this.amount,
     required this.note,
     required this.createdAt,
-    this.category = ExpenseCategory.altro,
+    required this.category,
+    this.customCategoryName,
   });
 
   MoneyTx copyWith({
-    String? id,
-    String? roommateId,
-    double? amount,
-    String? note,
-    DateTime? createdAt,
-    ExpenseCategory? category,
-  }) {
-    return MoneyTx(
-      id: id ?? this.id,
-      roommateId: roommateId ?? this.roommateId,
-      amount: amount ?? this.amount,
-      note: note ?? this.note,
-      createdAt: createdAt ?? this.createdAt,
-      category: category ?? this.category,
-    );
-  }
+  String? id,
+  String? roommateId,
+  double? amount,
+  String? note,
+  DateTime? createdAt,
+  List<TodoCategory>? category,
+  String? customCategoryName,
+}) {
+  return MoneyTx(
+    id: id ?? this.id,
+    roommateId: roommateId ?? this.roommateId,
+    amount: amount ?? this.amount,
+    note: note ?? this.note,
+    createdAt: createdAt ?? this.createdAt,
+    category: category ?? this.category,
+    customCategoryName: customCategoryName ?? this.customCategoryName,
+  );
+}
+
 }

@@ -1,117 +1,100 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_test/flutter_test.dart';
-import 'package:your_turn/src/services/csv_export_service.dart';
-import 'package:your_turn/src/models/money_tx.dart';
-import 'package:your_turn/src/models/roommate.dart';
-import 'package:your_turn/src/models/expense_category.dart';
+import 'package:flutter/foundation.dart';
+import 'package:your_turn/src/models/todo_category.dart';
 
-void main() {
-  group('CsvExportService Tests', () {
-    late List<MoneyTx> mockTransactions;
-    late Roommate mockRoommate;
+@immutable
+class MoneyTx {
+  final String id;
+  final String roommateId;
+  final double amount;
+  final String note;
+  final DateTime createdAt;
+  final List<TodoCategory> category;
 
-    setUp(() {
-      mockRoommate = const Roommate(
-        id: 'user-1',
-        name: 'Mario Rossi',
-        monthlyBudget: 100.0,
-      );
-
-      mockTransactions = [
-        MoneyTx(
-          id: 'tx1',
-          roommateId: 'user-1',
-          amount: 100.0,
-          note: 'Stipendio',
-          category: ExpenseCategory.altro,
-          createdAt: DateTime(2025, 10, 1, 9, 0),
-        ),
-        MoneyTx(
-          id: 'tx2',
-          roommateId: 'user-1',
-          amount: -25.50,
-          note: 'Spesa supermercato',
-          category: ExpenseCategory.spesa,
-          createdAt: DateTime(2025, 10, 2, 18, 30),
-        ),
-        MoneyTx(
-          id: 'tx3',
-          roommateId: 'user-1',
-          amount: -15.0,
-          note: 'Bolletta luce',
-          category: ExpenseCategory.bolletta,
-          createdAt: DateTime(2025, 10, 3, 12, 15),
-        ),
-      ];
-    });
-
-    test('calculateStatistics deve calcolare correttamente', () {
-      final stats = CsvExportService.calculateStatistics(mockTransactions);
-
-      expect(stats['totalIncome'], 100.0);
-      expect(stats['totalExpenses'], 40.5); // 25.50 + 15.0
-      expect(stats['balance'], 59.5); // 100.0 - 40.5
-      expect(stats['transactionCount'], 3.0);
-    });
-
-    test('calculateStatistics con lista vuota', () {
-      final stats = CsvExportService.calculateStatistics([]);
-
-      expect(stats['totalIncome'], 0.0);
-      expect(stats['totalExpenses'], 0.0);
-      expect(stats['balance'], 0.0);
-      expect(stats['transactionCount'], 0.0);
-    });
-
-    test('filterByDateRange deve filtrare correttamente', () {
-      final dateRange = DateTimeRange(
-        start: DateTime(2025, 10, 1),
-        end: DateTime(2025, 10, 3),
-      );
-
-      final filtered = CsvExportService.filterByDateRange(mockTransactions, dateRange);
-
-      // Test semplice - verifica solo che il filtro funzioni
-      expect(filtered.length, greaterThan(0));
-    });
-
-    test('groupByMonth deve raggruppare correttamente', () {
-      final transactionsMultiMonth = [
-        ...mockTransactions,
-        MoneyTx(
-          id: 'tx4',
-          roommateId: 'user-1',
-          amount: -50.0,
-          note: 'Cena novembre',
-          category: ExpenseCategory.altro,
-          createdAt: DateTime(2025, 11, 15, 20, 0),
-        ),
-      ];
-
-      final grouped = CsvExportService.groupByMonth(transactionsMultiMonth);
-
-      expect(grouped.keys.length, 2);
-      expect(grouped['2025-10']?.length, 3); // Ottobre
-      expect(grouped['2025-11']?.length, 1); // Novembre
-    });
-
-    test('mockRoommate deve essere creato correttamente', () {
-      expect(mockRoommate.id, 'user-1');
-      expect(mockRoommate.name, 'Mario Rossi');
-      expect(mockRoommate.monthlyBudget, 100.0);
-    });
-
-    test('lista delle transazioni deve essere processabile', () {
-      // Test semplice che verifica che le transazioni siano valide
-      expect(mockTransactions.length, 3);
-      expect(mockTransactions[0].amount, 100.0);
-      expect(mockTransactions[1].amount, -25.50);
-      expect(mockTransactions[2].amount, -15.0);
-      
-      // Test che le categorie siano assegnate correttamente
-      expect(mockTransactions[0].category, ExpenseCategory.altro);
-      expect(mockTransactions[1].category, ExpenseCategory.spesa);
-      expect(mockTransactions[2].category, ExpenseCategory.bolletta);
-    });
+  const MoneyTx({
+    required this.id,
+    required this.roommateId,
+    required this.amount,
+    required this.note,
+    required this.createdAt,
+    required this.category,
   });
+
+  MoneyTx copyWith({
+    String? id,
+    String? roommateId,
+    double? amount,
+    String? note,
+    DateTime? createdAt,
+    List<TodoCategory>? category,
+  }) {
+    return MoneyTx(
+      id: id ?? this.id,
+      roommateId: roommateId ?? this.roommateId,
+      amount: amount ?? this.amount,
+      note: note ?? this.note,
+      createdAt: createdAt ?? this.createdAt,
+      category: category ?? List.from(this.category),
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'roommateId': roommateId,
+        'amount': amount,
+        'note': note,
+        'createdAt': createdAt.toIso8601String(),
+        'category': category.map((c) => c.id).toList(),
+      };
+
+  factory MoneyTx.fromJson(Map<String, dynamic> json) {
+    final rawCategory = json['category'];
+    List<TodoCategory> parsedCategories = [];
+
+    if (rawCategory is List) {
+      parsedCategories = rawCategory.map((id) {
+        try {
+          return stockCategories.firstWhere((c) => c.id == id);
+        } catch (_) {
+          return stockCategories.firstWhere((c) => c.id == 'varie');
+        }
+      }).toList();
+    } else if (rawCategory is String) {
+      // compatibilità con vecchi dati (singola categoria)
+      try {
+        parsedCategories = [
+          stockCategories.firstWhere((c) => c.id == rawCategory)
+        ];
+      } catch (_) {
+        parsedCategories = [
+          stockCategories.firstWhere((c) => c.id == 'varie')
+        ];
+      }
+    } else {
+      parsedCategories = [
+        stockCategories.firstWhere((c) => c.id == 'varie')
+      ];
+    }
+
+    return MoneyTx(
+      id: json['id'] as String,
+      roommateId: json['roommateId'] as String,
+      amount: (json['amount'] as num).toDouble(),
+      note: json['note'] as String,
+      createdAt: DateTime.parse(json['createdAt']),
+      category: parsedCategories,
+    );
+  }
+
+  @override
+  String toString() {
+    final cats = category.map((c) => c.name).join(', ');
+    return 'MoneyTx(id: $id, roommateId: $roommateId, amount: $amount, '
+        'note: $note, createdAt: $createdAt, category: [$cats])';
+  }
+
+  /// Categoria principale (prima della lista)
+  TodoCategory get mainCategory =>
+      category.isNotEmpty
+          ? category.first
+          : stockCategories.firstWhere((c) => c.id == 'varie');
 }

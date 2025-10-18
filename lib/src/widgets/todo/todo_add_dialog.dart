@@ -457,16 +457,7 @@ void showTodoAddDialog(BuildContext context, WidgetRef outerRef, {TodoItem? pres
                   ),
                   FilledButton(
                     onPressed: () {
-                      if (!(formKey.currentState?.validate() ?? false)) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: const Text('Correggi i campi obbligatori'),
-                            backgroundColor: Colors.red.shade600,
-                            behavior: SnackBarBehavior.floating,
-                          ),
-                        );
-                        return;
-                      }
+                      
 
                       final cost = double.parse(costCtrl.text.replaceAll(',', '.'));
 
