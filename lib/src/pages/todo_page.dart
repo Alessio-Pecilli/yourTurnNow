@@ -799,7 +799,7 @@ const SizedBox(width: 120),
                 const SizedBox(width: 6),
                 //CREATORE
                 ConstrainedBox(
-          constraints: const BoxConstraints(minWidth: 120, maxWidth: 250),
+          constraints: const BoxConstraints(minWidth: 20, maxWidth: 40),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisSize: MainAxisSize.min,
@@ -819,7 +819,7 @@ const SizedBox(width: 120),
           
           // 👥 ASSEGNATI (avatar compact + label)
           ConstrainedBox(
-        constraints: const BoxConstraints(minWidth: 100),
+        constraints: const BoxConstraints(minWidth: 60),
             child: Row(
               children: [
                 Column(
