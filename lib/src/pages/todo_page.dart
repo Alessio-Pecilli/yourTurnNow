@@ -861,7 +861,7 @@ const SizedBox(width: 120),
               ],
             ),
           ),
-          const SizedBox(width: 40),
+          const SizedBox(width: 150),
           // AZIONI
           Row(
             children: [
