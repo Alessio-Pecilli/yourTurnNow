@@ -41,7 +41,24 @@ class ProfilePage extends ConsumerStatefulWidget {
 // Solo vista griglia - lista rimossa
 class _ProfilePageState extends ConsumerState<ProfilePage> {
   int _visibleTxCount = 10;
-  
+  late FocusNode _keyboardFocusNode;
+
+@override
+void initState() {
+  super.initState();
+  _keyboardFocusNode = FocusNode();
+  // assegna subito il focus alla pagina
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    _keyboardFocusNode.requestFocus();
+  });
+}
+
+@override
+void dispose() {
+  _keyboardFocusNode.dispose();
+  super.dispose();
+}
+
   final NumberFormat _money = NumberFormat.currency(locale: 'it_IT', symbol: '€');
 
   TodoCategory? _selectedCategory; 
@@ -138,40 +155,61 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
 ];
 
     return KeyboardListener(
-      focusNode: FocusNode(),
+      focusNode: _keyboardFocusNode,
       autofocus: true,
       onKeyEvent: (KeyEvent event) {
         if (event is KeyDownEvent) {
-          final key = event.logicalKey;
+  final key = event.logicalKey;
 
-          // 🔹 S = download CSV
-          if (key == LogicalKeyboardKey.keyS) {
-            final roommates = ref.read(roommatesProvider);
-            final user = ref.read(userProvider);
-            final currentMe = roommates.firstWhere(
-              (r) => r.id == user?.id,
-              orElse: () =>
-                  Roommate(id: user?.id ?? 'me', name: user?.name ?? 'Tu'),
-            );
-            _downloadTransactions(currentMe);
-          }
+  // 🔹 S = download CSV/PDF
+  if (key == LogicalKeyboardKey.keyS) {
+    final roommates = ref.read(roommatesProvider);
+    final user = ref.read(userProvider);
+    final currentMe = roommates.firstWhere(
+      (r) => r.id == user?.id,
+      orElse: () => Roommate(id: user?.id ?? 'me', name: user?.name ?? 'Tu'),
+    );
+    _downloadTransactions(currentMe);
+  }
 
-          // 🔹 H = TodoPage
-          if (key == LogicalKeyboardKey.keyH) {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const TodoPage()),
-            );
-          }
+  // 🔹 H = TodoPage
+  if (key == LogicalKeyboardKey.keyH) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const TodoPage()),
+    ).then((_) {
+      // 👇 riprendi focus quando torni indietro
+      _keyboardFocusNode.requestFocus();
+    });
+  }
 
-          // 🔹 A = AdminPage
-          if (key == LogicalKeyboardKey.keyA) {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const AdminPage()),
-            );
-          }
-        }
+  // 🔹 A = AdminPage
+  if (key == LogicalKeyboardKey.keyA) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const AdminPage()),
+    ).then((_) {
+      // 👇 riprendi focus quando torni indietro
+      _keyboardFocusNode.requestFocus();
+    });
+  }
+
+  // 🔹 T = nuova transazione
+  if (key == LogicalKeyboardKey.keyT) {
+    final roommates = ref.read(roommatesProvider);
+    final user = ref.read(userProvider);
+    final currentMe = roommates.firstWhere(
+      (r) => r.id == user?.id,
+      orElse: () => Roommate(id: user?.id ?? 'me', name: user?.name ?? 'Tu'),
+    );
+
+    _onAddTransaction(context, currentMe).then((_) {
+      // 👇 dopo aver chiuso il dialogo, ridai focus alla pagina
+      _keyboardFocusNode.requestFocus();
+    });
+  }
+}
+
       },
       child: Scaffold(
         body: Container(
@@ -229,6 +267,16 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
             ),
           ),
         ),
+        floatingActionButton: SizedBox(
+  child: _buildActionButton(
+    context,
+    letter: 'T',
+    label: 'NUOVO',
+    color: Colors.blue,
+    icon: Icons.add, // o qualunque icona vuoi, anche Icons.add_circle_outline
+    onTap: () => _onAddTransaction(context, me),
+  ),
+),
       ),
     );
   }
@@ -242,69 +290,134 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
     elevation: 0,
     leading: null,
     actions: [
-      Padding(
-        padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            // Pulsante A - Admin
-            SizedBox(
-              height: 46,
-              child: CommonActionButton(
-                letter: 'A',
-                label: 'ADMIN',
-                color: Colors.blue,
-                icon: Icons.admin_panel_settings,
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const AdminPage()),
-                ),
-              ),
+  Padding(
+    padding: const EdgeInsets.only(right: 16),
+    child: Row(
+      mainAxisSize: MainAxisSize.min,
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        // Pulsante H - TO-DO
+        SizedBox(
+          height: 46,
+          child: _buildActionButton(
+            context,
+            letter: 'H',
+            label: 'TO-DO',
+            color: Colors.blue,
+            icon: Icons.check_circle_outline,
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const TodoPage()),
             ),
-            const SizedBox(width: 12),
-
-            // Pulsante H - To-Do
-            SizedBox(
-              height: 46,
-              child: CommonActionButton(
-                letter: 'H',
-                label: 'TO-DO',
-                color: Colors.blue,
-                icon: Icons.check_circle_outline,
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const ProfilePage()),
-                ),
-              ),
-            ),
-            const SizedBox(width: 12),
-
-            // Pulsante S - Download
-            SizedBox(
-              height: 46,
-              child: CommonActionButton(
-                letter: 'S',
-                label: 'DOWNLOAD',
-                color: Colors.blue,
-                icon: Icons.download_rounded,
-                onTap: () {
-                  final roommates = ref.read(roommatesProvider);
-                  final user = ref.read(userProvider);
-                  final me = roommates.firstWhere(
-                    (r) => r.id == user?.id,
-                    orElse: () =>
-                        Roommate(id: user?.id ?? 'me', name: user?.name ?? 'Tu'),
-                  );
-                  _downloadTransactions(me);
-                },
-              ),
-            ),
-            const SizedBox(width: 12),
-          ],
+          ),
         ),
+        const SizedBox(width: 12),
+
+        // Pulsante A - ADMIN
+        SizedBox(
+          height: 46,
+          child: _buildActionButton(
+            context,
+            letter: 'A',
+            label: 'ADMIN',
+            color: Colors.blue,
+            icon: Icons.admin_panel_settings,
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const AdminPage()),
+            ),
+          ),
+        ),
+        const SizedBox(width: 12),
+
+        // Pulsante S - DOWNLOAD
+        SizedBox(
+          height: 46,
+          child: _buildActionButton(
+            context,
+            letter: 'S',
+            label: 'DOWNLOAD',
+            color: Colors.blue,
+            icon: Icons.download_rounded,
+            onTap: () {
+              final roommates = ref.read(roommatesProvider);
+              final user = ref.read(userProvider);
+              final me = roommates.firstWhere(
+                (r) => r.id == user?.id,
+                orElse: () =>
+                    Roommate(id: user?.id ?? 'me', name: user?.name ?? 'Tu'),
+              );
+              _downloadTransactions(me);
+            },
+          ),
+        ),
+      ],
+    ),
+  ),
+],
+
+  );
+}
+
+Widget _buildActionButton(
+  BuildContext context, {
+  required String letter,
+  required String label,
+  required MaterialColor color,
+  required IconData icon,
+  required VoidCallback onTap,
+}) {
+  return InkWell(
+    borderRadius: BorderRadius.circular(10),
+    onTap: onTap,
+    child: Container(
+      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [color.withOpacity(0.85), color],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(10),
+        
       ),
-    ],
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 34,
+            height: 34,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              shape: BoxShape.circle,
+              border: Border.all(color: color.shade700, width: 2),
+            ),
+            child: Center(
+              child: Text(
+                letter,
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: color.shade700,
+                  fontSize: 13,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 10),
+          Text(
+            label,
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.w600,
+              fontSize: 13,
+              letterSpacing: 0.5,
+            ),
+          ),
+          const SizedBox(width: 8),
+          Icon(icon, color: Colors.white, size: 18),
+        ],
+      ),
+    ),
   );
 }
 

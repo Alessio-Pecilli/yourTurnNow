@@ -44,8 +44,32 @@ final totalPagesProvider = Provider<int>((ref) {
   return (allTodos.length / todosPerPage).ceil();
 });
 
-class TodoPage extends ConsumerWidget {
+
+class TodoPage extends ConsumerStatefulWidget {
   const TodoPage({super.key});
+
+  @override
+  ConsumerState<TodoPage> createState() => _TodoPageState();
+}
+
+class _TodoPageState extends ConsumerState<TodoPage> {
+  late FocusNode _keyboardFocusNode;
+
+@override
+void initState() {
+  super.initState();
+  _keyboardFocusNode = FocusNode();
+  // assegna subito il focus alla pagina
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    _keyboardFocusNode.requestFocus();
+  });
+}
+
+@override
+void dispose() {
+  _keyboardFocusNode.dispose();
+  super.dispose();
+}
 
   Color _hexColor(String hex) {
     final value = int.parse(hex.substring(1), radix: 16) + 0xFF000000;
@@ -62,7 +86,7 @@ Widget _buildActionButton(
   required VoidCallback onTap,
 }) {
   return InkWell(
-    borderRadius: BorderRadius.circular(14),
+    borderRadius: BorderRadius.circular(10),
     onTap: onTap,
     child: Container(
       padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
@@ -72,15 +96,15 @@ Widget _buildActionButton(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(10),
         
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           Container(
-            width: 26,
-            height: 56,
+            width: 34,
+            height: 34,
             decoration: BoxDecoration(
               color: Colors.white,
               shape: BoxShape.circle,
@@ -116,7 +140,9 @@ Widget _buildActionButton(
 }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  @override
+  Widget build(BuildContext context) {
+    final ref = this.ref;
 
     final categories = ref.watch(categoriesProvider);
     final tasks = ref.watch(paginatedTodosProvider);
@@ -140,37 +166,52 @@ Widget _buildActionButton(
 
     
 
+
     return KeyboardListener(
-  focusNode: FocusNode(),
-  autofocus: true,
-  onKeyEvent: (KeyEvent  event) {
-    if (event is KeyDownEvent) {
-      final key = event.logicalKey;
-
-      // 🔹 N = apre dialog nuovo To-Do
-      if (key == LogicalKeyboardKey.keyN) {
-        showTodoAddDialog(context, ref);
-      }
-
-      // 🔹 A = vai alla pagina amministratore
-      if (key == LogicalKeyboardKey.keyA) {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const AdminPage()),
-        );
-      }
-
-      // 🔹 P = vai alla pagina profilo
-      if (key == LogicalKeyboardKey.keyP) {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const ProfilePage()),
-        );
-      }
-
-      
+      focusNode: _keyboardFocusNode,
+      autofocus: true,
+      onKeyEvent: (KeyEvent event) {
+  if (event is KeyDownEvent) {
+    // 🔒 Evita di catturare tasti quando stai scrivendo
+    if (FocusManager.instance.primaryFocus != null &&
+        FocusManager.instance.primaryFocus!.context?.widget is EditableText) {
+      return;
     }
-  },
+
+    final key = event.logicalKey;
+
+    // 🔹 N = apre dialog nuovo To-Do
+    if (key == LogicalKeyboardKey.keyN) {
+  showTodoAddDialog(context, ref);
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    _keyboardFocusNode.requestFocus();
+  });
+}
+
+    // 🔹 A = vai alla pagina amministratore
+    if (key == LogicalKeyboardKey.keyA) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => const AdminPage()),
+      ).then((_) {
+        // 👇 Quando torni indietro, riprendi il focus
+        _keyboardFocusNode.requestFocus();
+      });
+    }
+
+    // 🔹 P = vai alla pagina profilo
+    if (key == LogicalKeyboardKey.keyP) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => const ProfilePage()),
+      ).then((_) {
+        // 👇 Riprendi focus anche qui
+        _keyboardFocusNode.requestFocus();
+      });
+    }
+  }
+},
+
 
   child: Scaffold(
       body: Container(
@@ -184,72 +225,67 @@ Widget _buildActionButton(
         child: CustomScrollView(
           slivers: [
             SliverAppBar(
-              floating: true,
-              snap: true,
-              backgroundColor: Colors.transparent,
-              elevation: 0,
-              automaticallyImplyLeading: false,
-              flexibleSpace: SafeArea(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      // Meteo a sinistra
-                      const CompactWeather(city: 'Roma,IT'),
-                      
-                     Row(
-  crossAxisAlignment: CrossAxisAlignment.center,
-  mainAxisSize: MainAxisSize.min,
-  children: [
-    // Pulsante A - Admin
-    Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: SizedBox(
-        height: 46,
-        child: _buildActionButton(
-          context,
-          letter: 'A',
-          label: 'ADMIN',
-          color: Colors.blue,
-          icon: Icons.admin_panel_settings,
-          onTap: () => Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => const AdminPage()),
-          ),
-        ),
-      ),
-    ),
-    const SizedBox(width: 16),
+  floating: true,
+  snap: true,
+  backgroundColor: Colors.transparent,
+  elevation: 0,
+  automaticallyImplyLeading: false,
+  flexibleSpace: SafeArea(
+    child: Padding(
+      padding: const EdgeInsets.only(right: 16),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          // Meteo a sinistra
+          const CompactWeather(city: 'Roma,IT'),
 
-    // Pulsante P - Profilo
-    Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: SizedBox(
-        height: 46,
-        child: _buildActionButton(
-          context,
-          letter: 'P',
-          label: 'PROFILO',
-          color: Colors.blue,
-          icon: Icons.person,
-          onTap: () => Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => const ProfilePage()),
-          ),
-        ),
-      ),
-    ),
-  ],
-)
-
-
-                    ],
+          // Pulsanti a destra
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Pulsante A - Admin
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 4),
+                child: _buildActionButton(
+                  context,
+                  letter: 'A',
+                  label: 'ADMIN',
+                  color: Colors.blue,
+                  icon: Icons.admin_panel_settings,
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const AdminPage()),
                   ),
                 ),
               ),
-            ),
+              const SizedBox(width: 16),
+
+              // Pulsante P - Profilo
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 4),
+                child: _buildActionButton(
+                  context,
+                  letter: 'P',
+                  label: 'PROFILO',
+                  color: Colors.blue,
+                  icon: Icons.person,
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const ProfilePage()),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    ),
+  ),
+),
+
+
 
             
             
@@ -548,70 +584,20 @@ Widget _buildActionButton(
         ),
       ),
       
-      floatingActionButton: Container(
-  decoration: BoxDecoration(
-    gradient: LinearGradient(
-      colors: [Colors.blue.shade400, Colors.blue.shade600],
-      begin: Alignment.topLeft,
-      end: Alignment.bottomRight,
-    ),
-    borderRadius: BorderRadius.circular(12),
-    boxShadow: [
-      BoxShadow(
-        color: Colors.blue.withOpacity(0.3),
-        blurRadius: 8,
-        offset: const Offset(0, 4),
-      ),
-    ],
-  ),
-  child: Material(
-    color: Colors.transparent,
-    child: InkWell(
-      borderRadius: BorderRadius.circular(12),
-      onTap: () => showTodoAddDialog(context, ref),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 24,
-              height: 24,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(4),
-                border: Border.all(color: Colors.blue.shade700, width: 2),
-              ),
-              child: Center(
-                child: Text(
-                  'N',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: Colors.blue.shade700,
-                    fontSize: 14,
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(width: 8),
-            const Text(
-              'NUOVO',
-              style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-                fontSize: 13,
-                letterSpacing: 0.5,
-              ),
-            ),
-          ],
-        ),
-      ),
-    ),
+      floatingActionButton: SizedBox(
+  child: _buildActionButton(
+    context,
+    letter: 'N',
+    label: 'NUOVO',
+    color: Colors.blue,
+    icon: Icons.add, // o qualunque icona vuoi, anche Icons.add_circle_outline
+    onTap: () => showTodoAddDialog(context, ref),
   ),
 ),
 
     ),);
   }
+
 
  Widget _buildTodoCard(BuildContext context, WidgetRef ref, TodoItem t, List<Roommate> roommates) {
   final isCompleted = t.status == TodoStatus.done;

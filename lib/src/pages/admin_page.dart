@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:pdf/pdf.dart';
+import 'package:pdf/widgets.dart' as pw;
+import 'package:printing/printing.dart';
 import 'package:your_turn/src/models/roommate.dart';
 import 'package:your_turn/src/models/todo_category.dart';
 import 'package:your_turn/src/models/todo_status.dart';
@@ -44,7 +47,18 @@ class _AdminPageState extends ConsumerState<AdminPage> {
   // Per aggiunta/modifica
   final _roommateController = TextEditingController();
   final _categoryNameController = TextEditingController();
- 
+  late FocusNode _keyboardFocusNode;
+
+@override
+void initState() {
+  super.initState();
+  _keyboardFocusNode = FocusNode();
+  // assegna subito il focus alla pagina
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    _keyboardFocusNode.requestFocus();
+  });
+}
+
 String? _selectedColorHex = '#2196F3'; // Blu di default
 // 🔹 tiene traccia del colore selezionato (in HEX)
 
@@ -81,7 +95,6 @@ String? _selectedColorHex = '#2196F3'; // Blu di default
   // Colori predefiniti con nomi accessibili
   final List<Map<String, String>> _availableColors = [
     {'hex': '#2196F3', 'name': 'Blu'},
-    {'hex': '#4CAF50', 'name': 'Verde'},
     {'hex': '#FF9800', 'name': 'Arancione'},
     {'hex': '#F44336', 'name': 'Rosso'},
     {'hex': '#9C27B0', 'name': 'Viola'},
@@ -103,7 +116,7 @@ String? _selectedColorHex = '#2196F3'; // Blu di default
   void dispose() {
     _roommateController.dispose();
     _categoryNameController.dispose();
-    _focusNode.dispose();
+    _keyboardFocusNode.dispose();
     super.dispose();
   }
 
@@ -131,42 +144,51 @@ String? _selectedColorHex = '#2196F3'; // Blu di default
               orElse: () => Roommate(id: user?.id ?? 'me', name: user?.name ?? 'Tu'),
             );
     return KeyboardListener(
-  focusNode: _focusNode,
+  focusNode: _keyboardFocusNode,
   autofocus: true,
   onKeyEvent: (KeyEvent event) {
-    // Solo al "keydown"
-    if (event is KeyDownEvent) {
-      // Blocca se stai scrivendo in un TextField o simile
-      if (FocusManager.instance.primaryFocus != null &&
-          (FocusManager.instance.primaryFocus!.context?.widget is EditableText)) {
-        return;
-      }
-
-      final key = event.logicalKey;
-
-      // 🔹 P = vai alla pagina profilo
-      if (key == LogicalKeyboardKey.keyP) {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const ProfilePage()),
-        );
-      }
-
-      // 🔹 H = vai alla pagina To-Do
-      if (key == LogicalKeyboardKey.keyH) {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const TodoPage()),
-        );
-      }
-
-      // 🔹 D = download dati grafici
-      if (key == LogicalKeyboardKey.keyD) {
-        
-        _downloadChartsData();
-      }
+  if (event is KeyDownEvent) {
+    // 🔒 Evita di triggerare shortcut quando scrivi in un TextField
+    if (FocusManager.instance.primaryFocus != null &&
+        FocusManager.instance.primaryFocus!.context?.widget is EditableText) {
+      return;
     }
-  },
+
+    final key = event.logicalKey;
+
+    // 🔹 P = vai alla pagina profilo
+    if (key == LogicalKeyboardKey.keyP) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => const ProfilePage()),
+      ).then((_) {
+        // 👇 Riprendi focus quando torni indietro
+        _keyboardFocusNode.requestFocus();
+      });
+    }
+
+    // 🔹 H = vai alla pagina To-Do
+    if (key == LogicalKeyboardKey.keyH) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => const TodoPage()),
+      ).then((_) {
+        // 👇 Riprendi focus quando torni indietro
+        _keyboardFocusNode.requestFocus();
+      });
+    }
+
+    // 🔹 D = download dati grafici
+    if (key == LogicalKeyboardKey.keyD) {
+      _downloadChartsData();
+      // 👇 Reimposta focus anche dopo un download o un popup
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _keyboardFocusNode.requestFocus();
+      });
+    }
+  }
+},
+
   child: Shortcuts(
     shortcuts: <LogicalKeySet, Intent>{
       LogicalKeySet(LogicalKeyboardKey.alt, LogicalKeyboardKey.keyG):
@@ -247,49 +269,131 @@ String? _selectedColorHex = '#2196F3'; // Blu di default
       automaticallyImplyLeading: false,
       leading:null,
       actions: [
-        Padding(
-          padding: const EdgeInsets.only(right: 16),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              CommonActionButton(
-                letter: 'D',
-                label: 'DOWNLOAD',
-                color: Colors.green,
-                icon: Icons.download,
-                onTap: () {
-                  _downloadChartsData();
-                },
-              ),
-              const SizedBox(width: 12),
-              CommonActionButton(
-                letter: 'P',
-                label: 'PROFILO',
-                color: Colors.blue,
-                icon: Icons.person,
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const ProfilePage()),
-                ),
-              ),
-              const SizedBox(width: 12),
-              CommonActionButton(
-                letter: 'H',
-                label: 'TO-DO',
-                color: Colors.blue,
-                icon: Icons.check_circle_outline,
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const TodoPage()),
-                ),
-              ),
-            ],
+  Padding(
+    padding: const EdgeInsets.only(right: 16),
+    child: Row(
+      mainAxisSize: MainAxisSize.min,
+      mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        // Pulsante TO-DO
+        SizedBox(
+          height: 46,
+          child: _buildActionButton(
+            context,
+            letter: 'H',
+            label: 'TO-DO',
+            color: Colors.blue,
+            icon: Icons.check_circle_outline,
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const TodoPage()),
+            ),
+          ),
+        ),
+        const SizedBox(width: 12),
+
+        // Pulsante PROFILO
+        SizedBox(
+          height: 46,
+          child: _buildActionButton(
+            context,
+            letter: 'P',
+            label: 'PROFILO',
+            color: Colors.blue,
+            icon: Icons.person,
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const ProfilePage()),
+            ),
+          ),
+        ),
+        const SizedBox(width: 12),
+
+        // Pulsante DOWNLOAD
+        SizedBox(
+          height: 46,
+          child: _buildActionButton(
+            context,
+            letter: 'D',
+            label: 'DOWNLOAD',
+            color: Colors.blue,
+            icon: Icons.download_rounded,
+            onTap: () {
+              _downloadChartsData();
+            },
           ),
         ),
       ],
+    ),
+  ),
+],
+
     );
   }
-
+  
+  
+Widget _buildActionButton(
+  BuildContext context, {
+  required String letter,
+  required String label,
+  required MaterialColor color,
+  required IconData icon,
+  required VoidCallback onTap,
+}) {
+  return InkWell(
+    borderRadius: BorderRadius.circular(10),
+    onTap: onTap,
+    child: Container(
+      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [color.withOpacity(0.85), color],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(10),
+        
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 34,
+            height: 34,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              shape: BoxShape.circle,
+              border: Border.all(color: color.shade700, width: 2),
+            ),
+            child: Center(
+              child: Text(
+                letter,
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: color.shade700,
+                  fontSize: 13,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 10),
+          Text(
+            label,
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.w600,
+              fontSize: 13,
+              letterSpacing: 0.5,
+            ),
+          ),
+          const SizedBox(width: 8),
+          Icon(icon, color: Colors.white, size: 18),
+        ],
+      ),
+    ),
+  );
+}
   Widget _buildExpensesChartCard() {
     final todos = ref.watch(todosProvider);
     
@@ -1439,51 +1543,83 @@ Widget _buildAddCategoryForm() {
   }
 
     Future<void> _downloadChartsData() async {
-    final todos = ref.read(todosProvider);
-    final roommates = ref.read(roommatesProvider);
-    String? _selectedIconKey;
-String? _selectedColorHex;
 
-    // Prepara i dati
-    final completedTodos = todos.where((t) => t.status == TodoStatus.done).toList();
-    final openTodos = todos.where((t) => t.status == TodoStatus.open).toList();
-    
-    // Calcola i dati per i 3 grafici
-    
-    // 1. Spese per categoria
-    final Map<String, double> expensesByCategory = {};
-    for (final todo in completedTodos) {
-      if (todo.cost != null && todo.cost! > 0) {
-        final categoryName = todo.categories.isNotEmpty ? todo.categories.first.name : 'Senza categoria';
-        expensesByCategory[categoryName] = (expensesByCategory[categoryName] ?? 0) + todo.cost!;
-      }
+      String sanitize(String text) {
+    final emojiRegex = RegExp(
+      r'[\u{1F300}-\u{1F6FF}'
+      r'\u{1F900}-\u{1F9FF}'
+      r'\u{2600}-\u{26FF}'
+      r'\u{2700}-\u{27BF}'
+      r'\u{1F1E6}-\u{1F1FF}'
+      r'\u{1F700}-\u{1F77F}]',
+      unicode: true,
+    );
+    return text.replaceAll(emojiRegex, '');
+  }
+      
+  final todos = ref.read(todosProvider);
+  final roommates = ref.read(roommatesProvider);
+
+  // 🔹 Mostra popup di scelta
+  final choice = await showDialog<String>(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: const Text('Scarica dati grafici'),
+        content: const Text('In quale formato vuoi scaricare i dati?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, 'csv'),
+            child: const Text('CSV'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, 'pdf'),
+            child: const Text('PDF'),
+          ),
+        ],
+      );
+    },
+  );
+
+  if (choice == null) return;
+
+  // 🔹 Prepara dati comuni
+  final completedTodos = todos.where((t) => t.status == TodoStatus.done).toList();
+  final openTodos = todos.where((t) => t.status == TodoStatus.open).toList();
+
+  final Map<String, double> expensesByCategory = {};
+  for (final todo in completedTodos) {
+    if (todo.cost != null && todo.cost! > 0) {
+      final categoryName = todo.categories.isNotEmpty
+          ? todo.categories.first.name
+          : 'Senza categoria';
+      expensesByCategory[categoryName] =
+          (expensesByCategory[categoryName] ?? 0) + todo.cost!;
     }
-    
-    // 2. Statistiche coinquilini (task completati)
-    final Map<String, int> tasksByRoommate = {};
-    for (final roommate in roommates) {
-      tasksByRoommate[roommate.name] = roommate.tasksCompleted;
-    }
-    
-    // 3. Status todos
-    final todoStats = {
-      'Completati': completedTodos.length,
-      'Aperti': openTodos.length,
-    };
-    
-    // Genera CSV
+  }
+
+  final Map<String, int> tasksByRoommate = {};
+  for (final roommate in roommates) {
+    tasksByRoommate[roommate.name] = roommate.tasksCompleted;
+  }
+
+  final todoStats = {
+    'Completati': completedTodos.length,
+    'Aperti': openTodos.length,
+  };
+
+  // 🔹 Se l’utente sceglie CSV
+  if (choice == 'csv') {
     final List<String> csvLines = [];
-    
-    // Sezione 1: Spese per categoria
+
     csvLines.add('=== SPESE PER CATEGORIA ===');
-    csvLines.add('Categoria;Importo (€)');
+    csvLines.add('Categoria;Importo (EUR)');
     for (final entry in expensesByCategory.entries) {
       csvLines.add('${_escapeCSV(entry.key)};${entry.value.toStringAsFixed(2)}');
     }
     csvLines.add('TOTALE;${expensesByCategory.values.fold(0.0, (a, b) => a + b).toStringAsFixed(2)}');
     csvLines.add('');
-    
-    // Sezione 2: Task completati per coinquilino
+
     csvLines.add('=== TASK COMPLETATI PER COINQUILINO ===');
     csvLines.add('Coinquilino;Task Completati');
     for (final entry in tasksByRoommate.entries) {
@@ -1491,8 +1627,7 @@ String? _selectedColorHex;
     }
     csvLines.add('TOTALE;${tasksByRoommate.values.fold(0, (a, b) => a + b)}');
     csvLines.add('');
-    
-    // Sezione 3: Status todos
+
     csvLines.add('=== STATUS TODOS ===');
     csvLines.add('Status;Quantità');
     for (final entry in todoStats.entries) {
@@ -1500,31 +1635,102 @@ String? _selectedColorHex;
     }
     csvLines.add('TOTALE;${todoStats.values.fold(0, (a, b) => a + b)}');
     csvLines.add('');
-    
-    // Aggiungi timestamp
+
     final now = DateTime.now();
     final timestamp = DateFormat('yyyy-MM-dd HH:mm:ss').format(now);
     csvLines.add('Generato il: $timestamp');
-    
-    // Crea il file
+
     final content = csvLines.join('\r\n');
     final bytes = Uint8List.fromList([
-      ...const [0xEF, 0xBB, 0xBF], // BOM UTF-8 per Excel
+      ...const [0xEF, 0xBB, 0xBF],
       ...utf8.encode(content),
     ]);
-    
-    // Download
+
     final filename = 'admin_grafici_${DateFormat('yyyyMMdd_HHmmss').format(now)}.csv';
     triggerDownloadCsv(filename, bytes);
-    
-    // Mostra messaggio di conferma
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('Dati grafici esportati in $filename'),
         backgroundColor: Colors.green.shade600,
       ),
     );
+
+  // 🔹 Se l’utente sceglie PDF
+  } else if (choice == 'pdf') {
+    final pdf = pw.Document();
+
+
+    pdf.addPage(
+      pw.Page(
+        build: (pw.Context ctx) {
+          return pw.Column(
+            crossAxisAlignment: pw.CrossAxisAlignment.start,
+            children: [
+              pw.Text(
+                sanitize('Statistiche Admin'),
+                style: pw.TextStyle(fontSize: 20, fontWeight: pw.FontWeight.bold),
+              ),
+              pw.SizedBox(height: 18),
+
+              pw.Text(sanitize('Spese per categoria'),
+                  style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+              pw.SizedBox(height: 6),
+              pw.TableHelper.fromTextArray(
+                headers: ['Categoria', 'Importo (EUR)'],
+                data: expensesByCategory.entries
+                    .map((e) => [
+                          sanitize(e.key),
+                          sanitize(e.value.toStringAsFixed(2))
+                        ])
+                    .toList(),
+              ),
+              pw.SizedBox(height: 16),
+
+              pw.Text(sanitize('Task completati per coinquilino'),
+                  style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+              pw.SizedBox(height: 6),
+              pw.TableHelper.fromTextArray(
+                headers: ['Coinquilino', 'Task completati'],
+                data: tasksByRoommate.entries
+                    .map((e) => [
+                          sanitize(e.key),
+                          sanitize(e.value.toString())
+                        ])
+                    .toList(),
+              ),
+              pw.SizedBox(height: 16),
+
+              pw.Text(sanitize('Stato dei To-Do'),
+                  style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+              pw.SizedBox(height: 6),
+              pw.TableHelper.fromTextArray(
+                headers: ['Stato', 'Quantità'],
+                data: todoStats.entries
+                    .map((e) => [
+                          sanitize(e.key),
+                          sanitize(e.value.toString())
+                        ])
+                    .toList(),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+
+    final bytes = await pdf.save();
+    await Printing.layoutPdf(onLayout: (PdfPageFormat format) async => bytes);
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Text('PDF dei dati grafici generato con successo'),
+        backgroundColor: Colors.green.shade600,
+      ),
+    );
   }
+}
+
 
 
   void _showErrorDialog(String title, String message) {

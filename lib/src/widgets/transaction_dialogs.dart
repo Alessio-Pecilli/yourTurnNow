@@ -312,36 +312,48 @@ class TransactionDialogs {
   }
 
   static Widget _buildDateSelector(
-    BuildContext context,
-    DateTime? selectedDate,
-    void Function(DateTime?) onChanged,
-  ) {
-    return Row(
-      children: [
-        const Text('Data:', style: TextStyle(fontWeight: FontWeight.bold)),
-        const SizedBox(width: 8),
-        OutlinedButton.icon(
-          icon: const Icon(Icons.calendar_today),
-          label: Text(
-            selectedDate == null
-                ? 'Oggi'
-                : DateFormat('dd/MM/yyyy').format(selectedDate),
-          ),
-          onPressed: () async {
-            final picked = await showDatePicker(
-              context: context,
-              initialDate: selectedDate ?? DateTime.now(),
-              firstDate: DateTime(2020),
-              lastDate: DateTime.now().add(const Duration(days: 365)),
-              builder: (context, child) => Theme(
-                data: ThemeData.light(useMaterial3: true),
-                child: Dialog(backgroundColor: Colors.white, child: child!),
-              ),
-            );
-            if (picked != null) onChanged(picked);
-          },
+  BuildContext context,
+  DateTime? selectedDate,
+  void Function(DateTime?) onChanged,
+) {
+  return Row(
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      const Text('Data:', style: TextStyle(fontWeight: FontWeight.bold)),
+      const SizedBox(width: 8),
+      OutlinedButton.icon(
+        icon: const Icon(Icons.calendar_today),
+        label: Text(
+          selectedDate == null
+              ? 'Oggi'
+              : DateFormat('dd/MM/yyyy').format(selectedDate),
         ),
-      ],
-    );
-  }
+        onPressed: () async {
+          final picked = await showDatePicker(
+            context: context,
+            initialDate: selectedDate ?? DateTime.now(),
+            firstDate: DateTime(2020),
+            lastDate: DateTime.now().add(const Duration(days: 365)),
+
+            // ✅ fix qui
+            builder: (context, child) {
+              return MediaQuery(
+                data: MediaQuery.of(context).copyWith(
+                  textScaler: const TextScaler.linear(1.0),
+                ),
+                child: Theme(
+                  data: ThemeData.light(useMaterial3: true),
+                  child: child!,
+                ),
+              );
+            },
+          );
+
+          if (picked != null) onChanged(picked);
+        },
+      ),
+    ],
+  );
+}
+
 }

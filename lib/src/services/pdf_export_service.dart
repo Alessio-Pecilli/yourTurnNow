@@ -19,6 +19,7 @@ class PdfExportService {
     return text.replaceAll(emojiRegex, '');
   }
 
+
   // 🔹 Esporta PDF
   static Future<void> exportTransactionsPdf(
     List transactions,
@@ -45,12 +46,17 @@ class PdfExportService {
               pw.TableHelper.fromTextArray(
                 headers: ['Data', 'Nota', 'Importo (EUR)', 'Categoria'],
                 data: transactions.map((tx) {
+                  final categorieTesto = tx.category.isEmpty
+                      ? '-'
+                      : tx.category
+                          .map((c) => _sanitizeText(c.name))
+                          .join(', ');
+
                   return [
                     dateFormat.format(tx.createdAt),
                     _sanitizeText(tx.note.isNotEmpty ? tx.note : '-'),
                     '${tx.amount.toStringAsFixed(2)} EUR',
-
-                    _sanitizeText(tx.category.label),
+                    categorieTesto,
                   ];
                 }).toList(),
                 headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold),
@@ -71,4 +77,7 @@ class PdfExportService {
       onLayout: (PdfPageFormat format) async => bytes,
     );
   }
-}
+
+  
+
+ }
