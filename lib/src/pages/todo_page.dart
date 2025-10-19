@@ -780,7 +780,7 @@ Widget _buildActionButton(
               ],
             ),
           ),
-
+const SizedBox(width: 120),
           // 👤 CREATORE (avatar + nome) - migliorata leggibilit e0
           ConstrainedBox(
         constraints: const BoxConstraints(minWidth: 350),
@@ -797,6 +797,7 @@ Widget _buildActionButton(
                       : null,
                 ),
                 const SizedBox(width: 6),
+                //CREATORE
                 ConstrainedBox(
           constraints: const BoxConstraints(minWidth: 120, maxWidth: 250),
                   child: Column(
@@ -815,10 +816,10 @@ Widget _buildActionButton(
               ],
             ),
           ),
-
+          
           // 👥 ASSEGNATI (avatar compact + label)
           ConstrainedBox(
-        constraints: const BoxConstraints(minWidth: 250),
+        constraints: const BoxConstraints(minWidth: 100),
             child: Row(
               children: [
                 Column(
