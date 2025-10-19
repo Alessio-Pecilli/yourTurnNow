@@ -654,7 +654,7 @@ Widget _buildActionButton(
 
           // TITOLO
           ConstrainedBox(
-        constraints: const BoxConstraints(minWidth: 250),
+        constraints: const BoxConstraints(minWidth: 150),
             child: Text(
               t.title,
               overflow: TextOverflow.ellipsis,
@@ -669,7 +669,7 @@ Widget _buildActionButton(
 
           // CATEGORIE (mostra tutte le categorie come chips)
           ConstrainedBox(
-        constraints: const BoxConstraints(minWidth: 400),
+        constraints: const BoxConstraints(minWidth: 300),
             child: SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: Wrap(
@@ -708,7 +708,7 @@ Widget _buildActionButton(
 
           // COSTO (chip)
           ConstrainedBox(
-        constraints: const BoxConstraints(minWidth: 250),
+        constraints: const BoxConstraints(minWidth: 150),
             child: Align(
               alignment: Alignment.centerLeft,
               child: Container(
@@ -739,7 +739,7 @@ Widget _buildActionButton(
 
           // DATA (chip) + etichetta 'Creato il' in bold sotto
           ConstrainedBox(
-        constraints: const BoxConstraints(minWidth: 250),
+        constraints: const BoxConstraints(minWidth: 150),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
@@ -783,7 +783,7 @@ Widget _buildActionButton(
 
           // 👤 CREATORE (avatar + nome) - migliorata leggibilit e0
           ConstrainedBox(
-        constraints: const BoxConstraints(minWidth: 250),
+        constraints: const BoxConstraints(minWidth: 150),
             child: Row(
               children: [
                 CircleAvatar(
@@ -818,7 +818,7 @@ Widget _buildActionButton(
 
           // 👥 ASSEGNATI (avatar compact + label)
           ConstrainedBox(
-        constraints: const BoxConstraints(minWidth: 250),
+        constraints: const BoxConstraints(minWidth: 150),
             child: Row(
               children: [
                 Column(

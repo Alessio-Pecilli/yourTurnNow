@@ -94,7 +94,7 @@ jobs:
           echo "BASE_URL=${{ secrets.BASE_URL }}" >> .env
 
       - name: Build web
-        run: flutter build web --release --base-href "/yourTurnNow/"
+        run: flutter build web --release --base-href "/yourturnnow/"
 
       - name: Upload artifact for deploy
         uses: actions/upload-pages-artifact@v3
