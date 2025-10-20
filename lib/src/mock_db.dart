@@ -42,7 +42,9 @@ final mockTodos = <TodoItem>[
     createdAt: DateTime(2025, 8, 24, 16, 00),
     completedAt: DateTime(2025, 8, 24, 17, 10),
     categories: [
-      stockCategories.firstWhere((c) => c.id == 'pulizie'),
+      stockCategories.firstWhere((c) => c.id == 'spesa'),
+      stockCategories.firstWhere((c) => c.id == 'bollette'),
+      stockCategories.firstWhere((c) => c.id == 'divertimento'),
       stockCategories.firstWhere((c) => c.id == 'cucina'),
     ],
   ),
@@ -173,7 +175,9 @@ final mockTodos = <TodoItem>[
     status: TodoStatus.open,
     createdAt: DateTime(2025, 10, 14, 12, 20),
     categories: [
-      stockCategories.firstWhere((c) => c.id == 'pulizie'),
+      stockCategories.firstWhere((c) => c.id == 'spesa'),
+      stockCategories.firstWhere((c) => c.id == 'bollette'),
+      stockCategories.firstWhere((c) => c.id == 'divertimento'),
       stockCategories.firstWhere((c) => c.id == 'cucina'),
     ],
   ),
@@ -186,7 +190,9 @@ final mockTodos = <TodoItem>[
     status: TodoStatus.open,
     createdAt: DateTime(2025, 10, 14, 19, 10),
     categories: [
-      stockCategories.firstWhere((c) => c.id == 'pulizie'),
+      stockCategories.firstWhere((c) => c.id == 'spesa'),
+      stockCategories.firstWhere((c) => c.id == 'bollette'),
+      stockCategories.firstWhere((c) => c.id == 'divertimento'),
       stockCategories.firstWhere((c) => c.id == 'varie'),
     ],
   ),
@@ -212,7 +218,7 @@ final mockTodos = <TodoItem>[
     status: TodoStatus.done,
     createdAt: DateTime(2025, 10, 13, 10, 05),
     categories: [
-      stockCategories.firstWhere((c) => c.id == 'pulizie'),
+      stockCategories.firstWhere((c) => c.id == 'bollette'),
       stockCategories.firstWhere((c) => c.id == 'manutenzione'),
     ],
   ),
@@ -225,7 +231,7 @@ final mockTodos = <TodoItem>[
     status: TodoStatus.open,
     createdAt: DateTime(2025, 10, 14, 8, 35),
     categories: [
-      stockCategories.firstWhere((c) => c.id == 'pulizie'),
+      stockCategories.firstWhere((c) => c.id == 'bollette'),
       stockCategories.firstWhere((c) => c.id == 'varie'),
     ],
   ),
@@ -265,7 +271,7 @@ final mockTodos = <TodoItem>[
     createdAt: DateTime(2025, 8, 18, 11, 10),
     completedAt: DateTime(2025, 8, 18, 12, 00),
     categories: [
-      stockCategories.firstWhere((c) => c.id == 'pulizie'),
+      stockCategories.firstWhere((c) => c.id == 'bollette'),
       stockCategories.firstWhere((c) => c.id == 'varie'),
     ],
   ),
@@ -317,7 +323,8 @@ final mockTransactions = <MoneyTx>[
     createdAt: DateTime(2025, 9, 7, 12, 00),
     category: [
       stockCategories.firstWhere((c) => c.id == 'spesa'),
-      stockCategories.firstWhere((c) => c.id == 'pulizie'),
+      stockCategories.firstWhere((c) => c.id == 'bollette'),
+      stockCategories.firstWhere((c) => c.id == 'divertimento'),
     ],
   ),
   MoneyTx(

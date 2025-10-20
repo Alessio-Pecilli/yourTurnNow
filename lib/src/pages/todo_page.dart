@@ -24,7 +24,7 @@ final todosJustYouFilterProvider = StateProvider<bool>((ref) => false);
 
 // Provider for pagination
 final currentPageProvider = StateProvider<int>((ref) => 0);
-const int todosPerPage = 7; // Aumentato per sfruttare la griglia a 4 colonne (4x6 = 24)
+const int todosPerPage = 6; // Aumentato per sfruttare la griglia a 4 colonne (4x6 = 24)
 
 // Provider for paginated todos
 final paginatedTodosProvider = Provider<List<TodoItem>>((ref) {
@@ -34,6 +34,7 @@ final paginatedTodosProvider = Provider<List<TodoItem>>((ref) {
   final startIndex = currentPage * todosPerPage;
   final endIndex = (startIndex + todosPerPage).clamp(0, allTodos.length);
   
+
   if (startIndex >= allTodos.length) return [];
   return allTodos.sublist(startIndex, endIndex);
 });
@@ -150,7 +151,16 @@ Widget _buildActionButton(
     final currentPage = ref.watch(currentPageProvider);
     final totalPages = ref.watch(totalPagesProvider);
     final roommates = ref.watch(roommatesProvider);
-
+    final Map<int, TableColumnWidth> kTodoColumnWidths = {
+  0: FlexColumnWidth(0.6),
+  1: FlexColumnWidth(2.5),
+  2: FlexColumnWidth(2.0),
+  3: FlexColumnWidth(1.2),
+  4: FlexColumnWidth(1.6),
+  5: FlexColumnWidth(1.4),
+  6: FlexColumnWidth(1.4),
+  7: FlexColumnWidth(1.0),
+};
     // Reset pagina quando cambiano i filtri
     ref.listen(todosCategoryFilterProvider, (previous, next) {
       if (previous != next) {
@@ -301,6 +311,8 @@ Widget _buildActionButton(
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                    child:
+                    Center(
                     child: SingleChildScrollView(
                       scrollDirection: Axis.horizontal,
                       child: Row(
@@ -427,7 +439,7 @@ Widget _buildActionButton(
 
                         ],
                       ),
-                    ),
+                    ),),
                   ),
                 ),
               ),
@@ -437,6 +449,13 @@ Widget _buildActionButton(
             if (tasks.isEmpty)
               const EmptyStateSliver()
             else
+            SliverPersistentHeader(
+  pinned: true,
+  delegate: _FixedHeaderDelegate(
+    height: 80, // altezza della riga header
+    child: buildTodoHeaderRow(),
+  ),
+),
               SliverPadding(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                 sliver: SliverLayoutBuilder(
@@ -457,7 +476,7 @@ Widget _buildActionButton(
                     final clampedCardWidth = cardWidth.clamp(minCardWidth, maxCardWidth);
                     
                     // Aspect ratio dinamico per altezza ottimale
-                    final aspectRatio = clampedCardWidth /90.0;
+                    final aspectRatio = clampedCardWidth /10.0;
                     // Altezza fissa per vedere tutto
                     
                     return SliverGrid(
@@ -480,8 +499,8 @@ Widget _buildActionButton(
 ),
 
                   gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
-  maxCrossAxisExtent: 9999,
-  mainAxisExtent: 140,
+  maxCrossAxisExtent: 2000,
+  mainAxisExtent: 110,
   mainAxisSpacing: 8,
   crossAxisSpacing: 8,
 ),
@@ -603,7 +622,6 @@ Widget _buildActionButton(
   final isCompleted = t.status == TodoStatus.done;
   final createdStr = DateFormat('d MMM yyyy, HH:mm', 'it_IT').format(t.createdAt.toLocal());
 
-  // 👤 Creator (con fallback automatico)
   final creator = roommates.firstWhere(
     (r) => r.id == t.creatorId,
     orElse: () => Roommate(
@@ -614,16 +632,16 @@ Widget _buildActionButton(
     ),
   );
 
-  // 👥 Assegnati
   final assigned = roommates.where((r) => t.assigneeIds.contains(r.id)).toList();
 
   return InkWell(
     borderRadius: BorderRadius.circular(10),
     onTap: () => ref.read(todosProvider.notifier).toggleDone(t.id),
+    
     child: AnimatedContainer(
       duration: const Duration(milliseconds: 200),
-      margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 2),
-      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+      margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 6),
+      padding: const EdgeInsets.symmetric(vertical: 25, horizontal: 12),
       decoration: BoxDecoration(
         color: isCompleted ? Colors.green.shade50 : Colors.white,
         borderRadius: BorderRadius.circular(10),
@@ -633,255 +651,257 @@ Widget _buildActionButton(
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.shade200.withOpacity(0.7),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
+            color: Colors.grey.shade200.withOpacity(0.6),
+            blurRadius: 3,
+            offset: const Offset(0, 1),
           ),
         ],
       ),
-      child: SingleChildScrollView(
-  scrollDirection: Axis.horizontal,
-  physics: const BouncingScrollPhysics(),
-  child: Row(
-    mainAxisSize: MainAxisSize.min,
-    crossAxisAlignment: CrossAxisAlignment.center,
-    children: [
-      // Checkbox
-      Padding(
-        padding: const EdgeInsets.only(right: 10),
-        child: _buildCheckbox(isCompleted),
-          ),
 
-          // TITOLO
-          ConstrainedBox(
-        constraints: const BoxConstraints(minWidth: 150),
-            child: Text(
-              t.title,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                fontWeight: FontWeight.w600,
-                fontSize: 15,
-                color: isCompleted ? Colors.grey.shade600 : Colors.black87,
-                decoration: isCompleted ? TextDecoration.lineThrough : null,
-              ),
-            ),
-          ),
-
-          // CATEGORIE (mostra tutte le categorie come chips)
-          ConstrainedBox(
-        constraints: const BoxConstraints(minWidth: 300),
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Wrap(
-                spacing: 6,
-                runSpacing: 4,
+      // 🔹 Altezza fissa e centratura verticale
+      child: SizedBox(
+        width: double.infinity,
+        height: 128, // Altezza fissa per centratura verticale
+         child: Center(
+    child: SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      physics: const BouncingScrollPhysics(),
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(
+          minWidth: 1300, // 
+        ),
+          child: Table(
+            defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+            columnWidths:  {
+  0: FlexColumnWidth(0.6),
+  1: FlexColumnWidth(2.5),
+  2: FlexColumnWidth(2.0),
+  3: FlexColumnWidth(1.2),
+  4: FlexColumnWidth(1.6),
+  5: FlexColumnWidth(1.4),
+  6: FlexColumnWidth(1.4),
+  7: FlexColumnWidth(0.5),
+},
+            children: [
+              TableRow(
                 children: [
-                  for (final cat in t.categories)
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      margin: const EdgeInsets.only(right: 6),
-                      decoration: BoxDecoration(
-                        color: _hexColor(cat.color),
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: Colors.grey.shade300),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(cat.icon, size: 14, color: Colors.white),
-                          const SizedBox(width: 4),
-                          Text(
-                            cat.name,
-                            style: const TextStyle(
-                              fontSize: 12,
-                              color: Colors.white,
-                              fontWeight: FontWeight.w500,
+                // ✅ Checkbox
+                Center(child: _buildCheckbox(isCompleted)),
+
+                // ✅ Titolo
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    t.title.length > 28 ? '${t.title.substring(0, 28)}...' : t.title,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontWeight: FontWeight.w700,
+                      fontSize: 16,
+                      color: isCompleted ? Colors.grey.shade600 : Colors.black87,
+                      decoration: isCompleted ? TextDecoration.lineThrough : null,
+                    ),
+                  ),
+                ),
+
+                // ✅ Categorie
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Builder(builder: (_) {
+                    final cats = t.categories;
+                    final visible = cats.take(2).toList();
+                    final extra = cats.length - visible.length;
+
+                    return Wrap(
+                      alignment: WrapAlignment.start,
+                      crossAxisAlignment: WrapCrossAlignment.center, // 🔥 centratura verticale
+                      spacing: 6,
+                      runSpacing: 3,
+                      children: [
+                        for (final cat in visible)
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                            decoration: BoxDecoration(
+                              color: _hexColor(cat.color),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.center, // 🔥 centratura verticale
+                              children: [
+                                Icon(cat.icon, size: 14, color: Colors.white),
+                                const SizedBox(width: 4),
+                                Text(
+                                  cat.name,
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                        ],
-                      ),
-                    ),
-                ],
-              ),
-            ),
-          ),
-
-          // COSTO (chip)
-          ConstrainedBox(
-        constraints: const BoxConstraints(minWidth: 150),
-            child: Align(
-              alignment: Alignment.centerLeft,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(
-                  color: Colors.green.shade50,
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.green.shade200),
+                        if (extra > 0)
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                            decoration: BoxDecoration(
+                              color: Colors.grey.shade300,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text('+$extra', style: const TextStyle(fontSize: 12, color: Colors.black54)),
+                          ),
+                      ],
+                    );
+                  }),
                 ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.euro_rounded, size: 14, color: Colors.green.shade800),
-                    const SizedBox(width: 4),
-                    Text(
-                      t.cost != null ? t.cost!.toStringAsFixed(2) : '—',
-                      style: TextStyle(
-                        color: Colors.green.shade800,
-                        fontWeight: FontWeight.w600,
-                        fontSize: 13,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
 
-          // DATA (chip) + etichetta 'Creato il' in bold sotto
-          ConstrainedBox(
-        constraints: const BoxConstraints(minWidth: 150),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                RichText(
-                  text: TextSpan(
-                    children: [
-                      TextSpan(text: 'Data creazione ', style: TextStyle(fontWeight: FontWeight.w700, color: Colors.grey.shade800, fontSize: 12)),
-                     
-                    ],
+                // ✅ Costo
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.green.shade50,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.green.shade200),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.center, // 🔥 centratura verticale
+                      children: [
+                        Icon(Icons.euro_rounded, size: 15, color: Colors.green.shade800),
+                        const SizedBox(width: 4),
+                        Text(
+                          t.cost != null ? t.cost!.toStringAsFixed(2) : '—',
+                          style: TextStyle(
+                            color: Colors.green.shade800,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: Colors.blue.shade50,
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.blue.shade200),
+
+                // ✅ Data
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.blue.shade50,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.blue.shade200),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.center, // 🔥 centratura verticale
+                      children: [
+                        Icon(Icons.calendar_today_rounded, size: 14, color: Colors.blue.shade700),
+                        const SizedBox(width: 4),
+                        Text(
+                          createdStr,
+                          style: TextStyle(
+                            color: Colors.blue.shade700,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
+                ),
+
+                // ✅ Creatore
+                Align(
+                  alignment: Alignment.centerLeft,
                   child: Row(
-                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.center, // 🔥 centratura verticale
                     children: [
-                      Icon(Icons.calendar_today_rounded, size: 14, color: Colors.blue.shade700),
-                      const SizedBox(width: 4),
-                      Text(
-                        createdStr,
-                        style: TextStyle(
-                          color: Colors.blue.shade700,
-                          fontWeight: FontWeight.w500,
-                          fontSize: 12,
+                      CircleAvatar(
+                        radius: 14,
+                        backgroundImage: creator.photoUrl != null && creator.photoUrl!.isNotEmpty
+                            ? NetworkImage(creator.photoUrl!)
+                            : null,
+                        backgroundColor: Colors.grey.shade300,
+                        child: (creator.photoUrl == null || creator.photoUrl!.isEmpty)
+                            ? const Icon(Icons.person, size: 14, color: Colors.white)
+                            : null,
+                      ),
+                      const SizedBox(width: 6),
+                      Flexible(
+                        child: Text(
+                          creator.name.length > 10 ? '${creator.name.substring(0, 10)}...' : creator.name,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey.shade800,
+                            fontWeight: FontWeight.w700,
+                          ),
                         ),
                       ),
                     ],
                   ),
                 ),
-                const SizedBox(height: 6),
-                
-              ],
-            ),
-          ),
-const SizedBox(width: 120),
-          // 👤 CREATORE (avatar + nome) - migliorata leggibilit e0
-          ConstrainedBox(
-        constraints: const BoxConstraints(minWidth: 150),
-            child: Row(
-              children: [
-                CircleAvatar(
-                  radius: 14,
-                  backgroundImage: creator.photoUrl != null && creator.photoUrl!.isNotEmpty
-                      ? NetworkImage(creator.photoUrl!)
-                      : null,
-                  backgroundColor: Colors.grey.shade300,
-                  child: (creator.photoUrl == null || creator.photoUrl!.isEmpty)
-                      ? const Icon(Icons.person, size: 16, color: Colors.white)
-                      : null,
-                ),
-                const SizedBox(width: 6),
-                //CREATORE
-                ConstrainedBox(
-          constraints: const BoxConstraints(minWidth: 20, maxWidth: 40),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
+
+                // ✅ Assegnati
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.center, // 🔥 centratura verticale
                     children: [
-                      Text(
-                        creator.name,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(fontSize: 12, color: Colors.grey.shade800, fontWeight: FontWeight.w600),
+                      for (int i = 0; i < assigned.length && i < 3; i++)
+                        Padding(
+                          padding: const EdgeInsets.only(right: 4),
+                          child: CircleAvatar(
+                            radius: 13,
+                            backgroundImage: NetworkImage(assigned[i].photoUrl ?? ''),
+                            backgroundColor: Colors.grey.shade200,
+                          ),
+                        ),
+                      if (assigned.length > 3)
+                        Text(
+                          '+${assigned.length - 3}',
+                          style: const TextStyle(fontSize: 12, color: Colors.black54, fontWeight: FontWeight.w600),
+                        ),
+                    ],
+                  ),
+                ),
+
+                // ✅ Azioni
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.center, // 🔥 centratura verticale
+                    children: [
+                      IconButton(
+                        icon: Icon(Icons.edit, color: Colors.blue.shade600, size: 20),
+                        onPressed: () => showTodoAddDialog(context, ref, preset: t),
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
                       ),
-                      Text('Autore', style: TextStyle(fontSize: 10, color: Colors.grey.shade500)),
+                      const SizedBox(width: 6),
+                      IconButton(
+                        icon: Icon(Icons.delete, color: Colors.red.shade400, size: 20),
+                        onPressed: () => ref.read(todosProvider.notifier).remove(t.id),
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
+                      ),
                     ],
                   ),
                 ),
               ],
             ),
-          ),
-          
-          // 👥 ASSEGNATI (avatar compact + label)
-          ConstrainedBox(
-        constraints: const BoxConstraints(minWidth: 15),
-            child: Row(
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text('Assegnato a:', style: TextStyle(fontWeight: FontWeight.w700, color: Colors.grey.shade800, fontSize: 12)),
-                    const SizedBox(height: 4),
-                    Row(
-                      children: [
-                        for (int i = 0; i < assigned.length && i < 4; i++)
-                          Padding(
-                            padding: const EdgeInsets.only(right: 6),
-                            child: Tooltip(
-                              message: assigned[i].name,
-                              child: CircleAvatar(
-                                radius: 14,
-                                backgroundImage: NetworkImage(assigned[i].photoUrl ?? ''),
-                                backgroundColor: Colors.grey.shade200,
-                                child: assigned[i].photoUrl == null ? const Icon(Icons.person, size: 16, color: Colors.grey) : null,
-                              ),
-                            ),
-                          ),
-                        if (assigned.length > 4)
-                          Container(
-                            width: 28,
-                            height: 28,
-                            alignment: Alignment.center,
-                            decoration: BoxDecoration(
-                              color: Colors.grey.shade300,
-                              borderRadius: BorderRadius.circular(50),
-                            ),
-                            child: Text('+${assigned.length - 4}', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500)),
-                          ),
-                      ],
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 150),
-          // AZIONI
-          Row(
-            children: [
-              IconButton(
-                icon: Icon(Icons.edit, color: Colors.blue.shade600),
-                onPressed: () => showTodoAddDialog(context, ref, preset: t),
-                tooltip: 'Modifica',
-              ),
-              IconButton(
-                icon: Icon(Icons.delete, color: Colors.red.shade400),
-                onPressed: () => ref.read(todosProvider.notifier).remove(t.id),
-                tooltip: 'Elimina',
-              ),
-            ],
-          ),
-        ],
+          ],
+        ),
       ),
     ),
-  ),);
+    )))
+  );
 }
+
 
 
 
@@ -1031,8 +1051,120 @@ const SizedBox(width: 120),
     ),
   );
 
+
   // Order and filter helper methods removed because UI is inlined above.
 }
+
+Widget buildTodoHeaderRow() {
+  return Material(
+    color: Colors.transparent,
+    child: Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Card(
+        elevation: 4, // ombra
+        color: Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20), // bordi arrotondati
+          side: BorderSide(color: Colors.grey.shade300, width: 1),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+          child: Center(
+            child: SizedBox(
+              width: 1300,
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                physics: const BouncingScrollPhysics(),
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(minWidth: 1300),
+                  child: Table(
+                    defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+                    columnWidths: const {
+                      0: FlexColumnWidth(0.6),
+                      1: FlexColumnWidth(2.5),
+                      2: FlexColumnWidth(2.0),
+                      3: FlexColumnWidth(1.2),
+                      4: FlexColumnWidth(1.6),
+                      5: FlexColumnWidth(1.4),
+                      6: FlexColumnWidth(1.4),
+                      7: FlexColumnWidth(0.5),
+                    },
+                    children: const [
+                      TableRow(
+                        children: [
+                          _HeaderCell(''),
+                          _HeaderCell('Titolo'),
+                          _HeaderCell('Categorie'),
+                          _HeaderCell('Costo'),
+                          _HeaderCell('Data'),
+                          _HeaderCell('Creatore'),
+                          _HeaderCell('Assegnatari'),
+                          _HeaderCell(''),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    ),
+  );
+}
+
+
+
+class _FixedHeaderDelegate extends SliverPersistentHeaderDelegate {
+  final double height;
+  final Widget child;
+  const _FixedHeaderDelegate({required this.height, required this.child});
+
+  @override
+  double get minExtent => height;
+  @override
+  double get maxExtent => height;
+
+  @override
+  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
+    return SizedBox(
+    height: height, // rispetta l’altezza impostata
+    child: child,
+  );
+  }
+
+  @override
+  bool shouldRebuild(covariant _FixedHeaderDelegate oldDelegate) {
+    return oldDelegate.height != height || oldDelegate.child != child;
+  }
+}
+
+class _HeaderCell extends StatelessWidget {
+  final String label;
+  const _HeaderCell(this.label, {super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Center( // <-- centra verticalmente e orizzontalmente
+      child: Align(
+        alignment: Alignment.centerLeft, // resta a sinistra, ma centrato in verticale
+        child: Text(
+          label,
+          overflow: TextOverflow.ellipsis,
+          style: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w800,
+            letterSpacing: 0.2,
+            color: Color.fromARGB(255, 0, 0, 0),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+
 
 class _ToggleBtn extends StatelessWidget {
   final IconData icon;

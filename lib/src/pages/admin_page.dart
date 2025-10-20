@@ -951,71 +951,68 @@ Widget _buildActionButton(
 
 
   Widget _buildAddRoommateForm() {
-  return Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      Text(
-        'Aggiungi coinquilino',
-        style: TextStyle(
-          fontWeight: FontWeight.w600,
-          fontSize: 14, // più piccolo e bilanciato
-          color: Colors.grey.shade800,
-        ),
-      ),
-      const SizedBox(height: 8),
-      Row(
+  return Card(
+    elevation: 2,
+    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+    color: Colors.white,
+    margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 0),
+    child: Padding(
+      padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 18),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Campo testo
-          Expanded(
-            child: TextField(
-              controller: _roommateController,
-              decoration: InputDecoration(
-                hintText: 'Nome',
-                hintStyle: TextStyle(color: Colors.grey.shade500, fontSize: 13),
-                contentPadding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 10), // meno spazio interno
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: BorderSide(color: Colors.grey.shade300),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: BorderSide(color: Colors.grey.shade300),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide:
-                      BorderSide(color: Colors.blue.shade700, width: 1.5),
-                ),
-                prefixIcon: Icon(Icons.person_add,
-                    color: Colors.blue.shade600, size: 18),
-                filled: true,
-                fillColor: Colors.grey.shade50,
+          Row(
+            children: [
+              CircleAvatar(
+                radius: 20,
+                backgroundColor: Colors.blue.shade100,
+                child: Icon(Icons.person_add, color: Colors.blue.shade700, size: 22),
               ),
-              style: TextStyle(color: Colors.grey.shade800, fontSize: 13),
-              textCapitalization: TextCapitalization.words,
-              onSubmitted: (_) => _addRoommate(),
-            ),
-          ),
-
-          const SizedBox(width: 8),
-
-          // Bottone compatto
-          FilledButton(
-            onPressed: _addRoommate,
-            style: FilledButton.styleFrom(
-              backgroundColor: Colors.blue.shade700,
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10)),
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 14, vertical: 10), // compatto
-              minimumSize: const Size(44, 40), // altezza ridotta
-            ),
-            child: const Icon(Icons.add, size: 18, color: Colors.white),
+              const SizedBox(width: 12),
+              Expanded(
+                child: TextField(
+                  controller: _roommateController,
+                  decoration: InputDecoration(
+                    hintText: 'Nome coinquilino',
+                    hintStyle: TextStyle(color: Colors.grey.shade500, fontSize: 14),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: Colors.grey.shade300),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: Colors.grey.shade300),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: Colors.blue.shade700, width: 1.5),
+                    ),
+                    filled: true,
+                    fillColor: Colors.grey.shade50,
+                  ),
+                  style: TextStyle(color: Colors.grey.shade800, fontSize: 15),
+                  textCapitalization: TextCapitalization.words,
+                  onSubmitted: (_) => _addRoommate(),
+                ),
+              ),
+              const SizedBox(width: 10),
+              FilledButton(
+                onPressed: _addRoommate,
+                style: FilledButton.styleFrom(
+                  backgroundColor: Colors.blue.shade700,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  minimumSize: const Size(44, 44),
+                  elevation: 0,
+                ),
+                child: const Icon(Icons.add, size: 20, color: Colors.white),
+              ),
+            ],
           ),
         ],
       ),
-    ],
+    ),
   );
 }
 
