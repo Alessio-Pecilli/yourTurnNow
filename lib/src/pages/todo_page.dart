@@ -24,7 +24,7 @@ final todosJustYouFilterProvider = StateProvider<bool>((ref) => false);
 
 // Provider for pagination
 final currentPageProvider = StateProvider<int>((ref) => 0);
-const int todosPerPage = 6; // Aumentato per sfruttare la griglia a 4 colonne (4x6 = 24)
+const int todosPerPage = 10; // Aumentato per sfruttare la griglia a 4 colonne (4x6 = 24)
 
 // Provider for paginated todos
 final paginatedTodosProvider = Provider<List<TodoItem>>((ref) {
@@ -462,8 +462,8 @@ Widget _buildActionButton(
                   builder: (context, constraints) {
                     // Calcola dimensioni dinamiche per i todo
                     final screenWidth = constraints.crossAxisExtent;
-                    final minCardWidth = 280.0; // Larghezza minima per leggibilità
-                    final maxCardWidth = 400.0; // Larghezza massima
+                    final minCardWidth = 100.0; // Larghezza minima per leggibilità
+                    final maxCardWidth = 300.0; // Larghezza massima
                     
                     // Calcola numero ottimale di colonne
                     int crossAxisCount = 1;
@@ -476,7 +476,7 @@ Widget _buildActionButton(
                     final clampedCardWidth = cardWidth.clamp(minCardWidth, maxCardWidth);
                     
                     // Aspect ratio dinamico per altezza ottimale
-                    final aspectRatio = clampedCardWidth /10.0;
+                    final aspectRatio = clampedCardWidth /5.0;
                     // Altezza fissa per vedere tutto
                     
                     return SliverGrid(
@@ -500,9 +500,9 @@ Widget _buildActionButton(
 
                   gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
   maxCrossAxisExtent: 2000,
-  mainAxisExtent: 110,
-  mainAxisSpacing: 8,
-  crossAxisSpacing: 8,
+  mainAxisExtent: 80, // Altezza fissa per vedere tutto
+  mainAxisSpacing: 4/3,
+  crossAxisSpacing: 4,
 ),
                 );
                   },
