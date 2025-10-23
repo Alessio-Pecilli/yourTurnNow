@@ -599,24 +599,111 @@ Widget _buildActionButton(
 
   // 🔹 Mostra popup di scelta
   final choice = await showDialog<String>(
-    context: context,
-    builder: (BuildContext context) {
-      return AlertDialog(
-        title: const Text('Scarica transazioni'),
-        content: const Text('In quale formato vuoi scaricare i dati?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, 'csv'),
-            child: const Text('CSV'),
+  context: context,
+  barrierDismissible: false,
+  builder: (context) {
+    final cs = Theme.of(context).colorScheme;
+    final tt = Theme.of(context).textTheme;
+    String selected = 'csv';
+
+    return StatefulBuilder(
+      builder: (context, setState) {
+        return AlertDialog(
+          backgroundColor: cs.surface,
+          surfaceTintColor: Colors.transparent,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+            side: BorderSide(color: cs.outlineVariant, width: 1),
           ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, 'pdf'),
-            child: const Text('PDF'),
+          titlePadding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+          contentPadding: const EdgeInsets.fromLTRB(20, 12, 20, 8),
+          actionsPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+
+          title: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: cs.primary.withOpacity(0.10),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(Icons.file_download_outlined, color: cs.primary),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Scarica dati grafici',
+                        style: tt.titleLarge?.copyWith(fontWeight: FontWeight.w600)),
+                    const SizedBox(height: 2),
+                    Text('Scegli il formato da esportare',
+                        style: tt.bodyMedium?.copyWith(color: cs.onSurfaceVariant)),
+                  ],
+                ),
+              ),
+            ],
           ),
-        ],
-      );
-    },
-  );
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  _FormatChip(
+                    label: 'CSV',
+                    icon: Icons.table_chart_outlined,
+                    selected: selected == 'csv',
+                    onTap: () => setState(() => selected = 'csv'),
+                  ),
+                  _FormatChip(
+                    label: 'PDF',
+                    icon: Icons.picture_as_pdf_outlined,
+                    selected: selected == 'pdf',
+                    onTap: () => setState(() => selected = 'pdf'),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(Icons.info_outline, size: 16, color: cs.onSurfaceVariant),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      selected == 'csv'
+                          ? 'Esporta tabelle riepilogative in CSV.'
+                          : 'Genera un PDF impaginato con le stesse tabelle.',
+                      style: tt.bodySmall?.copyWith(color: cs.onSurfaceVariant),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Annulla'),
+            ),
+            FilledButton.icon(
+              onPressed: () => Navigator.pop(context, selected),
+              icon: const Icon(Icons.download),
+              label: const Text('Scarica'),
+              style: FilledButton.styleFrom(
+                backgroundColor: Colors.blue.shade700,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  },
+);
 
   if (choice == 'csv') {
     await CsvExportService.exportTransactionsCsv(txs, me, context);
@@ -628,3 +715,53 @@ Widget _buildActionButton(
 
 
 
+class _FormatChip extends StatelessWidget {
+  final String label;
+  final IconData icon;
+  final bool selected;
+  final VoidCallback onTap;
+
+  const _FormatChip({
+    required this.label,
+    required this.icon,
+    required this.selected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+
+    return Material(
+      color: selected ? cs.primary.withOpacity(0.10) : cs.surface,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(
+          color: selected ? cs.primary : cs.outlineVariant,
+          width: selected ? 2 : 1,
+        ),
+      ),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, size: 18, color: selected ? cs.primary : cs.onSurfaceVariant),
+              const SizedBox(width: 8),
+              Text(
+                label,
+                style: TextStyle(
+                  fontWeight: FontWeight.w600,
+                  color: selected ? cs.primary : cs.onSurface,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}

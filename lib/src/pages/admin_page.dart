@@ -741,201 +741,214 @@ Widget _buildActionButton(
   void _showAddCategoryDialog(BuildContext context) {
   showDialog(
     context: context,
-    useRootNavigator: false,
     builder: (context) {
-      // Local selections inside the dialog so the dialog can rebuild
-      // independently from the parent State. This allows interactive
-      // selection of icon/color inside the AlertDialog.
       String? selectedIconKey = _selectedIconKey;
       String? selectedColorHex = _selectedColorHex;
 
       return StatefulBuilder(
         builder: (context, setStateDialog) => AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          insetPadding: const EdgeInsets.all(24),
+          backgroundColor: const Color(0xFFF3F1F8), // lilla chiaro come nel tuo screen
+          surfaceTintColor: Colors.transparent,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+          contentPadding: const EdgeInsets.fromLTRB(20, 20, 20, 12),
           content: ConstrainedBox(
-            constraints: const BoxConstraints(
-              maxWidth: 400,
-              maxHeight: 600,
-            ),
-            child: SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // Title
-                  Text(
-                    'Aggiungi nuova categoria',
-                    style: TextStyle(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 16,
-                      color: Colors.grey.shade800,
+            constraints: const BoxConstraints(maxWidth: 340),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Titolo
+                Text(
+                  'Aggiungi nuova categoria',
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.grey.shade800,
+                  ),
+                ),
+                const SizedBox(height: 14),
+
+                // Campo nome
+                TextField(
+                  controller: _categoryNameController,
+                  decoration: InputDecoration(
+                    hintText: 'Nome categoria',
+                    hintStyle: TextStyle(color: Colors.grey.shade500),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                      borderSide: BorderSide(color: Colors.grey.shade300),
                     ),
-                  ),
-                  const SizedBox(height: 12),
-
-                  // Name field (reuse controller)
-                  TextField(
-                    controller: _categoryNameController,
-                    decoration: InputDecoration(
-                      hintText: 'Nome categoria',
-                      hintStyle: TextStyle(color: Colors.grey.shade500),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(color: Colors.grey.shade300),
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(color: Colors.grey.shade300),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(color: Colors.green.shade700, width: 2),
-                      ),
-                      prefixIcon: Icon(Icons.label, color: Colors.green.shade600),
-                      filled: true,
-                      fillColor: Colors.grey.shade50,
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                      borderSide: BorderSide(color: Colors.grey.shade300),
                     ),
-                    style: TextStyle(color: Colors.grey.shade800),
-                    textCapitalization: TextCapitalization.words,
-                  ),
-
-                  const SizedBox(height: 16),
-
-                  // Icon selection (Wrap)
-                  Text(
-                    'Scegli icona',
-                    style: TextStyle(
-                      fontWeight: FontWeight.w500,
-                      color: Colors.grey.shade800,
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                      borderSide: BorderSide(color: Colors.grey.shade500, width: 1.8),
                     ),
+                    prefixIcon: Icon(Icons.label, color: Colors.grey.shade700),
+                    filled: true,
+                    fillColor: Colors.white,
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                   ),
-                  const SizedBox(height: 8),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: _iconByKey.entries.map((entry) {
-                      final iconKey = entry.key;
-                      final iconData = entry.value;
-                      final isSelected = selectedIconKey == iconKey;
+                  style: TextStyle(color: Colors.grey.shade800),
+                  textCapitalization: TextCapitalization.sentences,
+                ),
 
-                      return GestureDetector(
-                        onTap: () => setStateDialog(() => selectedIconKey = iconKey),
-                        child: Container(
-                          width: 44,
-                          height: 44,
-                          decoration: BoxDecoration(
-                            color: isSelected ? Colors.green.shade100 : Colors.grey.shade100,
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(
-                              color: isSelected ? Colors.green.shade700 : Colors.grey.shade300,
-                              width: isSelected ? 2 : 1,
-                            ),
-                          ),
-                          child: Icon(
-                            iconData,
-                            color: isSelected ? Colors.green.shade700 : Colors.grey.shade600,
-                            size: 20,
-                          ),
-                        ),
-                      );
-                    }).toList(),
+                const SizedBox(height: 18),
+
+                //  icona
+                Text(
+                  'Seleziona icona',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w500,
+                    color: Colors.grey.shade800,
                   ),
+                ),
+                const SizedBox(height: 10),
 
-                  const SizedBox(height: 16),
+                Center(
+  child: IntrinsicWidth(
+    child: Wrap(
+      alignment: WrapAlignment.center,
+      crossAxisAlignment: WrapCrossAlignment.center,
+      spacing: 10,
+      runSpacing: 10,
+      children: _iconByKey.entries.map((entry) {
+        final iconKey = entry.key;
+        final iconData = entry.value;
+        final isSelected = selectedIconKey == iconKey;
 
-                  // Color selection
-                  Text(
-                    'Scegli colore',
-                    style: TextStyle(
-                      fontWeight: FontWeight.w500,
-                      color: Colors.grey.shade800,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Wrap(
-                    spacing: 10,
-                    runSpacing: 10,
-                    children: _availableColors.map((colorMap) {
-                      final hex = colorMap['hex']!;
-                      final color = Color(int.parse(hex.substring(1, 7), radix: 16) + 0xFF000000);
-                      final isSelected = selectedColorHex == hex;
-
-                      return GestureDetector(
-                        onTap: () => setStateDialog(() => selectedColorHex = hex),
-                        child: Container(
-                          width: 34,
-                          height: 34,
-                          decoration: BoxDecoration(
-                            color: color,
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: isSelected ? Colors.black : Colors.transparent,
-                              width: 2,
-                            ),
-                            boxShadow: [
-                              if (isSelected)
-                                BoxShadow(
-                                  color: color.withOpacity(0.5),
-                                  blurRadius: 4,
-                                  spreadRadius: 1,
-                                ),
-                            ],
-                          ),
-                        ),
-                      );
-                    }).toList(),
-                  ),
-
-                  const SizedBox(height: 20),
-
-                  // Actions
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      TextButton(
-                        onPressed: () {
-                          // Reset temporary selections back to parent state
-                          _selectedIconKey = selectedIconKey;
-                          _selectedColorHex = selectedColorHex;
-                          Navigator.of(context).pop();
-                        },
-                        child: Text('Annulla', style: TextStyle(color: Colors.grey.shade600)),
-                      ),
-                      const SizedBox(width: 8),
-                      FilledButton(
-                        onPressed: () {
-                          final name = _categoryNameController.text.trim();
-                          if (name.isEmpty || selectedIconKey == null) {
-                            _showErrorDialog('Dati mancanti', 'Inserisci un nome e scegli un\'icona prima di aggiungere la categoria.');
-                            return;
-                          }
-
-                          // Commit: add to provider using selected values
-                          ref.read(categoriesProvider.notifier).addCategory(TodoCategory(
-                            id: DateTime.now().toString(),
-                            name: name,
-                            icon: _iconByKey[selectedIconKey]!,
-                            color: selectedColorHex ?? _selectedColor,
-                          ));
-
-                          // update parent state and cleanup
-                          _categoryNameController.clear();
-                          _selectedIconKey = null;
-                          _selectedColorHex = selectedColorHex ?? _selectedColorHex;
-                          HapticFeedback.lightImpact();
-                          Navigator.of(context).pop();
-                        },
-                        style: FilledButton.styleFrom(
-                          backgroundColor: Colors.green.shade700,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                        ),
-                        child: const Text('Aggiungi'),
-                      ),
-                    ],
-                  ),
-                ],
+        return GestureDetector(
+          onTap: () => setStateDialog(() => selectedIconKey = iconKey),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 150),
+            width: 42,
+            height: 42,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(
+                color: isSelected ? Colors.blue.shade700 : Colors.grey.shade300,
+                width: isSelected ? 2 : 1,
               ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.grey.withOpacity(0.15),
+                  blurRadius: 3,
+                  offset: const Offset(0, 1),
+                ),
+              ],
+            ),
+            child: Icon(
+              iconData,
+              color: isSelected ? Colors.blue.shade700 : Colors.grey.shade600,
+              size: 20,
+            ),
+          ),
+        );
+      }).toList(),
+    ),
+  ),
+),
+
+                const SizedBox(height: 20),
+
+                // Seleziona colore
+                Text(
+                  'Seleziona colore',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w500,
+                    color: Colors.grey.shade800,
+                  ),
+                ),
+                const SizedBox(height: 10),
+
+                Wrap(
+                  spacing: 10,
+                  children: _availableColors.map((colorMap) {
+                    final hex = colorMap['hex']!;
+                    final color = Color(int.parse(hex.substring(1, 7), radix: 16) + 0xFF000000);
+                    final isSelected = selectedColorHex == hex;
+
+                    return GestureDetector(
+                      onTap: () => setStateDialog(() => selectedColorHex = hex),
+                      child: Container(
+                        width: 28,
+                        height: 28,
+                        decoration: BoxDecoration(
+                          color: color,
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: isSelected ? Colors.black : Colors.transparent,
+                            width: 2,
+                          ),
+                          boxShadow: [
+                            if (isSelected)
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.25),
+                                blurRadius: 5,
+                                offset: const Offset(0, 1),
+                              ),
+                          ],
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                ),
+
+                const SizedBox(height: 26),
+
+                // Pulsanti in basso
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    TextButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      style: TextButton.styleFrom(
+                        foregroundColor: Colors.grey.shade700,
+                        textStyle: const TextStyle(fontWeight: FontWeight.w500),
+                      ),
+                      child: const Text('Annulla'),
+                    ),
+                    const SizedBox(width: 8),
+                    FilledButton(
+                      onPressed: () {
+                        final name = _categoryNameController.text.trim();
+                        if (name.isEmpty || selectedIconKey == null) {
+                          _showErrorDialog(
+                            'Dati mancanti',
+                            'Inserisci un nome e scegli un\'icona prima di aggiungere la categoria.',
+                          );
+                          return;
+                        }
+
+                        ref.read(categoriesProvider.notifier).addCategory(
+                              TodoCategory(
+                                id: DateTime.now().toString(),
+                                name: name,
+                                icon: _iconByKey[selectedIconKey]!,
+                                color: selectedColorHex ?? _selectedColor,
+                              ),
+                            );
+
+                        _categoryNameController.clear();
+                        _selectedIconKey = null;
+                        _selectedColorHex = selectedColorHex ?? _selectedColorHex;
+                        HapticFeedback.lightImpact();
+                        Navigator.of(context).pop();
+                      },
+                      style: FilledButton.styleFrom(
+                        backgroundColor:  Colors.blue.shade700, // blu scuro ma più neutro
+                        minimumSize: const Size(100, 42),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      ),
+                      child: const Text('Aggiungi'),
+                    ),
+                  ],
+                ),
+              ],
             ),
           ),
         ),
@@ -947,232 +960,155 @@ Widget _buildActionButton(
 
 
 
-  
+Widget _buildAddRoommateForm({
+  bool showInlineButton = true,
+  ValueChanged<String>? onChanged,
+}) {
+  final cs = Theme.of(context).colorScheme;
+  final tt = Theme.of(context).textTheme;
+  final accent = Colors.blue.shade700;
 
-
-  Widget _buildAddRoommateForm() {
   return Card(
-    elevation: 2,
-    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-    color: Colors.white,
-    margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 0),
+    elevation: 3,
+    shadowColor: Colors.grey.shade200,
+    margin: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(18),
+      side: BorderSide(color: accent.withOpacity(0.4), width: 1),
+    ),
     child: Padding(
-      padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 18),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
+      padding: const EdgeInsets.fromLTRB(16, 18, 16, 10),
+      child: StatefulBuilder(
+        builder: (context, setInnerState) {
+          final name = _roommateController.text.trim();
+          final canSubmit = name.isNotEmpty;
+          
+          final avatarBg = _pastelFor(name.isEmpty ? 'A' : name, cs);
+
+          return Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              CircleAvatar(
-                radius: 20,
-                backgroundColor: Colors.blue.shade100,
-                child: Icon(Icons.person_add, color: Colors.blue.shade700, size: 22),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: TextField(
-                  controller: _roommateController,
-                  decoration: InputDecoration(
-                    hintText: 'Nome coinquilino',
-                    hintStyle: TextStyle(color: Colors.grey.shade500, fontSize: 14),
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: Colors.grey.shade300),
+              Row(
+                children: [
+                  // Avatar con tinta blu pastello
+                  
+                  const SizedBox(width: 12),
+
+                  // Campo di testo elegante
+                  Expanded(
+                    child: TextField(
+                      controller: _roommateController,
+                      textCapitalization: TextCapitalization.words,
+                      textInputAction: TextInputAction.done,
+                      onChanged: (v) {
+                        setInnerState(() {});
+                        if (onChanged != null) onChanged(v);
+                      },
+                      onSubmitted: (_) {
+                        if (canSubmit) {
+                          _addRoommate();
+                          Navigator.of(context).pop();
+                        }
+                      },
+                      style: tt.bodyMedium?.copyWith(color: cs.onSurface),
+                      decoration: InputDecoration(
+                        hintText: 'Nome coinquilino',
+                        hintStyle: tt.bodyMedium?.copyWith(
+                          color: cs.onSurfaceVariant.withOpacity(0.7),
+                        ),
+                        filled: true,
+                        fillColor: cs.surface,
+                        prefixIcon: Icon(Icons.person_outline,
+                            color: accent.withOpacity(0.8)),
+                        contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 14, vertical: 12),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          borderSide:
+                              BorderSide(color: accent.withOpacity(0.4), width: 1),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          borderSide:
+                              BorderSide(color: accent.withOpacity(0.4), width: 1),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          borderSide: BorderSide(color: accent, width: 2),
+                        ),
+                      ),
                     ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: Colors.grey.shade300),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: Colors.blue.shade700, width: 1.5),
-                    ),
-                    filled: true,
-                    fillColor: Colors.grey.shade50,
                   ),
-                  style: TextStyle(color: Colors.grey.shade800, fontSize: 15),
-                  textCapitalization: TextCapitalization.words,
-                  onSubmitted: (_) => _addRoommate(),
-                ),
+                ],
               ),
-              const SizedBox(width: 10),
-              FilledButton(
-                onPressed: _addRoommate,
-                style: FilledButton.styleFrom(
-                  backgroundColor: Colors.blue.shade700,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  minimumSize: const Size(44, 44),
-                  elevation: 0,
-                ),
-                child: const Icon(Icons.add, size: 20, color: Colors.white),
+              const SizedBox(height: 16),
+
+              // Pulsanti azione
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    style: TextButton.styleFrom(
+                      foregroundColor: accent,
+                      textStyle: tt.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    child: const Text('Annulla'),
+                  ),
+                  const SizedBox(width: 6),
+                  FilledButton(
+                    onPressed: canSubmit
+                        ? () {
+                            _addRoommate();
+                            Navigator.of(context).pop();
+                          }
+                        : null,
+                    style: FilledButton.styleFrom(
+                      backgroundColor: accent,
+                      disabledBackgroundColor:
+                          accent.withOpacity(0.2), // disattivo soft blu
+                      minimumSize: const Size(46, 46),
+                      padding:
+                          const EdgeInsets.symmetric(horizontal: 22, vertical: 10),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      shadowColor: Colors.transparent,
+                    ),
+                    child: const Text('Aggiungi'),
+                  ),
+                ],
               ),
             ],
-          ),
-        ],
+          );
+        },
       ),
     ),
   );
 }
 
-Widget _buildAddCategoryForm() {
-  return Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    mainAxisSize: MainAxisSize.min, // 💡 evita overflow
-    children: [
-      Text(
-        'Aggiungi nuova categoria',
-        style: TextStyle(
-          fontWeight: FontWeight.w600,
-          fontSize: 16,
-          color: Colors.grey.shade800,
-        ),
-      ),
-      const SizedBox(height: 12),
 
-      // 🔹 Nome categoria
-      TextField(
-        controller: _categoryNameController,
-        decoration: InputDecoration(
-          hintText: 'Nome categoria',
-          hintStyle: TextStyle(color: Colors.grey.shade500),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide(color: Colors.grey.shade300),
-          ),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide(color: Colors.grey.shade300),
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide(color: Colors.green.shade700, width: 2),
-          ),
-          prefixIcon: Icon(Icons.label, color: Colors.green.shade600),
-          filled: true,
-          fillColor: Colors.grey.shade50,
-        ),
-        style: TextStyle(color: Colors.grey.shade800),
-        textCapitalization: TextCapitalization.words,
-      ),
 
-      const SizedBox(height: 16),
 
-      // 🔹 Selezione icona
-      Text(
-        'Scegli icona',
-        style: TextStyle(
-          fontWeight: FontWeight.w500,
-          color: Colors.grey.shade800,
-        ),
-      ),
-      const SizedBox(height: 8),
-
-      // Use a Wrap instead of GridView inside AlertDialog content.
-      // AlertDialog can measure intrinsic dimensions which causes
-      // RenderShrinkWrappingViewport errors when children use
-      // shrink-wrapping scrollables. Wrap provides a non-scrollable
-      // responsive grid-like layout and avoids intrinsic layout calls.
-      Wrap(
-        spacing: 8,
-        runSpacing: 8,
-        children: _iconByKey.entries.map((entry) {
-          final iconKey = entry.key;
-          final iconData = entry.value;
-          final isSelected = _selectedIconKey == iconKey;
-
-          return GestureDetector(
-            onTap: () => setState(() => _selectedIconKey = iconKey),
-            child: Container(
-              width: 44,
-              height: 44,
-              decoration: BoxDecoration(
-                color: isSelected ? Colors.green.shade100 : Colors.grey.shade100,
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(
-                  color: isSelected ? Colors.green.shade700 : Colors.grey.shade300,
-                  width: isSelected ? 2 : 1,
-                ),
-              ),
-              child: Icon(
-                iconData,
-                color: isSelected ? Colors.green.shade700 : Colors.grey.shade600,
-                size: 20,
-              ),
-            ),
-          );
-        }).toList(),
-      ),
-
-      const SizedBox(height: 16),
-
-      // 🔹 Selezione colore
-      Text(
-        'Scegli colore',
-        style: TextStyle(
-          fontWeight: FontWeight.w500,
-          color: Colors.grey.shade800,
-        ),
-      ),
-      const SizedBox(height: 8),
-
-      Wrap(
-        spacing: 10,
-        runSpacing: 10,
-        children: _availableColors.map((colorMap) {
-          final hex = colorMap['hex']!;
-          final color = Color(
-              int.parse(hex.substring(1, 7), radix: 16) + 0xFF000000);
-          final isSelected = _selectedColorHex == hex;
-
-          return GestureDetector(
-            onTap: () => setState(() => _selectedColorHex = hex),
-            child: Container(
-              width: 34,
-              height: 34,
-              decoration: BoxDecoration(
-                color: color,
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color:
-                      isSelected ? Colors.black : Colors.transparent,
-                  width: 2,
-                ),
-                boxShadow: [
-                  if (isSelected)
-                    BoxShadow(
-                      color: color.withOpacity(0.5),
-                      blurRadius: 4,
-                      spreadRadius: 1,
-                    ),
-                ],
-              ),
-            ),
-          );
-        }).toList(),
-      ),
-
-      const SizedBox(height: 20),
-
-      // 🔹 Bottone finale
-      SizedBox(
-        width: double.infinity,
-        child: FilledButton.icon(
-          onPressed: _addCategory,
-          icon: const Icon(Icons.add),
-          label: const Text('Aggiungi Categoria'),
-          style: FilledButton.styleFrom(
-            backgroundColor: Colors.green.shade700,
-            shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12)),
-            padding: const EdgeInsets.symmetric(vertical: 16),
-          ),
-        ),
-      ),
-    ],
-  );
+Color _pastelFor(String seed, ColorScheme cs) {
+  // semplice hash → tonalità primaria "pastellata"
+  final h = seed.codeUnits.fold<int>(0, (a, b) => (a * 31 + b) & 0xFFFFFFFF);
+  final t = 0.2 + (h % 60) / 300.0; // 0.2..0.4 blending
+  // blend verso primary per rimanere nel tema
+  return Color.lerp(cs.primary, cs.surface, 1 - t)!;
 }
+
+// Helpers (mettile nella stessa State class)
+String _initialsOf(String name) {
+  final parts = name.trim().split(RegExp(r'\s+')).where((p) => p.isNotEmpty).toList();
+  if (parts.isEmpty) return 'A';
+  if (parts.length == 1) return parts.first.characters.first.toUpperCase();
+  return (parts[0].characters.first + parts[1].characters.first).toUpperCase();
+}
+
 
 
 
@@ -1322,24 +1258,106 @@ Widget _buildAddCategoryForm() {
   }
 
   void _showAddRoommateDialog(BuildContext context) {
+  _roommateController.clear(); // reset prima dell’apertura
+
   showDialog(
     context: context,
-    builder: (context) => AlertDialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      backgroundColor: Colors.white,
-      contentPadding: const EdgeInsets.all(16),
-      content: ConstrainedBox(
-        constraints: const BoxConstraints(
-          maxWidth: 360, // 🔹 larghezza massima
-          maxHeight: 200, // 🔹 altezza massima
+    builder: (context) => Theme(
+      data: ThemeData.light(useMaterial3: true),
+      child: AlertDialog(
+        backgroundColor: Colors.white,
+        surfaceTintColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        title: Row(
+          children: [
+            Icon(Icons.person_add, color: Colors.blue.shade700),
+            const SizedBox(width: 8),
+            Text(
+              'Aggiungi Coinquilino',
+              style: TextStyle(
+                fontWeight: FontWeight.w600,
+                color: Colors.grey.shade800,
+              ),
+            ),
+          ],
         ),
-        child: SingleChildScrollView(
-          child: _buildAddRoommateForm(),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: _roommateController,
+              decoration: InputDecoration(
+                labelText: 'Nome coinquilino',
+                labelStyle: TextStyle(color: Colors.grey.shade700),
+                hintStyle: TextStyle(color: Colors.grey.shade500),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: Colors.grey.shade300),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: Colors.grey.shade300),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide:
+                      BorderSide(color: Colors.blue.shade700, width: 2),
+                ),
+                filled: true,
+                fillColor: Colors.grey.shade50,
+                prefixIcon:
+                    Icon(Icons.person, color: Colors.blue.shade600),
+              ),
+              style: TextStyle(color: Colors.grey.shade800),
+              textCapitalization: TextCapitalization.words,
+              onSubmitted: (_) => _confirmAddRoommate(context),
+            ),
+          ],
         ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              context.pop();
+              _roommateController.clear();
+            },
+            child: Text(
+              'Annulla',
+              style: TextStyle(color: Colors.grey.shade600),
+            ),
+          ),
+          FilledButton(
+            onPressed: () => _confirmAddRoommate(context),
+            style: FilledButton.styleFrom(
+              backgroundColor: Colors.blue.shade700,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            child: const Text('Aggiungi'),
+          ),
+        ],
       ),
     ),
   );
 }
+
+void _confirmAddRoommate(BuildContext context) {
+  final name = _roommateController.text.trim();
+
+  if (name.isEmpty) {
+    _showErrorDialog("Dati mancanti", "Inserisci un nome corretto");
+    
+    return; // evita di proseguire
+  }
+
+  // Se non è vuoto, aggiunge normalmente
+  _addRoommate();
+  _roommateController.clear();
+  context.pop();
+  HapticFeedback.lightImpact();
+}
+
+
 
 
 
@@ -1425,6 +1443,8 @@ Widget _buildAddCategoryForm() {
       _roommateController.clear();
       context.pop();
       HapticFeedback.lightImpact();
+    }else{
+      _showErrorDialog("Dati mancanti", "Inserisci un nome corretto");
     }
   }
 
@@ -1559,24 +1579,112 @@ Widget _buildAddCategoryForm() {
 
   // 🔹 Mostra popup di scelta
   final choice = await showDialog<String>(
-    context: context,
-    builder: (BuildContext context) {
-      return AlertDialog(
-        title: const Text('Scarica dati grafici'),
-        content: const Text('In quale formato vuoi scaricare i dati?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, 'csv'),
-            child: const Text('CSV'),
+  context: context,
+  barrierDismissible: false,
+  builder: (context) {
+    final cs = Theme.of(context).colorScheme;
+    final tt = Theme.of(context).textTheme;
+    String selected = 'csv';
+
+    return StatefulBuilder(
+      builder: (context, setState) {
+        return AlertDialog(
+          backgroundColor: cs.surface,
+          surfaceTintColor: Colors.transparent,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+            side: BorderSide(color: cs.outlineVariant, width: 1),
           ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, 'pdf'),
-            child: const Text('PDF'),
+          titlePadding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+          contentPadding: const EdgeInsets.fromLTRB(20, 12, 20, 8),
+          actionsPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+
+          title: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: cs.primary.withOpacity(0.10),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(Icons.file_download_outlined, color: cs.primary),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Scarica dati grafici',
+                        style: tt.titleLarge?.copyWith(fontWeight: FontWeight.w600)),
+                    const SizedBox(height: 2),
+                    Text('Scegli il formato da esportare',
+                        style: tt.bodyMedium?.copyWith(color: cs.onSurfaceVariant)),
+                  ],
+                ),
+              ),
+            ],
           ),
-        ],
-      );
-    },
-  );
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  _FormatChip(
+                    label: 'CSV',
+                    icon: Icons.table_chart_outlined,
+                    selected: selected == 'csv',
+                    onTap: () => setState(() => selected = 'csv'),
+                  ),
+                  _FormatChip(
+                    label: 'PDF',
+                    icon: Icons.picture_as_pdf_outlined,
+                    selected: selected == 'pdf',
+                    onTap: () => setState(() => selected = 'pdf'),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(Icons.info_outline, size: 16, color: cs.onSurfaceVariant),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      selected == 'csv'
+                          ? 'Esporta tabelle (categorie, coinquilini, stato) in CSV.'
+                          : 'Genera un PDF impaginato con le stesse tabelle.',
+                      style: tt.bodySmall?.copyWith(color: cs.onSurfaceVariant),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Annulla'),
+            ),
+            FilledButton.icon(
+              onPressed: () => Navigator.pop(context, selected),
+              icon: const Icon(Icons.download),
+              label: const Text('Scarica'),
+              style: FilledButton.styleFrom(
+                backgroundColor: Colors.blue.shade700,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  },
+);
+
 
   if (choice == null) return;
 
@@ -1760,3 +1868,53 @@ Widget _buildAddCategoryForm() {
 }
 
 // Pie chart implementation moved to widgets/admin/pie_chart.dart
+class _FormatChip extends StatelessWidget {
+  final String label;
+  final IconData icon;
+  final bool selected;
+  final VoidCallback onTap;
+
+  const _FormatChip({
+    required this.label,
+    required this.icon,
+    required this.selected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+
+    return Material(
+      color: selected ? cs.primary.withOpacity(0.10) : cs.surface,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(
+          color: Colors.blue.shade700,
+          width: selected ? 2 : 1,
+        ),
+      ),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, size: 18, color: Colors.blue.shade700),
+              const SizedBox(width: 8),
+              Text(
+                label,
+                style: TextStyle(
+                  fontWeight: FontWeight.w600,
+                  color: selected ? cs.primary : cs.onSurface,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
