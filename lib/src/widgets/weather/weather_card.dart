@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:your_turn/l10n/app_localizations.dart';
 
 class WeatherInfo {
   final String description;
@@ -132,7 +133,7 @@ class WeatherCard extends ConsumerWidget {
           const SizedBox(width: 8),
           const CircularProgressIndicator(strokeWidth: 2.5),
           const SizedBox(width: 12),
-          Text('Caricamento meteo per $city...', style: Theme.of(context).textTheme.bodyMedium),
+          Text(AppLocalizations.of(context)!.weather_loading_city.replaceFirst('{city}', city), style: Theme.of(context).textTheme.bodyMedium),
         ],
       );
 
@@ -161,7 +162,7 @@ class WeatherCard extends ConsumerWidget {
               ElevatedButton.icon(
                 onPressed: () => ref.refresh(weatherProvider(city)),
                 icon: const Icon(Icons.refresh, size: 18),
-                label: const Text('Riprova'),
+                label: Text(AppLocalizations.of(context)!.common_retry),
               ),
             ],
           ),
@@ -195,8 +196,8 @@ class WeatherCard extends ConsumerWidget {
                 spacing: 8,
                 children: [
                   Text(feelsStr),
-                  Text('Umidità: ${w.humidity}%'),
-                  Text('Vento: ${w.windSpeed} m/s'),
+                  Text(AppLocalizations.of(context)!.weather_humidity.replaceFirst('{value}', w.humidity.toString())),
+                  Text(AppLocalizations.of(context)!.weather_wind.replaceFirst('{value}', w.windSpeed.toString())),
                 ],
               ),
             ],

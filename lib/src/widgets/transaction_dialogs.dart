@@ -9,6 +9,7 @@ import 'package:your_turn/src/models/todo_category.dart';
 import 'package:your_turn/src/providers/categories_provider.dart';
 import 'package:your_turn/src/providers/roommates_provider.dart';
 import 'package:your_turn/src/providers/transactions_provider.dart';
+import 'package:your_turn/l10n/app_localizations.dart';
 
 /// Utility class per gestire i dialoghi delle transazioni
 class TransactionDialogs {
@@ -23,20 +24,20 @@ class TransactionDialogs {
       builder: (context) => Theme(
         data: ThemeData.light(useMaterial3: true),
         child: AlertDialog(
-          title: const Text('Elimina transazione'),
-          content: const Text('Sei sicuro di voler eliminare questa transazione?'),
+          title: Text(AppLocalizations.of(context)!.dialog_delete_transaction_title),
+          content: Text(AppLocalizations.of(context)!.dialog_delete_transaction_content),
           backgroundColor: Colors.white,
           surfaceTintColor: Colors.white,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context, false),
-              child: const Text('Annulla'),
+              child: Text(AppLocalizations.of(context)!.common_cancel),
             ),
             FilledButton(
               onPressed: () => Navigator.pop(context, true),
               style: FilledButton.styleFrom(backgroundColor: Colors.red),
-              child: const Text('Elimina'),
+              child: Text(AppLocalizations.of(context)!.common_delete),
             ),
           ],
         ),
@@ -47,7 +48,7 @@ class TransactionDialogs {
       ref.read(transactionsProvider.notifier).removeTx(tx.id);
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Transazione eliminata.')),
+          SnackBar(content: Text(AppLocalizations.of(context)!.snackbar_transaction_deleted)),
         );
       }
     }
@@ -74,7 +75,7 @@ class TransactionDialogs {
         data: ThemeData.light(useMaterial3: true),
         child: StatefulBuilder(
           builder: (context, setState) => AlertDialog(
-            title: const Text('Modifica transazione'),
+            title: Text(AppLocalizations.of(context)!.dialog_edit_transaction_title),
             backgroundColor: Colors.white,
             surfaceTintColor: Colors.white,
             shape:
@@ -86,14 +87,14 @@ class TransactionDialogs {
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildAmountField(amountCtrl),
+                    _buildAmountField(amountCtrl, context),
                     const SizedBox(height: 16),
-                    _buildMultiCategorySelector(allCategories, selectedCategories,
+                    _buildMultiCategorySelector(context, allCategories, selectedCategories,
                         (newList) {
                       setState(() => selectedCategories = newList);
                     }),
                     const SizedBox(height: 16),
-                    _buildNoteField(noteCtrl),
+                    _buildNoteField(noteCtrl, context),
                     const SizedBox(height: 16),
                     _buildDateSelector(context, selectedDate, (date) {
                       setState(() => selectedDate = date);
@@ -105,14 +106,14 @@ class TransactionDialogs {
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context, false),
-                child: const Text('Annulla'),
+                child: Text(AppLocalizations.of(context)!.common_cancel),
               ),
               FilledButton(
                 onPressed: () {
                   if (!(formKey.currentState?.validate() ?? false)) return;
                   Navigator.pop(context, true);
                 },
-                child: const Text('Salva'),
+                child: Text(AppLocalizations.of(context)!.common_save),
               ),
             ],
           ),
@@ -133,7 +134,7 @@ class TransactionDialogs {
       ref.read(transactionsProvider.notifier).updateTx(updated);
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Transazione modificata.')),
+          SnackBar(content: Text(AppLocalizations.of(context)!.snackbar_transaction_updated)),
         );
       }
     }
@@ -159,7 +160,7 @@ class TransactionDialogs {
         data: ThemeData.light(useMaterial3: true),
         child: StatefulBuilder(
           builder: (context, setState) => AlertDialog(
-            title: const Text('Nuova transazione'),
+            title: Text(AppLocalizations.of(context)!.dialog_new_transaction_title),
             backgroundColor: Colors.white,
             surfaceTintColor: Colors.white,
             shape:
@@ -171,14 +172,14 @@ class TransactionDialogs {
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildAmountField(amountCtrl),
+                    _buildAmountField(amountCtrl, context),
                     const SizedBox(height: 16),
-                    _buildMultiCategorySelector(categories, selectedCategories,
+                    _buildMultiCategorySelector(context,categories, selectedCategories,
                         (newList) {
                       setState(() => selectedCategories = newList);
                     }),
                     const SizedBox(height: 16),
-                    _buildNoteField(noteCtrl),
+                    _buildNoteField(noteCtrl, context),
                     const SizedBox(height: 16),
                     _buildDateSelector(context, selectedDate, (date) {
                       setState(() => selectedDate = date);
@@ -190,14 +191,14 @@ class TransactionDialogs {
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context, false),
-                child: const Text('Annulla'),
+                child: Text(AppLocalizations.of(context)!.common_cancel),
               ),
               FilledButton(
                 onPressed: () {
                   if (!(formKey.currentState?.validate() ?? false)) return;
                   Navigator.pop(context, true);
                 },
-                child: const Text('Aggiungi'),
+                child: Text(AppLocalizations.of(context)!.common_add),
               ),
             ],
           ),
@@ -224,7 +225,7 @@ class TransactionDialogs {
 
   // --- CAMPI ---
 
-  static Widget _buildAmountField(TextEditingController controller) {
+  static Widget _buildAmountField(TextEditingController controller, BuildContext context) {
     return TextFormField(
       controller: controller,
       keyboardType:
@@ -232,31 +233,32 @@ class TransactionDialogs {
       inputFormatters: [
         FilteringTextInputFormatter.allow(RegExp(r'[0-9,.\-]'))
       ],
-      decoration: const InputDecoration(
-        labelText: 'Importo (€)',
-        hintText: 'positivo = accredito, negativo = addebito',
+      decoration:  InputDecoration(
+        labelText: AppLocalizations.of(context)!.tx_amount_label,
+        hintText: AppLocalizations.of(context)!.tx_amount_hint,
       ),
       validator: (v) {
-        if (v == null || v.trim().isEmpty) return 'Campo obbligatorio';
+        if (v == null || v.trim().isEmpty) return AppLocalizations.of(context)!.tx_amount_required;
         final p = double.tryParse(v.replaceAll(',', '.'));
-        if (p == null || p == 0.0) return 'Inserisci un numero diverso da 0';
+        if (p == null || p == 0.0) return AppLocalizations.of(context)!.tx_amount_nonzero;
         return null;
       },
     );
   }
 
-  static Widget _buildNoteField(TextEditingController controller) {
+  static Widget _buildNoteField(TextEditingController controller, BuildContext context) {
     return TextFormField(
       controller: controller,
-      decoration: const InputDecoration(
-        labelText: 'Nota (opzionale)',
-        hintText: 'es. descrizione della spesa',
+      decoration: InputDecoration(
+        labelText: AppLocalizations.of(context)!.tx_note_label,
+        hintText: AppLocalizations.of(context)!.tx_note_hint,
       ),
     );
   }
 
-  /// 🔹 Nuovo: selezione multipla categorie
+  /// ðŸ”¹ Nuovo: selezione multipla categorie
   static Widget _buildMultiCategorySelector(
+    BuildContext context,
     List<TodoCategory> categories,
     List<TodoCategory> selectedCategories,
     void Function(List<TodoCategory>) onChanged,
@@ -264,7 +266,7 @@ class TransactionDialogs {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Categorie', style: TextStyle(fontWeight: FontWeight.bold)),
+        Text(AppLocalizations.of(context)!.todo_dialog_categories, style: const TextStyle(fontWeight: FontWeight.bold)),
         const SizedBox(height: 8),
         Wrap(
           spacing: 8,
@@ -319,7 +321,7 @@ class TransactionDialogs {
   return Row(
     mainAxisSize: MainAxisSize.min,
     children: [
-      const Text('Data:', style: TextStyle(fontWeight: FontWeight.bold)),
+      Text('${AppLocalizations.of(context)!.table_date}:', style: const TextStyle(fontWeight: FontWeight.bold)),
       const SizedBox(width: 8),
       OutlinedButton.icon(
         icon: const Icon(Icons.calendar_today),
@@ -335,7 +337,7 @@ class TransactionDialogs {
             firstDate: DateTime(2020),
             lastDate: DateTime.now().add(const Duration(days: 365)),
 
-            // ✅ fix qui
+            // âœ… fix qui
             builder: (context, child) {
               return MediaQuery(
                 data: MediaQuery.of(context).copyWith(

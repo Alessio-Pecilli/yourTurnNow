@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:your_turn/src/models/roommate.dart';
 import 'package:your_turn/src/models/todo_category.dart';
+import 'package:your_turn/l10n/app_localizations.dart';
 
 typedef OnEditRoommate = void Function(Roommate r);
 typedef OnDeleteRoommate = void Function(Roommate r);
@@ -32,7 +33,7 @@ class CategoriesCard extends StatelessWidget {
           Row(children: [
             Icon(Icons.category, color: Colors.green.shade700, size: 24),
             const SizedBox(width: 12),
-            Text('Gestione Categorie',
+            Text(AppLocalizations.of(context)!.admin_manage_categories,
                 style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.w700,
@@ -45,7 +46,7 @@ class CategoriesCard extends StatelessWidget {
                 Icon(Icons.category_outlined,
                     size: 48, color: Colors.grey.shade400),
                 const SizedBox(height: 8),
-                Text('Nessuna categoria presente',
+                Text(AppLocalizations.of(context)!.admin_no_categories,
                     style: TextStyle(
                         color: Colors.grey.shade700,
                         fontSize: 16,
@@ -97,7 +98,7 @@ class CategoriesCard extends StatelessWidget {
                         IconButton(
                           icon: Icon(Icons.delete_rounded,
                               color: Colors.red.shade600, size: 16),
-                          tooltip: 'Elimina categoria ${c.name}',
+                          tooltip: AppLocalizations.of(context)!.common_delete,
                           onPressed: () => onDelete(c),
                           padding: EdgeInsets.zero,
                           constraints:
@@ -112,7 +113,7 @@ class CategoriesCard extends StatelessWidget {
           const SizedBox(height: 20),
           ElevatedButton(
               onPressed: onAddCategoryPressed,
-              child: const Text('Aggiungi Categoria')),
+              child: Text(AppLocalizations.of(context)!.admin_add_category_btn)),
         ],
       ),
     ),
@@ -145,7 +146,7 @@ class RoommatesCard extends StatelessWidget {
           Row(children: [
             Icon(Icons.people, color: Colors.blue.shade700, size: 24),
             const SizedBox(width: 12),
-            Text('Gestione Coinquilini',
+            Text(AppLocalizations.of(context)!.admin_manage_roommates,
                 style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.w700,
@@ -158,7 +159,7 @@ class RoommatesCard extends StatelessWidget {
                 Icon(Icons.group_off,
                     size: 48, color: Colors.grey.shade400),
                 const SizedBox(height: 8),
-                Text('Nessun coinquilino presente',
+                Text(AppLocalizations.of(context)!.admin_no_roommates,
                     style: TextStyle(
                         color: Colors.grey.shade700,
                         fontSize: 16,
@@ -217,7 +218,7 @@ class RoommatesCard extends StatelessWidget {
                         IconButton(
                             icon: Icon(Icons.edit_rounded,
                                 color: Colors.orange.shade600, size: 16),
-                            tooltip: 'Modifica ${r.name}',
+                            tooltip: AppLocalizations.of(context)!.common_edit,
                             onPressed: () => onEdit(r),
                             padding: EdgeInsets.zero,
                             constraints: const BoxConstraints(
@@ -225,7 +226,7 @@ class RoommatesCard extends StatelessWidget {
                         IconButton(
                             icon: Icon(Icons.delete_rounded,
                                 color: Colors.red.shade600, size: 16),
-                            tooltip: 'Elimina ${r.name}',
+                            tooltip: AppLocalizations.of(context)!.common_delete,
                             onPressed: () => onDelete(r),
                             padding: EdgeInsets.zero,
                             constraints: const BoxConstraints(
@@ -239,7 +240,7 @@ class RoommatesCard extends StatelessWidget {
           const SizedBox(height: 20),
           ElevatedButton(
               onPressed: onAddRoommatePressed,
-              child: const Text('Aggiungi Coinquilino')),
+              child: Text(AppLocalizations.of(context)!.admin_add_roommate_btn)),
         ],
       ),
     ),

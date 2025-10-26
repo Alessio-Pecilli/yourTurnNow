@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:your_turn/l10n/app_localizations.dart';
 
 class EmptyStateSliver extends StatelessWidget {
   const EmptyStateSliver({super.key});
@@ -14,10 +15,10 @@ class EmptyStateSliver extends StatelessWidget {
           children: [
             Icon(Icons.inbox_outlined, size: 56, color: theme.colorScheme.primary),
             const SizedBox(height: 12),
-            Text('Nessun task', style: theme.textTheme.titleLarge),
+          Text(AppLocalizations.of(context)!.todos_empty, style: theme.textTheme.titleLarge),
             const SizedBox(height: 4),
             Text(
-              'Aggiungi il primo task per organizzare la casa con i tuoi coinquilini.',
+              AppLocalizations.of(context)!.todos_add_first,
               textAlign: TextAlign.center,
               style: theme.textTheme.bodyMedium,
             ),

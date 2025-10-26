@@ -29,6 +29,9 @@ import 'package:your_turn/src/services/csv_export_service.dart';
 import 'package:your_turn/src/services/pdf_export_service.dart';
 import 'package:your_turn/src/widgets/transactions_chart.dart';
 import 'package:your_turn/src/widgets/common_action_button.dart';
+import 'package:your_turn/l10n/app_localizations.dart';
+import 'package:your_turn/src/providers/locale_provider.dart';
+
 
 class ProfilePage extends ConsumerStatefulWidget {
   const ProfilePage({super.key, this.userId});
@@ -59,7 +62,7 @@ void dispose() {
   super.dispose();
 }
 
-  final NumberFormat _money = NumberFormat.currency(locale: 'it_IT', symbol: '€');
+  final NumberFormat _money = NumberFormat.currency(locale: 'it_IT', symbol: '\u20AC');
 
   TodoCategory? _selectedCategory; 
   DateTimeRange? _selectedDateRange;
@@ -69,8 +72,7 @@ void dispose() {
   int _currentPage = 0;
   static const int _rowsPerPage = 4; // 4 righe per pagina, colonne dinamiche
 
-  static const String _shortcutInfo =
-      'Scorciatoie: H = Home • D = Scarica CSV • A = Aggiungi Transazione';
+  static const String _shortcutInfo = '';
 
   Card _sectionCard({required Widget child, EdgeInsetsGeometry? margin}) => Card(
         margin: margin ?? const EdgeInsets.fromLTRB(16, 12, 16, 8),
@@ -80,7 +82,7 @@ void dispose() {
         child: Padding(padding: const EdgeInsets.all(20), child: child),
       );
 
-  // 🔹 Filtro per transazioni
+  // ðŸ”¹ Filtro per transazioni
   List<MoneyTx> _applyFilters(List<MoneyTx> all) {
   var out = all;
 
@@ -131,7 +133,7 @@ void dispose() {
     final Roommate? me = widget.userId != null
         ? roommates.firstWhere(
             (r) => r.id == widget.userId!,
-            orElse: () => Roommate(id: widget.userId!, name: 'Sconosciuto'),
+            orElse: () => Roommate(id: widget.userId!, name: AppLocalizations.of(context)!.profile_unknown),
           )
         : (user == null
             ? null
@@ -142,8 +144,8 @@ void dispose() {
               ));
 
     if (me == null) {
-      return const Scaffold(
-          body: Center(child: Text('Effettua il login per vedere il profilo.')));
+      return Scaffold(
+          body: Center(child: Text(AppLocalizations.of(context)!.profile_login_required)));
     }
 
     final allTxs = ref.watch(userTransactionsProvider(me.id));
@@ -161,50 +163,50 @@ void dispose() {
         if (event is KeyDownEvent) {
   final key = event.logicalKey;
 
-  // 🔹 S = download CSV/PDF
+  // ðŸ”¹ S = download CSV/PDF
   if (key == LogicalKeyboardKey.keyS) {
     final roommates = ref.read(roommatesProvider);
     final user = ref.read(userProvider);
     final currentMe = roommates.firstWhere(
       (r) => r.id == user?.id,
-      orElse: () => Roommate(id: user?.id ?? 'me', name: user?.name ?? 'Tu'),
+      orElse: () => Roommate(id: user?.id ?? 'me', name: user?.name ?? AppLocalizations.of(context)!.profile_you),
     );
     _downloadTransactions(currentMe);
   }
 
-  // 🔹 H = TodoPage
+  // ðŸ”¹ H = TodoPage
   if (key == LogicalKeyboardKey.keyH) {
     Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => const TodoPage()),
     ).then((_) {
-      // 👇 riprendi focus quando torni indietro
+      // ðŸ‘‡ riprendi focus quando torni indietro
       _keyboardFocusNode.requestFocus();
     });
   }
 
-  // 🔹 A = AdminPage
+  // ðŸ”¹ A = AdminPage
   if (key == LogicalKeyboardKey.keyA) {
     Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => const AdminPage()),
     ).then((_) {
-      // 👇 riprendi focus quando torni indietro
+      // ðŸ‘‡ riprendi focus quando torni indietro
       _keyboardFocusNode.requestFocus();
     });
   }
 
-  // 🔹 T = nuova transazione
+  // ðŸ”¹ T = nuova transazione
   if (key == LogicalKeyboardKey.keyT) {
     final roommates = ref.read(roommatesProvider);
     final user = ref.read(userProvider);
     final currentMe = roommates.firstWhere(
       (r) => r.id == user?.id,
-      orElse: () => Roommate(id: user?.id ?? 'me', name: user?.name ?? 'Tu'),
+      orElse: () => Roommate(id: user?.id ?? 'me', name: user?.name ?? AppLocalizations.of(context)!.profile_you),
     );
 
     _onAddTransaction(context, currentMe).then((_) {
-      // 👇 dopo aver chiuso il dialogo, ridai focus alla pagina
+      // ðŸ‘‡ dopo aver chiuso il dialogo, ridai focus alla pagina
       _keyboardFocusNode.requestFocus();
     });
   }
@@ -271,7 +273,7 @@ void dispose() {
   child: _buildActionButton(
     context,
     letter: 'T',
-    label: 'NUOVO',
+    label: AppLocalizations.of(context)!.nav_new,
     color: Colors.blue,
     icon: Icons.add, // o qualunque icona vuoi, anche Icons.add_circle_outline
     onTap: () => _onAddTransaction(context, me),
@@ -299,12 +301,12 @@ void dispose() {
         // Pulsante H - TO-DO
         SizedBox(
           height: 46,
-          child: _buildActionButton(
-            context,
-            letter: 'H',
-            label: 'TO-DO',
-            color: Colors.blue,
-            icon: Icons.check_circle_outline,
+              child: _buildActionButton(
+                context,
+                letter: 'H',
+                label: AppLocalizations.of(context)!.nav_todo,
+                color: Colors.blue,
+                icon: Icons.check_circle_outline,
             onTap: () => Navigator.push(
               context,
               MaterialPageRoute(builder: (_) => const TodoPage()),
@@ -316,12 +318,12 @@ void dispose() {
         // Pulsante A - ADMIN
         SizedBox(
           height: 46,
-          child: _buildActionButton(
-            context,
-            letter: 'A',
-            label: 'ADMIN',
-            color: Colors.blue,
-            icon: Icons.admin_panel_settings,
+              child: _buildActionButton(
+                context,
+                letter: 'A',
+                label: AppLocalizations.of(context)!.nav_admin,
+                color: Colors.blue,
+                icon: Icons.admin_panel_settings,
             onTap: () => Navigator.push(
               context,
               MaterialPageRoute(builder: (_) => const AdminPage()),
@@ -333,24 +335,26 @@ void dispose() {
         // Pulsante S - DOWNLOAD
         SizedBox(
           height: 46,
-          child: _buildActionButton(
-            context,
-            letter: 'S',
-            label: 'DOWNLOAD',
-            color: Colors.blue,
-            icon: Icons.download_rounded,
+              child: _buildActionButton(
+                context,
+                letter: 'S',
+                label: AppLocalizations.of(context)!.nav_download,
+                color: Colors.blue,
+                icon: Icons.download_rounded,
             onTap: () {
               final roommates = ref.read(roommatesProvider);
               final user = ref.read(userProvider);
               final me = roommates.firstWhere(
                 (r) => r.id == user?.id,
                 orElse: () =>
-                    Roommate(id: user?.id ?? 'me', name: user?.name ?? 'Tu'),
+                    Roommate(id: user?.id ?? 'me', name: user?.name ?? AppLocalizations.of(context)!.profile_you),
               );
               _downloadTransactions(me);
             },
           ),
         ),
+        const SizedBox(width: 12),
+        
       ],
     ),
   ),
@@ -459,7 +463,7 @@ Widget _buildActionButton(
         child: _sectionCard(
           child: Center(
             child: Text(
-              'Nessuna transazione. Aggiungi la prima.',
+              AppLocalizations.of(context)!.transactions_add_first,
               style: TextStyle(color: Colors.grey.shade600, fontStyle: FontStyle.italic),
             ),
           ),
@@ -476,7 +480,7 @@ Widget _buildActionButton(
           builder: (context, constraints) {
             // Calcola dimensioni dinamiche per le transazioni (stesso sistema dei todo)
             final screenWidth = constraints.crossAxisExtent;
-            final minCardWidth = 240.0; // Larghezza minima per leggibilità transazioni
+            final minCardWidth = 240.0; // Larghezza minima per leggibilitÃ  transazioni
             final maxCardWidth = 320.0; // Larghezza massima
             
             // Calcola numero ottimale di colonne
@@ -496,7 +500,7 @@ Widget _buildActionButton(
             final cardWidth = screenWidth / crossAxisCount;
             final clampedCardWidth = cardWidth.clamp(minCardWidth, maxCardWidth);
             
-            // Aspect ratio dinamico per altezza ottimale (più compatto dei todo)
+            // Aspect ratio dinamico per altezza ottimale (piÃ¹ compatto dei todo)
             final aspectRatio = clampedCardWidth / 120.0; // Altezza fissa 120px per transazioni compatte
             
             return SliverGrid(
@@ -548,7 +552,7 @@ Widget _buildActionButton(
                   ? () => setState(() => _currentPage--) 
                   : null,
                 icon: const Icon(Icons.chevron_left),
-                tooltip: 'Pagina precedente',
+                tooltip: AppLocalizations.of(context)!.pagination_prev,
               ),
               const SizedBox(width: 16),
               // Indicatore pagina
@@ -574,7 +578,7 @@ Widget _buildActionButton(
                   ? () => setState(() => _currentPage++) 
                   : null,
                 icon: const Icon(Icons.chevron_right),
-                tooltip: 'Pagina successiva',
+                tooltip: AppLocalizations.of(context)!.pagination_next,
               ),
             ],
           ),
@@ -597,7 +601,7 @@ Widget _buildActionButton(
   Future<void> _downloadTransactions(Roommate me) async {
   final txs = ref.read(userTransactionsProvider(me.id));
 
-  // 🔹 Mostra popup di scelta
+  // ðŸ”¹ Mostra popup di scelta
   final choice = await showDialog<String>(
   context: context,
   barrierDismissible: false,
@@ -634,10 +638,10 @@ Widget _buildActionButton(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Scarica dati grafici',
+                    Text(AppLocalizations.of(context)!.download_charts_title,
                         style: tt.titleLarge?.copyWith(fontWeight: FontWeight.w600)),
                     const SizedBox(height: 2),
-                    Text('Scegli il formato da esportare',
+                    Text(AppLocalizations.of(context)!.export_choose_format,
                         style: tt.bodyMedium?.copyWith(color: cs.onSurfaceVariant)),
                   ],
                 ),
@@ -652,13 +656,13 @@ Widget _buildActionButton(
                 runSpacing: 8,
                 children: [
                   _FormatChip(
-                    label: 'CSV',
+                    label: AppLocalizations.of(context)!.common_csv,
                     icon: Icons.table_chart_outlined,
                     selected: selected == 'csv',
                     onTap: () => setState(() => selected = 'csv'),
                   ),
                   _FormatChip(
-                    label: 'PDF',
+                    label: AppLocalizations.of(context)!.common_pdf,
                     icon: Icons.picture_as_pdf_outlined,
                     selected: selected == 'pdf',
                     onTap: () => setState(() => selected = 'pdf'),
@@ -674,8 +678,8 @@ Widget _buildActionButton(
                   Expanded(
                     child: Text(
                       selected == 'csv'
-                          ? 'Esporta tabelle riepilogative in CSV.'
-                          : 'Genera un PDF impaginato con le stesse tabelle.',
+                          ? AppLocalizations.of(context)!.export_csv_desc
+                          : AppLocalizations.of(context)!.export_pdf_desc,
                       style: tt.bodySmall?.copyWith(color: cs.onSurfaceVariant),
                     ),
                   ),
@@ -687,12 +691,12 @@ Widget _buildActionButton(
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Annulla'),
+              child: Text(AppLocalizations.of(context)!.common_cancel),
             ),
             FilledButton.icon(
               onPressed: () => Navigator.pop(context, selected),
               icon: const Icon(Icons.download),
-              label: const Text('Scarica'),
+              label: Text(AppLocalizations.of(context)!.common_download),
               style: FilledButton.styleFrom(
                 backgroundColor: Colors.blue.shade700,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),

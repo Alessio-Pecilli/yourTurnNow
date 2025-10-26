@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter/semantics.dart';
+import 'package:your_turn/l10n/app_localizations.dart';
 import 'package:intl/intl.dart';
 
 import 'package:your_turn/src/models/money_tx.dart';
@@ -18,7 +19,7 @@ class CsvExportService {
     BuildContext context,
   ) async {
     if (transactions.isEmpty) {
-      _announce(context, 'Nessuna transazione da esportare');
+      _announce(context, AppLocalizations.of(context)!.no_transactions_to_export);
       return;
     }
 
@@ -27,7 +28,7 @@ class CsvExportService {
     final fileName = _generateFileName(roommate.name);
     
     triggerDownloadCsv(fileName, bytes);
-    _announce(context, 'CSV generato');
+    _announce(context, AppLocalizations.of(context)!.csv_generated);
   }
 
   /// Genera il contenuto CSV dalle transazioni
@@ -39,7 +40,7 @@ class CsvExportService {
     const separator = ';';
     
     // Header CSV
-    final lines = <String>['Data;Nota;Entrata (€);Uscita (€)'];
+    final lines = <String>['Data;Nota;Entrata (EUR);Uscita (EUR)'];
     
     double totalIn = 0;
     double totalOut = 0;
@@ -76,7 +77,7 @@ class CsvExportService {
   /// Converte il contenuto CSV in bytes con BOM UTF-8 per Excel
   static Uint8List _encodeCsvToBytes(String content) {
     return Uint8List.fromList([
-      ...const [0xEF, 0xBB, 0xBF], // BOM UTF-8 per compatibilità Excel
+      ...const [0xEF, 0xBB, 0xBF], // BOM UTF-8 per compatibilitÃƒÆ’Ã‚Â  Excel
       ...utf8.encode(content),
     ]);
   }
@@ -92,7 +93,7 @@ class CsvExportService {
     return '"${text.replaceAll('"', '""')}"';
   }
 
-  /// Annuncia un messaggio per l'accessibilità
+  /// Annuncia un messaggio per l'accessibilitÃƒÆ’Ã‚Â 
   static void _announce(BuildContext context, String message) {
     SemanticsService.announce(message, Directionality.of(context));
   }

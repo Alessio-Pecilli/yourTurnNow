@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:your_turn/src/models/todo_category.dart';
+import 'package:your_turn/l10n/app_localizations.dart';
 
 /// Widget per i filtri delle transazioni: categorie e range di date.
 class TransactionFilters extends StatelessWidget {
@@ -38,7 +39,7 @@ class TransactionFilters extends StatelessWidget {
                 // 🔹 Filtro per categoria
                 Expanded(
                   flex: 3,
-                  child: _buildCategoryFilters(),
+                  child: _buildCategoryFilters(context),
                 ),
                 const SizedBox(width: 12),
                 // 🔹 Filtro per date e reset
@@ -50,7 +51,7 @@ class TransactionFilters extends StatelessWidget {
                       children: [
                         _buildDateFilter(context),
                         const SizedBox(width: 8),
-                        _buildResetButton(),
+                        _buildResetButton(context),
                       ],
                     ),
                   ],
@@ -66,7 +67,7 @@ class TransactionFilters extends StatelessWidget {
   // -----------------------
   // 🔸 Chip categorie
   // -----------------------
-  Widget _buildCategoryFilters() {
+  Widget _buildCategoryFilters(BuildContext context) {
     return Wrap(
       spacing: 6,
       runSpacing: 6,
@@ -83,7 +84,7 @@ class TransactionFilters extends StatelessWidget {
                     selectedCategory == null ? Colors.white : Colors.blue.shade700,
               ),
               const SizedBox(width: 4),
-              const Text('Tutte', style: TextStyle(fontSize: 12)),
+              Text(AppLocalizations.of(context)!.categories_all, style: const TextStyle(fontSize: 12)),
             ],
           ),
           selected: selectedCategory == null,
@@ -177,7 +178,7 @@ class TransactionFilters extends StatelessWidget {
   // -----------------------
   // 🔸 Bottone Reset
   // -----------------------
-  Widget _buildResetButton() {
+  Widget _buildResetButton(BuildContext context) {
     return TextButton(
       style: TextButton.styleFrom(
         minimumSize: const Size(0, 36),
@@ -185,7 +186,7 @@ class TransactionFilters extends StatelessWidget {
         textStyle: const TextStyle(fontSize: 12),
       ),
       onPressed: onReset,
-      child: const Text('Reset'),
+      child: Text(AppLocalizations.of(context)!.common_reset),
     );
   }
 }

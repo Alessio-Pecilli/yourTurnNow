@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:your_turn/l10n/app_localizations.dart';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:your_turn/src/models/user_data.dart';
 import 'package:your_turn/src/pages/login_page.dart';
@@ -10,6 +12,7 @@ import 'package:your_turn/src/pages/profile_page.dart';
 import 'package:your_turn/src/providers/roommates_provider.dart';
 import 'package:your_turn/src/providers/user_provider.dart';
 import 'package:your_turn/src/utils/a11y_scroll_behavior.dart';
+import 'package:your_turn/src/providers/locale_provider.dart';
 
 // 👉 Aggiungi questo import
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -119,20 +122,19 @@ class MyApp extends ConsumerWidget {
       },
     );
 
+    final currentLocale = ref.watch(localeProvider);
+
     return MaterialApp.router(
       debugShowCheckedModeBanner: false,
-      title: 'Coinquilini',
+      onGenerateTitle: (context) => AppLocalizations.of(context)!.appTitle,
       themeMode: ThemeMode.light,
       theme: buildTheme(Brightness.light),
       darkTheme: buildTheme(Brightness.dark),
       highContrastTheme: buildTheme(Brightness.light),
       highContrastDarkTheme: buildTheme(Brightness.dark),
-      localizationsDelegates: const [
-        GlobalMaterialLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-      ],
-      supportedLocales: const [Locale('it'), Locale('en')],
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      locale: currentLocale,
       builder: (context, child) {
         final media = MediaQuery.of(context);
         return MediaQuery(

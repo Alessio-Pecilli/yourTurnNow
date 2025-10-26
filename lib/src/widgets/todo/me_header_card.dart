@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:your_turn/l10n/app_localizations.dart';
 
 import 'google_avatar_widget.dart';
 
@@ -37,8 +38,8 @@ class MeHeaderCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(name, style: Theme.of(context).textTheme.titleLarge),
-                    const SizedBox(height: 4),
-                    Text('Saldo attuale', style: Theme.of(context).textTheme.labelLarge),
+                     SizedBox(height: 4),
+                    Text(AppLocalizations.of(context)!.me_balance_current, style: Theme.of(context).textTheme.labelLarge),
                     Text(
                       f.format(balance),
                       style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w700),

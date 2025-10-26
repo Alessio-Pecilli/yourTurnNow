@@ -10,6 +10,7 @@ import 'package:your_turn/src/providers/todo_provider.dart';
 import 'package:your_turn/src/providers/categories_provider.dart';
 import 'package:your_turn/src/providers/user_provider.dart';
 import 'google_avatar_widget.dart';
+import 'package:your_turn/l10n/app_localizations.dart';
 
 // Funzione per schiarire i colori scuri (non usata ma la lascio se ti serve)
 Color lighten(Color color, [double amount = .4]) {
@@ -62,7 +63,9 @@ void showTodoAddDialog(BuildContext context, WidgetRef outerRef, {TodoItem? pres
                     ),
                     const SizedBox(width: 12),
                     Text(
-                      preset == null ? 'Nuovo Task' : 'Modifica Task',
+                      preset == null
+                          ? AppLocalizations.of(context)!.todo_dialog_new_task
+                          : AppLocalizations.of(context)!.todo_dialog_edit_task,
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
@@ -97,7 +100,7 @@ void showTodoAddDialog(BuildContext context, WidgetRef outerRef, {TodoItem? pres
                                     controller: titleCtrl,
                                     textInputAction: TextInputAction.next,
                                     decoration: InputDecoration(
-                                      labelText: 'Titolo *',
+                                      labelText: AppLocalizations.of(context)!.todo_dialog_title_label,
                                       prefixIcon: Icon(Icons.title, color: Colors.blue.shade700),
                                       border: InputBorder.none,
                                       contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -108,7 +111,7 @@ void showTodoAddDialog(BuildContext context, WidgetRef outerRef, {TodoItem? pres
                                     style: TextStyle(color: Colors.grey.shade800),
                                     autofocus: true,
                                     validator: (v) =>
-                                        (v == null || v.trim().isEmpty) ? 'Titolo obbligatorio' : null,
+                                        (v == null || v.trim().isEmpty) ? AppLocalizations.of(context)!.todo_dialog_title_required : null,
                                   ),
                                 ),
                               ),
@@ -128,7 +131,7 @@ void showTodoAddDialog(BuildContext context, WidgetRef outerRef, {TodoItem? pres
                                       FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]')),
                                     ],
                                     decoration: InputDecoration(
-                                      labelText: 'Costo (€) *',
+                                      labelText: AppLocalizations.of(context)!.todo_dialog_cost_label,
                                       prefixIcon: Icon(Icons.euro, color: Colors.green.shade700),
                                       border: InputBorder.none,
                                       contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -139,7 +142,7 @@ void showTodoAddDialog(BuildContext context, WidgetRef outerRef, {TodoItem? pres
                                     ),
                                     style: TextStyle(color: Colors.grey.shade800),
                                     validator: (v) {
-                                      if (v == null || v.trim().isEmpty) return 'Costo obbligatorio';
+                                      if (v == null || v.trim().isEmpty) return AppLocalizations.of(context)!.todo_dialog_cost_required;
                                       final parsed = double.tryParse(v.replaceAll(',', '.'));
                                       if (parsed == null || parsed <= 0) return 'Numero valido';
                                       return null;
@@ -162,7 +165,7 @@ void showTodoAddDialog(BuildContext context, WidgetRef outerRef, {TodoItem? pres
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      'Categorie',
+                                      AppLocalizations.of(context)!.todo_dialog_categories,
                                       style: TextStyle(
                                         fontSize: 14,
                                         fontWeight: FontWeight.w600,
@@ -232,7 +235,7 @@ void showTodoAddDialog(BuildContext context, WidgetRef outerRef, {TodoItem? pres
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      'Scadenza',
+                                      AppLocalizations.of(context)!.todo_dialog_due_date,
                                       style: TextStyle(
                                         fontSize: 14,
                                         fontWeight: FontWeight.w600,
@@ -251,7 +254,7 @@ void showTodoAddDialog(BuildContext context, WidgetRef outerRef, {TodoItem? pres
                                         contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                         leading: Icon(Icons.calendar_today, color: Colors.orange.shade600, size: 20),
                                         title: Text(
-                                          dueDate == null ? 'Opzionale' : DateFormat('dd/MM').format(dueDate!.toLocal()),
+                                          dueDate == null ? AppLocalizations.of(context)!.todo_dialog_optional : DateFormat('dd/MM').format(dueDate!.toLocal()),
                                           style: TextStyle(
                                             color: dueDate == null ? Colors.grey.shade600 : Colors.grey.shade800,
                                             fontWeight: dueDate == null ? FontWeight.normal : FontWeight.bold,
@@ -307,11 +310,11 @@ void showTodoAddDialog(BuildContext context, WidgetRef outerRef, {TodoItem? pres
                               textInputAction: TextInputAction.next,
                               maxLines: 2, // Ridotto da 3 a 2 righe
                               decoration: InputDecoration(
-                                labelText: 'Note (opzionale)',
+                                labelText: AppLocalizations.of(context)!.todo_dialog_notes_label,
                                 prefixIcon: Icon(Icons.notes, color: Colors.blue.shade700),
                                 border: InputBorder.none,
                                 contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                                hintText: 'Dettagli...',
+                                hintText: AppLocalizations.of(context)!.todo_dialog_notes_hint,
                                 labelStyle: TextStyle(color: Colors.grey.shade700),
                                 filled: true,
                                 fillColor: Colors.grey.shade50,
@@ -323,7 +326,7 @@ void showTodoAddDialog(BuildContext context, WidgetRef outerRef, {TodoItem? pres
 
                           // Assegna a - griglia compatta
                           Text(
-                            'Assegna a',
+                            AppLocalizations.of(context)!.todo_dialog_assign_to,
                             style: TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.w600,
@@ -343,8 +346,8 @@ void showTodoAddDialog(BuildContext context, WidgetRef outerRef, {TodoItem? pres
                                 children: [
                                   Icon(Icons.warning, color: Colors.orange.shade600, size: 20),
                                   const SizedBox(width: 8),
-                                  const Expanded(
-                                    child: Text('Nessun coinquilino disponibile. Fai login.', style: TextStyle(fontSize: 12)),
+                                  Expanded(
+                                    child: Text(AppLocalizations.of(context)!.todo_dialog_no_roommates, style: const TextStyle(fontSize: 12)),
                                   ),
                                 ],
                               ),
@@ -453,7 +456,7 @@ void showTodoAddDialog(BuildContext context, WidgetRef outerRef, {TodoItem? pres
                       padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     ),
-                    child: const Text('Annulla'),
+                    child: Text(AppLocalizations.of(context)!.common_cancel),
                   ),
                   FilledButton(
                     onPressed: () {
@@ -490,7 +493,7 @@ void showTodoAddDialog(BuildContext context, WidgetRef outerRef, {TodoItem? pres
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                       textStyle: const TextStyle(fontWeight: FontWeight.bold),
                     ),
-                    child: const Text('Salva', style: TextStyle(color: Colors.white)),
+                    child: Text(AppLocalizations.of(context)!.common_save, style: const TextStyle(color: Colors.white)),
                   ),
                 ],
               );

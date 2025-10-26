@@ -1,6 +1,7 @@
 ﻿import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/weather_data.dart';
+import 'package:your_turn/l10n/app_localizations.dart';
 import '../services/weather_service.dart';
 
 final weatherProvider = FutureProvider<WeatherData>((ref) {
@@ -24,8 +25,8 @@ class WeatherWidget extends ConsumerWidget {
         padding: const EdgeInsets.all(16),
         child: weatherAsync.when(
           data: (weather) => _buildWeatherInfo(context, weather),
-          loading: () => const Text('Caricamento...'),
-          error: (error, stack) => const Text('Errore meteo'),
+          loading: () => Text(AppLocalizations.of(context)!.weather_loading),
+          error: (error, stack) => Text(AppLocalizations.of(context)!.weather_error),
         ),
       ),
     );

@@ -1,5 +1,6 @@
 // lib/widgets/tx_tile.dart
 import 'package:flutter/material.dart';
+import 'package:your_turn/l10n/app_localizations.dart';
 import 'package:intl/intl.dart';
 
 import 'package:your_turn/src/models/money_tx.dart';
@@ -91,17 +92,17 @@ class TxTile extends StatelessWidget {
                     if (value == 'delete' && onDelete != null) onDelete!();
                   },
                   itemBuilder: (context) => [
-                    const PopupMenuItem(
+                     PopupMenuItem(
                       value: 'edit',
-                      child: Text('Modifica', style: TextStyle(fontSize: 12)),
+                      child: Text(AppLocalizations.of(context)!.common_edit, style: const TextStyle(fontSize: 12)),
                     ),
-                    const PopupMenuItem(
+                    PopupMenuItem(
                       value: 'delete',
-                      child: Text('Elimina', style: TextStyle(fontSize: 12)),
+                      child: Text(AppLocalizations.of(context)!.common_delete, style: const TextStyle(fontSize: 12)),
                     ),
                   ],
                   icon: const Icon(Icons.more_vert, size: 13),
-                  tooltip: 'Azioni',
+                  tooltip: AppLocalizations.of(context)!.common_actions,
                 ),
               ],
             ),

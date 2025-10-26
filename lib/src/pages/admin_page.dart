@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
+import 'package:your_turn/l10n/app_localizations.dart';
 import 'package:your_turn/src/models/roommate.dart';
 import 'package:your_turn/src/models/todo_category.dart';
 import 'package:your_turn/src/models/todo_status.dart';
@@ -30,6 +31,9 @@ import 'package:your_turn/src/widgets/admin/pie_chart.dart';
 
 import 'package:your_turn/src/widgets/admin/cards.dart';
 import 'package:your_turn/src/widgets/common_action_button.dart';
+import 'package:your_turn/l10n/app_localizations.dart';
+
+
 
 // Classe per l'Intent della shortcut download
 class _DownloadIntent extends Intent {
@@ -60,7 +64,7 @@ void initState() {
 }
 
 String? _selectedColorHex = '#2196F3'; // Blu di default
-// 🔹 tiene traccia del colore selezionato (in HEX)
+// Ã°Å¸â€Â¹ tiene traccia del colore selezionato (in HEX)
 
   final _focusNode = FocusNode(); // Per keyboard shortcuts
   String? _selectedIconKey;
@@ -141,14 +145,14 @@ String? _selectedColorHex = '#2196F3'; // Blu di default
     final user = ref.read(userProvider);
         final currentMe = roommates.firstWhere(
               (r) => r.id == user?.id,
-              orElse: () => Roommate(id: user?.id ?? 'me', name: user?.name ?? 'Tu'),
+              orElse: () => Roommate(id: user?.id ?? 'me', name: user?.name ?? AppLocalizations.of(context)!.profile_you),
             );
     return KeyboardListener(
   focusNode: _keyboardFocusNode,
   autofocus: true,
   onKeyEvent: (KeyEvent event) {
   if (event is KeyDownEvent) {
-    // 🔒 Evita di triggerare shortcut quando scrivi in un TextField
+    // Ã°Å¸â€â€™ Evita di triggerare shortcut quando scrivi in un TextField
     if (FocusManager.instance.primaryFocus != null &&
         FocusManager.instance.primaryFocus!.context?.widget is EditableText) {
       return;
@@ -156,32 +160,32 @@ String? _selectedColorHex = '#2196F3'; // Blu di default
 
     final key = event.logicalKey;
 
-    // 🔹 P = vai alla pagina profilo
+    // Ã°Å¸â€Â¹ P = vai alla pagina profilo
     if (key == LogicalKeyboardKey.keyP) {
       Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => const ProfilePage()),
       ).then((_) {
-        // 👇 Riprendi focus quando torni indietro
+        // Ã°Å¸â€˜â€¡ Riprendi focus quando torni indietro
         _keyboardFocusNode.requestFocus();
       });
     }
 
-    // 🔹 H = vai alla pagina To-Do
+    // Ã°Å¸â€Â¹ H = vai alla pagina To-Do
     if (key == LogicalKeyboardKey.keyH) {
       Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => const TodoPage()),
       ).then((_) {
-        // 👇 Riprendi focus quando torni indietro
+        // Ã°Å¸â€˜â€¡ Riprendi focus quando torni indietro
         _keyboardFocusNode.requestFocus();
       });
     }
 
-    // 🔹 D = download dati grafici
+    // Ã°Å¸â€Â¹ D = download dati grafici
     if (key == LogicalKeyboardKey.keyD) {
       _downloadChartsData();
-      // 👇 Reimposta focus anche dopo un download o un popup
+      // Ã°Å¸â€˜â€¡ Reimposta focus anche dopo un download o un popup
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _keyboardFocusNode.requestFocus();
       });
@@ -282,7 +286,7 @@ String? _selectedColorHex = '#2196F3'; // Blu di default
           child: _buildActionButton(
             context,
             letter: 'H',
-            label: 'TO-DO',
+            label: AppLocalizations.of(context)!.nav_todo,
             color: Colors.blue,
             icon: Icons.check_circle_outline,
             onTap: () => Navigator.push(
@@ -299,7 +303,7 @@ String? _selectedColorHex = '#2196F3'; // Blu di default
           child: _buildActionButton(
             context,
             letter: 'P',
-            label: 'PROFILO',
+            label: AppLocalizations.of(context)!.nav_profile,
             color: Colors.blue,
             icon: Icons.person,
             onTap: () => Navigator.push(
@@ -316,7 +320,7 @@ String? _selectedColorHex = '#2196F3'; // Blu di default
           child: _buildActionButton(
             context,
             letter: 'D',
-            label: 'DOWNLOAD',
+            label: AppLocalizations.of(context)!.nav_download,
             color: Colors.blue,
             icon: Icons.download_rounded,
             onTap: () {
@@ -411,7 +415,7 @@ Widget _buildActionButton(
                 Icon(Icons.analytics, color: Colors.orange.shade700, size: 28),
                 const SizedBox(width: 12),
                 Text(
-                  'Analisi Spese per Categoria',
+                  AppLocalizations.of(context)!.pdf_expenses_by_category_title,
                   style: TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.w700,
@@ -430,22 +434,22 @@ Widget _buildActionButton(
                   // Desktop: 3 colonne affiancate
                   return Row(
                     children: [
-                      Expanded(child: _buildSingleChart('Todo Completati', todos, true, Colors.green)),
+                      Expanded(child: _buildSingleChart(AppLocalizations.of(context)!.admin_chart_todo_done, todos, true, Colors.green)),
                       const SizedBox(width: 24),
-                      Expanded(child: _buildSingleChart('Todo Da Fare', todos, false, Colors.blue)),
+                      Expanded(child: _buildSingleChart(AppLocalizations.of(context)!.admin_chart_todo_open, todos, false, Colors.blue)),
                       const SizedBox(width: 24),
-                      Expanded(child: _buildSingleChart('Budget Totale', todos, null, Colors.orange)),
+                      Expanded(child: _buildSingleChart(AppLocalizations.of(context)!.admin_chart_total_budget, todos, null, Colors.orange)),
                     ],
                   );
                 } else {
                   // Mobile: stack verticale
                   return Column(
                     children: [
-                      _buildSingleChart('Todo Completati', todos, true, Colors.green),
+                      _buildSingleChart(AppLocalizations.of(context)!.admin_chart_todo_done, todos, true, Colors.green),
                       const SizedBox(height: 24),
-                      _buildSingleChart('Todo Da Fare', todos, false, Colors.blue),
+                      _buildSingleChart(AppLocalizations.of(context)!.admin_chart_todo_open, todos, false, Colors.blue),
                       const SizedBox(height: 24),
-                      _buildSingleChart('Budget Totale', todos, null, Colors.orange),
+                      _buildSingleChart(AppLocalizations.of(context)!.admin_chart_total_budget, todos, null, Colors.orange),
                     ],
                   );
                 }
@@ -551,7 +555,7 @@ Widget _buildActionButton(
                       ),
                       const SizedBox(height: 12),
                       Text(
-                        'Nessun dato disponibile',
+                        AppLocalizations.of(context)!.no_data_available,
                         style: TextStyle(
                           color: themeColor.shade600,
                           fontSize: 16,
@@ -569,7 +573,7 @@ Widget _buildActionButton(
                 height: 100, // Ridotto da 120 a 100
                 child: Center(
                   child: Text(
-                    'Completa alcuni todo di questa categoria per vedere i dati',
+                    AppLocalizations.of(context)!.no_data_available,
                     style: TextStyle(
                       color: themeColor.shade500,
                       fontSize: 14,
@@ -582,12 +586,12 @@ Widget _buildActionButton(
             ] else ...[
               // Grafico a torta grande
               Container(
-                height: 180, // Ottimizzato per visibilità completa
+                height: 180, // Ottimizzato per visibilitÃƒÂ  completa
                 child: Stack(
                   alignment: Alignment.center,
                   children: [
                     CustomPaint(
-                      size: const Size(180, 180), // Bilanciato per visibilità
+                      size: const Size(180, 180), // Bilanciato per visibilitÃƒÂ 
                       painter: PieChartPainter(slices, totalAmount),
                     ),
                     // Centro del grafico con totale
@@ -608,7 +612,7 @@ Widget _buildActionButton(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Text(
-                            'Totale',
+                            AppLocalizations.of(context)!.total_label,
                             style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.w600,
@@ -616,7 +620,7 @@ Widget _buildActionButton(
                             ),
                           ),
                           Text(
-                            '€${totalAmount.toStringAsFixed(0)}',
+                            '${totalAmount.toStringAsFixed(0)} EUR',
                             style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
@@ -635,8 +639,8 @@ Widget _buildActionButton(
               Expanded(
                 child: GridView.builder(
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 3, // 3 colonne per vedere più categorie
-                    childAspectRatio: 3.2, // Più spazio per leggibilità (a11y)
+                    crossAxisCount: 3, // 3 colonne per vedere piÃƒÂ¹ categorie
+                    childAspectRatio: 3.2, // PiÃƒÂ¹ spazio per leggibilitÃƒÂ  (a11y)
                     crossAxisSpacing: 8, // Material Design 3 spacing
                     mainAxisSpacing: 8,
                   ),
@@ -645,8 +649,8 @@ Widget _buildActionButton(
                     final slice = slices[index];
                     final percentage = (slice.amount / totalAmount * 100);
                     return Semantics(
-                      label: '${slice.category}: €${slice.amount.toStringAsFixed(2)}, ${percentage.toStringAsFixed(1)}% del totale',
-                      hint: 'Categoria di spesa per ${title.toLowerCase()}',
+                      label: AppLocalizations.of(context)!.pie_label_amount_of_total.replaceFirst('{category}', slice.category).replaceFirst('{amount}', slice.amount.toStringAsFixed(2)).replaceFirst('{percent}', percentage.toStringAsFixed(1)),
+                      hint: AppLocalizations.of(context)!.pie_hint_category_for.replaceFirst('{title}', title.toLowerCase()),
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8), // Material Design 3 touch target
                         decoration: BoxDecoration(
@@ -733,7 +737,7 @@ Widget _buildActionButton(
     return CategoriesCard(
       categories: categories,
       onAddCategory: () {},
-      onAddCategoryPressed: () => _showAddCategoryDialog(context), // Non più dialog, selezione inline
+      onAddCategoryPressed: () => _showAddCategoryDialog(context), // Non piÃƒÂ¹ dialog, selezione inline
       onDelete: (c) => _confirmDeleteCategory(c),
     );
   }
@@ -760,7 +764,7 @@ Widget _buildActionButton(
               children: [
                 // Titolo
                 Text(
-                  'Aggiungi nuova categoria',
+                  AppLocalizations.of(context)!.admin_add_category,
                   style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w600,
@@ -773,7 +777,7 @@ Widget _buildActionButton(
                 TextField(
                   controller: _categoryNameController,
                   decoration: InputDecoration(
-                    hintText: 'Nome categoria',
+                    hintText: AppLocalizations.of(context)!.admin_category_name,
                     hintStyle: TextStyle(color: Colors.grey.shade500),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(14),
@@ -800,7 +804,7 @@ Widget _buildActionButton(
 
                 //  icona
                 Text(
-                  'Seleziona icona',
+                  AppLocalizations.of(context)!.select_icon,
                   style: TextStyle(
                     fontWeight: FontWeight.w500,
                     color: Colors.grey.shade800,
@@ -857,7 +861,7 @@ Widget _buildActionButton(
 
                 // Seleziona colore
                 Text(
-                  'Seleziona colore',
+                  AppLocalizations.of(context)!.select_color,
                   style: TextStyle(
                     fontWeight: FontWeight.w500,
                     color: Colors.grey.shade800,
@@ -910,17 +914,14 @@ Widget _buildActionButton(
                         foregroundColor: Colors.grey.shade700,
                         textStyle: const TextStyle(fontWeight: FontWeight.w500),
                       ),
-                      child: const Text('Annulla'),
+                      child: Text(AppLocalizations.of(context)!.common_cancel),
                     ),
                     const SizedBox(width: 8),
                     FilledButton(
                       onPressed: () {
                         final name = _categoryNameController.text.trim();
                         if (name.isEmpty || selectedIconKey == null) {
-                          _showErrorDialog(
-                            'Dati mancanti',
-                            'Inserisci un nome e scegli un\'icona prima di aggiungere la categoria.',
-                          );
+                          _showErrorDialog(AppLocalizations.of(context)!.error_operation_not_allowed, AppLocalizations.of(context)!.error_name_icon_required);
                           return;
                         }
 
@@ -940,11 +941,11 @@ Widget _buildActionButton(
                         Navigator.of(context).pop();
                       },
                       style: FilledButton.styleFrom(
-                        backgroundColor:  Colors.blue.shade700, // blu scuro ma più neutro
+                        backgroundColor:  Colors.blue.shade700, // blu scuro ma piÃƒÂ¹ neutro
                         minimumSize: const Size(100, 42),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                       ),
-                      child: const Text('Aggiungi'),
+                      child: Text(AppLocalizations.of(context)!.common_add),
                     ),
                   ],
                 ),
@@ -1013,7 +1014,7 @@ Widget _buildAddRoommateForm({
                       },
                       style: tt.bodyMedium?.copyWith(color: cs.onSurface),
                       decoration: InputDecoration(
-                        hintText: 'Nome coinquilino',
+                        hintText: AppLocalizations.of(context)!.admin_roommate_name,
                         hintStyle: tt.bodyMedium?.copyWith(
                           color: cs.onSurfaceVariant.withOpacity(0.7),
                         ),
@@ -1056,7 +1057,7 @@ Widget _buildAddRoommateForm({
                         fontWeight: FontWeight.w500,
                       ),
                     ),
-                    child: const Text('Annulla'),
+                    child: Text(AppLocalizations.of(context)!.common_cancel),
                   ),
                   const SizedBox(width: 6),
                   FilledButton(
@@ -1078,7 +1079,7 @@ Widget _buildAddRoommateForm({
                       ),
                       shadowColor: Colors.transparent,
                     ),
-                    child: const Text('Aggiungi'),
+                    child: Text(AppLocalizations.of(context)!.common_add),
                   ),
                 ],
               ),
@@ -1094,7 +1095,7 @@ Widget _buildAddRoommateForm({
 
 
 Color _pastelFor(String seed, ColorScheme cs) {
-  // semplice hash → tonalità primaria "pastellata"
+  // semplice hash Ã¢â€ â€™ tonalitÃƒÂ  primaria "pastellata"
   final h = seed.codeUnits.fold<int>(0, (a, b) => (a * 31 + b) & 0xFFFFFFFF);
   final t = 0.2 + (h % 60) / 300.0; // 0.2..0.4 blending
   // blend verso primary per rimanere nel tema
@@ -1125,7 +1126,7 @@ String _initialsOf(String name) {
         final colorName = colorData['name']!;
         final isSelected = colorHex == _selectedColor;
         return Semantics(
-          label: 'Colore $colorName',
+          label: AppLocalizations.of(context)!.color_label.replaceFirst('{name}', colorName),
           selected: isSelected,
           child: GestureDetector(
             onTap: () {
@@ -1258,7 +1259,7 @@ String _initialsOf(String name) {
   }
 
   void _showAddRoommateDialog(BuildContext context) {
-  _roommateController.clear(); // reset prima dell’apertura
+  _roommateController.clear(); // reset prima dellÃ¢â‚¬â„¢apertura
 
   showDialog(
     context: context,
@@ -1273,7 +1274,7 @@ String _initialsOf(String name) {
             Icon(Icons.person_add, color: Colors.blue.shade700),
             const SizedBox(width: 8),
             Text(
-              'Aggiungi Coinquilino',
+              AppLocalizations.of(context)!.admin_add_roommate,
               style: TextStyle(
                 fontWeight: FontWeight.w600,
                 color: Colors.grey.shade800,
@@ -1287,7 +1288,7 @@ String _initialsOf(String name) {
             TextField(
               controller: _roommateController,
               decoration: InputDecoration(
-                labelText: 'Nome coinquilino',
+                labelText: AppLocalizations.of(context)!.admin_roommate_name,
                 labelStyle: TextStyle(color: Colors.grey.shade700),
                 hintStyle: TextStyle(color: Colors.grey.shade500),
                 border: OutlineInputBorder(
@@ -1321,7 +1322,7 @@ String _initialsOf(String name) {
               _roommateController.clear();
             },
             child: Text(
-              'Annulla',
+              AppLocalizations.of(context)!.common_cancel,
               style: TextStyle(color: Colors.grey.shade600),
             ),
           ),
@@ -1333,7 +1334,7 @@ String _initialsOf(String name) {
                 borderRadius: BorderRadius.circular(12),
               ),
             ),
-            child: const Text('Aggiungi'),
+            child: Text(AppLocalizations.of(context)!.common_add),
           ),
         ],
       ),
@@ -1345,12 +1346,12 @@ void _confirmAddRoommate(BuildContext context) {
   final name = _roommateController.text.trim();
 
   if (name.isEmpty) {
-    _showErrorDialog("Dati mancanti", "Inserisci un nome corretto");
+    _showErrorDialog(AppLocalizations.of(context)!.error_operation_not_allowed, AppLocalizations.of(context)!.error_name_icon_required);
     
     return; // evita di proseguire
   }
 
-  // Se non è vuoto, aggiunge normalmente
+  // Se non ÃƒÂ¨ vuoto, aggiunge normalmente
   _addRoommate();
   _roommateController.clear();
   context.pop();
@@ -1375,7 +1376,7 @@ void _confirmAddRoommate(BuildContext context) {
             children: [
               Icon(Icons.edit, color: Colors.blue.shade700),
               const SizedBox(width: 8),
-              Text('Modifica Coinquilino', 
+              Text(AppLocalizations.of(context)!.admin_edit_roommate, 
                    style: TextStyle(fontWeight: FontWeight.w600, color: Colors.grey.shade800)),
             ],
           ),
@@ -1385,7 +1386,7 @@ void _confirmAddRoommate(BuildContext context) {
               TextField(
                 controller: _roommateController,
                 decoration: InputDecoration(
-                  labelText: 'Nome coinquilino',
+                  labelText: AppLocalizations.of(context)!.admin_roommate_name,
                   labelStyle: TextStyle(color: Colors.grey.shade700),
                   hintStyle: TextStyle(color: Colors.grey.shade500),
                   border: OutlineInputBorder(
@@ -1416,7 +1417,7 @@ void _confirmAddRoommate(BuildContext context) {
                 context.pop();
                 _roommateController.clear();
               },
-              child: Text('Annulla', style: TextStyle(color: Colors.grey.shade600)),
+              child: Text(AppLocalizations.of(context)!.common_cancel, style: TextStyle(color: Colors.grey.shade600)),
             ),
             FilledButton(
               onPressed: () => _saveRoommateEdit(roommate),
@@ -1424,7 +1425,7 @@ void _confirmAddRoommate(BuildContext context) {
                 backgroundColor: Colors.blue.shade700,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               ),
-              child: const Text('Salva'),
+              child: Text(AppLocalizations.of(context)!.common_save),
             ),
           ],
         ),
@@ -1444,7 +1445,7 @@ void _confirmAddRoommate(BuildContext context) {
       context.pop();
       HapticFeedback.lightImpact();
     }else{
-      _showErrorDialog("Dati mancanti", "Inserisci un nome corretto");
+      _showErrorDialog(AppLocalizations.of(context)!.error_operation_not_allowed, AppLocalizations.of(context)!.error_name_icon_required);
     }
   }
 
@@ -1454,22 +1455,16 @@ void _confirmAddRoommate(BuildContext context) {
     final currentUser = ref.read(userProvider);
     final allTodos = ref.read(todosProvider);
     
-    // Controlla se è l'utente attualmente loggato
+    // Controlla se ÃƒÂ¨ l'utente attualmente loggato
     if (currentUser?.id == roommate.id) {
-      _showErrorDialog(
-        'Operazione non consentita',
-        'Non puoi eliminare il tuo account mentre sei connesso.'
-      );
+      _showErrorDialog(AppLocalizations.of(context)!.error_operation_not_allowed, AppLocalizations.of(context)!.error_cannot_delete_logged_in);
       return;
     }
     
     // Controlla se l'utente ha to-do assegnati
     final hasAssignedTodos = allTodos.any((todo) => todo.assigneeIds.contains(roommate.id));
     if (hasAssignedTodos) {
-      _showErrorDialog(
-        'Impossibile eliminare',
-        '${roommate.name} ha ancora dei to-do assegnati. Rimuovi prima tutti i to-do assegnati a questo utente.'
-      );
+      _showErrorDialog(AppLocalizations.of(context)!.error_cannot_delete, AppLocalizations.of(context)!.error_roommate_in_use.replaceFirst('{name}', roommate.name));
       return;
     }
 
@@ -1482,15 +1477,15 @@ void _confirmAddRoommate(BuildContext context) {
           children: [
             Icon(Icons.warning_amber, color: Colors.orange.shade600),
             const SizedBox(width: 8),
-            Text('Conferma eliminazione', style: TextStyle(color: Colors.grey.shade800)),
+            Text(AppLocalizations.of(context)!.confirm_delete_title, style: TextStyle(color: Colors.grey.shade800)),
           ],
         ),
-        content: Text('Sei sicuro di voler eliminare "${roommate.name}"?', 
+        content: Text(AppLocalizations.of(context)!.confirm_delete_roommate.replaceFirst('{name}', roommate.name), 
                      style: TextStyle(color: Colors.grey.shade700)),
         actions: [
           TextButton(
             onPressed: () => context.pop(),
-            child: Text('Annulla', style: TextStyle(color: Colors.grey.shade600)),
+            child: Text(AppLocalizations.of(context)!.common_cancel, style: TextStyle(color: Colors.grey.shade600)),
           ),
           FilledButton(
             onPressed: () {
@@ -1503,7 +1498,7 @@ void _confirmAddRoommate(BuildContext context) {
               backgroundColor: Colors.red.shade600,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             ),
-            child: const Text('Elimina'),
+            child: Text(AppLocalizations.of(context)!.common_delete),
           ),
         ],
       ),
@@ -1516,10 +1511,7 @@ void _confirmAddRoommate(BuildContext context) {
     // Controlla se la categoria è in uso in qualche to-do
     final isInUse = allTodos.any((todo) => todo.categories.any((cat) => cat.id == category.id));
     if (isInUse) {
-      _showErrorDialog(
-        'Impossibile eliminare',
-        'La categoria "${category.name}" è ancora in uso in alcuni to-do. Rimuovi prima questa categoria da tutti i to-do.'
-      );
+      _showErrorDialog(AppLocalizations.of(context)!.error_cannot_delete, AppLocalizations.of(context)!.error_category_in_use.replaceFirst('{name}', category.name));
       return;
     }
 
@@ -1535,12 +1527,12 @@ void _confirmAddRoommate(BuildContext context) {
             Text('Conferma eliminazione', style: TextStyle(color: Colors.grey.shade800)),
           ],
         ),
-        content: Text('Sei sicuro di voler eliminare la categoria "${category.name}"?',
-                     style: TextStyle(color: Colors.grey.shade700)),
+        content: Text(AppLocalizations.of(context)!.confirm_delete_category.replaceFirst('{name}', category.name),
+                      style: TextStyle(color: Colors.grey.shade700)),
         actions: [
           TextButton(
             onPressed: () => context.pop(),
-            child: Text('Annulla', style: TextStyle(color: Colors.grey.shade600)),
+            child: Text(AppLocalizations.of(context)!.common_cancel, style: TextStyle(color: Colors.grey.shade600)),
           ),
           FilledButton(
             onPressed: () {
@@ -1552,7 +1544,7 @@ void _confirmAddRoommate(BuildContext context) {
               backgroundColor: Colors.red.shade600,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             ),
-            child: const Text('Elimina'),
+            child: Text(AppLocalizations.of(context)!.common_delete),
           ),
         ],
       ),
@@ -1577,7 +1569,7 @@ void _confirmAddRoommate(BuildContext context) {
   final todos = ref.read(todosProvider);
   final roommates = ref.read(roommatesProvider);
 
-  // 🔹 Mostra popup di scelta
+  // Ã°Å¸â€Â¹ Mostra popup di scelta
   final choice = await showDialog<String>(
   context: context,
   barrierDismissible: false,
@@ -1614,10 +1606,10 @@ void _confirmAddRoommate(BuildContext context) {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Scarica dati grafici',
+                    Text(AppLocalizations.of(context)!.download_charts_title,
                         style: tt.titleLarge?.copyWith(fontWeight: FontWeight.w600)),
                     const SizedBox(height: 2),
-                    Text('Scegli il formato da esportare',
+                    Text(AppLocalizations.of(context)!.export_choose_format,
                         style: tt.bodyMedium?.copyWith(color: cs.onSurfaceVariant)),
                   ],
                 ),
@@ -1632,13 +1624,13 @@ void _confirmAddRoommate(BuildContext context) {
                 runSpacing: 8,
                 children: [
                   _FormatChip(
-                    label: 'CSV',
+                    label: AppLocalizations.of(context)!.common_csv,
                     icon: Icons.table_chart_outlined,
                     selected: selected == 'csv',
                     onTap: () => setState(() => selected = 'csv'),
                   ),
                   _FormatChip(
-                    label: 'PDF',
+                    label: AppLocalizations.of(context)!.common_pdf,
                     icon: Icons.picture_as_pdf_outlined,
                     selected: selected == 'pdf',
                     onTap: () => setState(() => selected = 'pdf'),
@@ -1654,8 +1646,8 @@ void _confirmAddRoommate(BuildContext context) {
                   Expanded(
                     child: Text(
                       selected == 'csv'
-                          ? 'Esporta tabelle (categorie, coinquilini, stato) in CSV.'
-                          : 'Genera un PDF impaginato con le stesse tabelle.',
+                          ? AppLocalizations.of(context)!.export_csv_desc
+                          : AppLocalizations.of(context)!.export_pdf_desc,
                       style: tt.bodySmall?.copyWith(color: cs.onSurfaceVariant),
                     ),
                   ),
@@ -1667,12 +1659,12 @@ void _confirmAddRoommate(BuildContext context) {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Annulla'),
+              child: Text(AppLocalizations.of(context)!.common_cancel),
             ),
             FilledButton.icon(
               onPressed: () => Navigator.pop(context, selected),
               icon: const Icon(Icons.download),
-              label: const Text('Scarica'),
+              label: Text(AppLocalizations.of(context)!.common_download),
               style: FilledButton.styleFrom(
                 backgroundColor: Colors.blue.shade700,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -1688,7 +1680,7 @@ void _confirmAddRoommate(BuildContext context) {
 
   if (choice == null) return;
 
-  // 🔹 Prepara dati comuni
+  // Ã°Å¸â€Â¹ Prepara dati comuni
   final completedTodos = todos.where((t) => t.status == TodoStatus.done).toList();
   final openTodos = todos.where((t) => t.status == TodoStatus.open).toList();
 
@@ -1697,7 +1689,7 @@ void _confirmAddRoommate(BuildContext context) {
     if (todo.cost != null && todo.cost! > 0) {
       final categoryName = todo.categories.isNotEmpty
           ? todo.categories.first.name
-          : 'Senza categoria';
+          : AppLocalizations.of(context)!.no_category;
       expensesByCategory[categoryName] =
           (expensesByCategory[categoryName] ?? 0) + todo.cost!;
     }
@@ -1713,37 +1705,37 @@ void _confirmAddRoommate(BuildContext context) {
     'Aperti': openTodos.length,
   };
 
-  // 🔹 Se l’utente sceglie CSV
+  // Ã°Å¸â€Â¹ Se lÃ¢â‚¬â„¢utente sceglie CSV
   if (choice == 'csv') {
     final List<String> csvLines = [];
 
-    csvLines.add('=== SPESE PER CATEGORIA ===');
-    csvLines.add('Categoria;Importo (EUR)');
+    csvLines.add(AppLocalizations.of(context)!.csv_section_expenses_by_category);
+    csvLines.add('${AppLocalizations.of(context)!.table_category};${AppLocalizations.of(context)!.table_amount_eur}');
     for (final entry in expensesByCategory.entries) {
       csvLines.add('${_escapeCSV(entry.key)};${entry.value.toStringAsFixed(2)}');
     }
-    csvLines.add('TOTALE;${expensesByCategory.values.fold(0.0, (a, b) => a + b).toStringAsFixed(2)}');
+    csvLines.add('${AppLocalizations.of(context)!.csv_total};${expensesByCategory.values.fold(0.0, (a, b) => a + b).toStringAsFixed(2)}');
     csvLines.add('');
 
-    csvLines.add('=== TASK COMPLETATI PER COINQUILINO ===');
-    csvLines.add('Coinquilino;Task Completati');
+    csvLines.add(AppLocalizations.of(context)!.csv_section_tasks_by_roommate);
+    csvLines.add('${AppLocalizations.of(context)!.table_roommate};${AppLocalizations.of(context)!.table_tasks_completed}');
     for (final entry in tasksByRoommate.entries) {
       csvLines.add('${_escapeCSV(entry.key)};${entry.value}');
     }
-    csvLines.add('TOTALE;${tasksByRoommate.values.fold(0, (a, b) => a + b)}');
+    csvLines.add('${AppLocalizations.of(context)!.csv_total};${tasksByRoommate.values.fold(0, (a, b) => a + b)}');
     csvLines.add('');
 
-    csvLines.add('=== STATUS TODOS ===');
-    csvLines.add('Status;Quantità');
+    csvLines.add(AppLocalizations.of(context)!.csv_section_status_todos);
+    csvLines.add('${AppLocalizations.of(context)!.csv_status};${AppLocalizations.of(context)!.csv_quantity}');
     for (final entry in todoStats.entries) {
       csvLines.add('${_escapeCSV(entry.key)};${entry.value}');
     }
-    csvLines.add('TOTALE;${todoStats.values.fold(0, (a, b) => a + b)}');
+    csvLines.add('${AppLocalizations.of(context)!.csv_total};${todoStats.values.fold(0, (a, b) => a + b)}');
     csvLines.add('');
 
     final now = DateTime.now();
     final timestamp = DateFormat('yyyy-MM-dd HH:mm:ss').format(now);
-    csvLines.add('Generato il: $timestamp');
+    csvLines.add(AppLocalizations.of(context)!.csv_generated_on.replaceFirst('{timestamp}', timestamp));
 
     final content = csvLines.join('\r\n');
     final bytes = Uint8List.fromList([
@@ -1756,12 +1748,12 @@ void _confirmAddRoommate(BuildContext context) {
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('Dati grafici esportati in $filename'),
+        content: Text(AppLocalizations.of(context)!.charts_exported_file.replaceFirst('{filename}', filename)),
         backgroundColor: Colors.green.shade600,
       ),
     );
 
-  // 🔹 Se l’utente sceglie PDF
+  // Ã°Å¸â€Â¹ Se lÃ¢â‚¬â„¢utente sceglie PDF
   } else if (choice == 'pdf') {
     final pdf = pw.Document();
 
@@ -1773,16 +1765,19 @@ void _confirmAddRoommate(BuildContext context) {
             crossAxisAlignment: pw.CrossAxisAlignment.start,
             children: [
               pw.Text(
-                sanitize('Statistiche Admin'),
+                sanitize(AppLocalizations.of(context)!.admin_stats_title),
                 style: pw.TextStyle(fontSize: 20, fontWeight: pw.FontWeight.bold),
               ),
               pw.SizedBox(height: 18),
 
-              pw.Text(sanitize('Spese per categoria'),
+              pw.Text(sanitize(AppLocalizations.of(context)!.pdf_expenses_by_category_title),
                   style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
               pw.SizedBox(height: 6),
               pw.TableHelper.fromTextArray(
-                headers: ['Categoria', 'Importo (EUR)'],
+                headers: [
+                  AppLocalizations.of(context)!.table_category,
+                  AppLocalizations.of(context)!.table_amount_eur
+                ],
                 data: expensesByCategory.entries
                     .map((e) => [
                           sanitize(e.key),
@@ -1792,11 +1787,14 @@ void _confirmAddRoommate(BuildContext context) {
               ),
               pw.SizedBox(height: 16),
 
-              pw.Text(sanitize('Task completati per coinquilino'),
+              pw.Text(sanitize(AppLocalizations.of(context)!.pdf_tasks_by_roommate_title),
                   style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
               pw.SizedBox(height: 6),
               pw.TableHelper.fromTextArray(
-                headers: ['Coinquilino', 'Task completati'],
+                headers: [
+                  AppLocalizations.of(context)!.table_roommate,
+                  AppLocalizations.of(context)!.table_tasks_completed
+                ],
                 data: tasksByRoommate.entries
                     .map((e) => [
                           sanitize(e.key),
@@ -1806,11 +1804,11 @@ void _confirmAddRoommate(BuildContext context) {
               ),
               pw.SizedBox(height: 16),
 
-              pw.Text(sanitize('Stato dei To-Do'),
+              pw.Text(sanitize(AppLocalizations.of(context)!.pdf_todo_status_title),
                   style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
               pw.SizedBox(height: 6),
               pw.TableHelper.fromTextArray(
-                headers: ['Stato', 'Quantità'],
+                headers: [AppLocalizations.of(context)!.csv_status, AppLocalizations.of(context)!.csv_quantity],
                 data: todoStats.entries
                     .map((e) => [
                           sanitize(e.key),
@@ -1829,13 +1827,12 @@ void _confirmAddRoommate(BuildContext context) {
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: const Text('PDF dei dati grafici generato con successo'),
+        content: Text(AppLocalizations.of(context)!.pdf_generated_success),
         backgroundColor: Colors.green.shade600,
       ),
     );
   }
 }
-
 
 
   void _showErrorDialog(String title, String message) {
@@ -1859,7 +1856,7 @@ void _confirmAddRoommate(BuildContext context) {
               backgroundColor: Colors.blue.shade700,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             ),
-            child: const Text('OK'),
+            child: Text(AppLocalizations.of(context)!.common_ok),
           ),
         ],
       ),

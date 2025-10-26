@@ -1,6 +1,7 @@
 // lib/widgets/help_banner.dart
 import 'package:flutter/material.dart';
 import 'package:flutter/semantics.dart';
+import 'package:your_turn/l10n/app_localizations.dart';
 
 class HelpBanner extends StatelessWidget {
   const HelpBanner({super.key, required this.onClose, required this.shortcutInfo});
@@ -10,7 +11,7 @@ class HelpBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Semantics(
-      label: 'Guida rapida profilo utente',
+      label: AppLocalizations.of(context)!.help_title,
       child: Material(
         color: Colors.transparent,
         child: Container(
@@ -31,11 +32,11 @@ class HelpBanner extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Come funziona', style: TextStyle(fontWeight: FontWeight.w700, color: Colors.grey.shade900)),
+                      Text(AppLocalizations.of(context)!.help_title, style: TextStyle(fontWeight: FontWeight.w700, color: Colors.grey.shade900)),
                       const SizedBox(height: 4),
-                      const Text('• Importo: positivo = accredito, negativo = addebito.'),
-                      const Text('• Filtri: scegli una categoria e/o un intervallo di date.'),
-                      const Text('• Aggiungi: usa il pulsante “Aggiungi” per inserire una nuova voce.'),
+                      Text(AppLocalizations.of(context)!.help_bullet_amount),
+                      Text(AppLocalizations.of(context)!.help_bullet_filters),
+                      Text(AppLocalizations.of(context)!.help_bullet_add),
                       const SizedBox(height: 6),
                       Text(shortcutInfo, style: const TextStyle(fontWeight: FontWeight.w600)),
                     ],
@@ -43,7 +44,7 @@ class HelpBanner extends StatelessWidget {
                 ),
               ),
               IconButton(
-                tooltip: 'Nascondi aiuto',
+                tooltip: AppLocalizations.of(context)!.help_hide,
                 onPressed: onClose,
                 icon: const Icon(Icons.close),
               ),

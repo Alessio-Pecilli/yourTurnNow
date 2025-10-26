@@ -2,6 +2,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:fl_chart/fl_chart.dart' as fl;
+import 'package:your_turn/l10n/app_localizations.dart';
 import 'package:your_turn/src/models/money_tx.dart';
 
 class TransactionsChart extends StatelessWidget {
@@ -73,7 +74,7 @@ class TransactionsChart extends StatelessWidget {
                   Icon(Icons.show_chart, color: Colors.blue.shade700, size: 22),
                   const SizedBox(width: 8),
                   Text(
-                    'Andamento delle spese nel tempo',
+                    AppLocalizations.of(context)!.chart_expense_trend_title,
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w700,
@@ -122,7 +123,7 @@ class TransactionsChart extends StatelessWidget {
                         getTooltipItems: (touched) => touched.map((e) {
                           final i = e.x.round().clamp(0, labels.length - 1);
                           return fl.LineTooltipItem(
-                            '${labels[i]}\nSaldo: ${e.y.toStringAsFixed(2)}€',
+                            '${labels[i]}\n${AppLocalizations.of(context)!.chart_balance}: ${e.y.toStringAsFixed(2)}€',
                             const TextStyle(fontWeight: FontWeight.w600),
                           );
                         }).toList(),

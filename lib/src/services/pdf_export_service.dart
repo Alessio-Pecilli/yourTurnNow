@@ -3,6 +3,7 @@ import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:your_turn/l10n/app_localizations.dart';
 
 class PdfExportService {
   // 🔹 Funzione per rimuovere emoji e simboli non compatibili
@@ -36,7 +37,7 @@ class PdfExportService {
             crossAxisAlignment: pw.CrossAxisAlignment.start,
             children: [
               pw.Text(
-                'Transazioni di ${_sanitizeText(me.name)}',
+                AppLocalizations.of(context)!.common_download + ' - ' + _sanitizeText(me.name),
                 style: pw.TextStyle(
                   fontSize: 20,
                   fontWeight: pw.FontWeight.bold,
@@ -44,7 +45,12 @@ class PdfExportService {
               ),
               pw.SizedBox(height: 20),
               pw.TableHelper.fromTextArray(
-                headers: ['Data', 'Nota', 'Importo (EUR)', 'Categoria'],
+                headers: [
+                  AppLocalizations.of(context)!.table_date,
+                  AppLocalizations.of(context)!.tx_note_label,
+                  AppLocalizations.of(context)!.table_amount_eur,
+                  AppLocalizations.of(context)!.table_category
+                ],
                 data: transactions.map((tx) {
                   final categorieTesto = tx.category.isEmpty
                       ? '-'

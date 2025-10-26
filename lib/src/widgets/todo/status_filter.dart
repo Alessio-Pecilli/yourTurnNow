@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:your_turn/src/models/todo_status.dart';
 import 'package:your_turn/src/providers/todo_provider.dart';
+import 'package:your_turn/l10n/app_localizations.dart';
 
 class StatusFilters extends ConsumerWidget {
   const StatusFilters({super.key});
@@ -16,17 +17,17 @@ class StatusFilters extends ConsumerWidget {
       spacing: 8,
       children: [
         FilterChip(
-          label: const Text('Tutti'),
+          label: Text(AppLocalizations.of(context)!.todos_filter_all),
           selected: current == null,
           onSelected: (_) => setFilter(null),
         ),
         FilterChip(
-          label: const Text('Da fare'),
+          label: Text(AppLocalizations.of(context)!.todos_filter_open),
           selected: current == TodoStatus.open,
           onSelected: (_) => setFilter(TodoStatus.open),
         ),
         FilterChip(
-          label: const Text('Fatto'),
+          label: Text(AppLocalizations.of(context)!.todos_filter_done),
           selected: current == TodoStatus.done,
           onSelected: (_) => setFilter(TodoStatus.done),
         ),

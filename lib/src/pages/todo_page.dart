@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:your_turn/l10n/app_localizations.dart';
 import 'package:your_turn/src/models/roommate.dart';
 import 'package:your_turn/src/models/todo_status.dart';
 import 'package:your_turn/src/models/todo_category.dart';
@@ -16,6 +17,9 @@ import 'profile_page.dart';
 import 'package:intl/intl.dart';
 import 'admin_page.dart';
 import 'package:your_turn/src/widgets/common_action_button.dart';
+// removed duplicate import
+import 'package:your_turn/src/providers/locale_provider.dart';
+
 
 final todosCategoryFilterProvider = StateProvider<TodoCategory?>((ref) => null);
 
@@ -261,7 +265,7 @@ Widget _buildActionButton(
                 child: _buildActionButton(
                   context,
                   letter: 'A',
-                  label: 'ADMIN',
+                  label: AppLocalizations.of(context)!.nav_admin,
                   color: Colors.blue,
                   icon: Icons.admin_panel_settings,
                   onTap: () => Navigator.push(
@@ -278,7 +282,7 @@ Widget _buildActionButton(
                 child: _buildActionButton(
                   context,
                   letter: 'P',
-                  label: 'PROFILO',
+                  label: AppLocalizations.of(context)!.nav_profile,
                   color: Colors.blue,
                   icon: Icons.person,
                   onTap: () => Navigator.push(
@@ -287,6 +291,28 @@ Widget _buildActionButton(
                   ),
                 ),
               ),
+              const SizedBox(width: 12),
+              // Language switcher
+              Container(
+  decoration: BoxDecoration(
+    color: Colors.blue,
+    borderRadius: BorderRadius.circular(10),
+    border: Border.all(color: Colors.blue.shade200),
+  ),
+  child: IconButton(
+    tooltip: AppLocalizations.of(context)!.common_language,
+    icon: const Icon(Icons.language, color: Colors.white),
+    onPressed: () {
+      final current = ref.read(localeProvider);
+      // se è italiano → passa a inglese, altrimenti torna italiano
+      final newLocale = (current.languageCode == 'it')
+          ? const Locale('en')
+          : const Locale('it');
+      ref.read(localeProvider.notifier).state = newLocale;
+    },
+  ),
+),
+
             ],
           ),
         ],
@@ -344,10 +370,10 @@ Widget _buildActionButton(
                                   ref.read(todosFilterProvider.notifier).state = TodoStatus.open;
                                 }
                               },
-                              children: const [
-                                _ToggleBtn(icon: Icons.list, text: 'Tutti'),
-                                _ToggleBtn(icon: Icons.check_circle, text: 'Fatti'),
-                                _ToggleBtn(icon: Icons.radio_button_unchecked, text: 'Da fare'),
+                              children: [
+                                _ToggleBtn(icon: Icons.list, text: AppLocalizations.of(context)!.todos_filter_all),
+                                _ToggleBtn(icon: Icons.check_circle, text: AppLocalizations.of(context)!.todos_filter_done),
+                                _ToggleBtn(icon: Icons.radio_button_unchecked, text: AppLocalizations.of(context)!.todos_filter_open),
                               ],
                             ),
                           ),
@@ -378,10 +404,10 @@ Widget _buildActionButton(
                                   ref.read(todosOrderProvider.notifier).state = 'inserimento_asc';
                                 }
                               },
-                              children: const [
-                                _ToggleBtn(icon: Icons.calendar_today, text: 'Data'),
-                                _ToggleBtn(icon: Icons.euro, text: 'Costo'),
-                                _ToggleBtn(icon: Icons.add_circle, text: 'Nuovo'),
+                              children: [
+                                _ToggleBtn(icon: Icons.calendar_today, text: AppLocalizations.of(context)!.todos_order_date),
+                                _ToggleBtn(icon: Icons.euro, text: AppLocalizations.of(context)!.todos_order_cost),
+                                _ToggleBtn(icon: Icons.add_circle, text: AppLocalizations.of(context)!.todos_order_new),
                               ],
                             ),
                           ),
@@ -395,7 +421,7 @@ Widget _buildActionButton(
                                   children: [
                                     Icon(Icons.label_outline, size: 18, color: ref.watch(todosCategoryFilterProvider) == null ? Colors.blue.shade700 : Colors.grey.shade600),
                                     const SizedBox(width: 4),
-                                    const Text('Tutte'),
+                                    Text(AppLocalizations.of(context)!.categories_all),
                                   ],
                                 ),
                                 selected: ref.watch(todosCategoryFilterProvider) == null,
@@ -453,7 +479,7 @@ Widget _buildActionButton(
   pinned: true,
   delegate: _FixedHeaderDelegate(
     height: 80, // altezza della riga header
-    child: buildTodoHeaderRow(),
+    child: buildTodoHeaderRow(context),
   ),
 ),
               SliverPadding(
@@ -588,7 +614,7 @@ Widget _buildActionButton(
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 child: Text(
-                  'Mostrando ${tasks.length} di ${allTasks.length} todos${totalPages > 1 ? ' (Pagina ${currentPage + 1} di $totalPages)' : ''}',
+                  '${tasks.length} / ${allTasks.length} to-do ${totalPages > 1 ? ' (${currentPage + 1} / $totalPages)' : ''}',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     color: Colors.grey.shade600,
@@ -607,7 +633,7 @@ Widget _buildActionButton(
   child: _buildActionButton(
     context,
     letter: 'N',
-    label: 'NUOVO',
+  label: AppLocalizations.of(context)!.nav_new,
     color: Colors.blue,
     icon: Icons.add, // o qualunque icona vuoi, anche Icons.add_circle_outline
     onTap: () => showTodoAddDialog(context, ref),
@@ -878,6 +904,7 @@ Widget _buildActionButton(
                     children: [
                       IconButton(
                         icon: Icon(Icons.edit, color: Colors.blue.shade600, size: 20),
+                        tooltip: AppLocalizations.of(context)!.common_edit,
                         onPressed: () => showTodoAddDialog(context, ref, preset: t),
                         padding: EdgeInsets.zero,
                         constraints: const BoxConstraints(),
@@ -885,6 +912,7 @@ Widget _buildActionButton(
                       const SizedBox(width: 6),
                       IconButton(
                         icon: Icon(Icons.delete, color: Colors.red.shade400, size: 20),
+                        tooltip: AppLocalizations.of(context)!.common_delete,
                         onPressed: () => ref.read(todosProvider.notifier).remove(t.id),
                         padding: EdgeInsets.zero,
                         constraints: const BoxConstraints(),
@@ -975,7 +1003,7 @@ Widget _buildActionButton(
           borderRadius: BorderRadius.circular(12),
         ),
         child: IconButton(
-          tooltip: 'Modifica',
+          tooltip: AppLocalizations.of(context)!.common_edit,
           icon: Icon(Icons.edit_rounded, color: Colors.blue.shade700, size: 20),
           onPressed: () => showTodoAddDialog(context, ref, preset: t),
         ),
@@ -987,7 +1015,7 @@ Widget _buildActionButton(
           borderRadius: BorderRadius.circular(12),
         ),
         child: IconButton(
-          tooltip: 'Elimina',
+          tooltip: AppLocalizations.of(context)!.common_delete,
           icon: Icon(Icons.delete_rounded, color: Colors.red.shade700, size: 20),
           onPressed: () => ref.read(todosProvider.notifier).remove(t.id),
         ),
@@ -1055,7 +1083,7 @@ Widget _buildActionButton(
   // Order and filter helper methods removed because UI is inlined above.
 }
 
-Widget buildTodoHeaderRow() {
+Widget buildTodoHeaderRow(BuildContext context) {
   return Material(
     color: Colors.transparent,
     child: Padding(
@@ -1089,17 +1117,17 @@ Widget buildTodoHeaderRow() {
                       6: FlexColumnWidth(1.4),
                       7: FlexColumnWidth(0.5),
                     },
-                    children: const [
+                    children: [
                       TableRow(
                         children: [
-                          _HeaderCell(''),
-                          _HeaderCell('Titolo'),
-                          _HeaderCell('Categorie'),
-                          _HeaderCell('Costo'),
-                          _HeaderCell('Data'),
-                          _HeaderCell('Creatore'),
-                          _HeaderCell('Assegnatari'),
-                          _HeaderCell(''),
+                          const _HeaderCell(''),
+                          _HeaderCell(AppLocalizations.of(context)!.table_title),
+                          _HeaderCell(AppLocalizations.of(context)!.table_categories),
+                          _HeaderCell(AppLocalizations.of(context)!.table_cost),
+                          _HeaderCell(AppLocalizations.of(context)!.table_date),
+                          _HeaderCell(AppLocalizations.of(context)!.table_creator),
+                          _HeaderCell(AppLocalizations.of(context)!.table_assignees),
+                          const _HeaderCell(''),
                         ],
                       ),
                     ],

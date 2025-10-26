@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:your_turn/src/models/money_tx.dart';
 import 'package:your_turn/src/models/todo_category.dart';
+import 'package:your_turn/l10n/app_localizations.dart';
 
 /// Widget compatto per visualizzare una transazione in formato card
 /// con importo, categoria, nota e azioni modifica/elimina
@@ -123,7 +124,7 @@ class TransactionTileCard extends StatelessWidget {
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: IconButton(
-                            tooltip: 'Modifica',
+                            tooltip: AppLocalizations.of(context)!.common_edit,
                             icon: Icon(Icons.edit_rounded,
                                 color: Colors.blue.shade700, size: 16),
                             onPressed: onEdit,
@@ -141,7 +142,7 @@ class TransactionTileCard extends StatelessWidget {
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: IconButton(
-                            tooltip: 'Elimina',
+                            tooltip: AppLocalizations.of(context)!.common_delete,
                             icon: Icon(Icons.delete_rounded,
                                 color: Colors.red.shade700, size: 16),
                             onPressed: onDelete,
