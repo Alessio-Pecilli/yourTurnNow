@@ -6,7 +6,7 @@ import 'package:your_turn/l10n/app_localizations.dart';
 typedef OnEditRoommate = void Function(Roommate r);
 typedef OnDeleteRoommate = void Function(Roommate r);
 typedef OnDeleteCategory = void Function(TodoCategory c);
-
+const height = 330.0;
 class CategoriesCard extends StatelessWidget {
   final List<TodoCategory> categories;
   final VoidCallback onAddCategory;
@@ -24,7 +24,7 @@ class CategoriesCard extends StatelessWidget {
   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
   color: Colors.white,
   child: ConstrainedBox(
-    constraints: const BoxConstraints(minHeight: 360), // altezza identica
+    constraints: const BoxConstraints(minHeight: height), // altezza identica
     child: Padding(
       padding: const EdgeInsets.all(20),
       child: Column(
@@ -111,9 +111,25 @@ class CategoriesCard extends StatelessWidget {
               },
             ),
           const SizedBox(height: 20),
-          ElevatedButton(
-              onPressed: onAddCategoryPressed,
-              child: Text(AppLocalizations.of(context)!.admin_add_category_btn)),
+          Padding(
+  padding: const EdgeInsets.symmetric(vertical: 4),
+  child: ElevatedButton.icon(
+    style: ElevatedButton.styleFrom(
+      backgroundColor: Colors.blue,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+    ),
+    onPressed: onAddCategoryPressed,
+    icon: const Icon(Icons.add, color: Colors.white),
+    label: Text(
+      AppLocalizations.of(context)!.admin_add_category_btn,
+      style: const TextStyle(color: Colors.white),
+    ),
+  ),
+)
+
         ],
       ),
     ),
@@ -137,7 +153,7 @@ class RoommatesCard extends StatelessWidget {
   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
   color: Colors.white,
   child: ConstrainedBox(
-    constraints: const BoxConstraints(minHeight: 360), // stessa altezza
+    constraints: const BoxConstraints(minHeight: height), // stessa altezza
     child: Padding(
       padding: const EdgeInsets.all(20),
       child: Column(
@@ -238,9 +254,25 @@ class RoommatesCard extends StatelessWidget {
               },
             ),
           const SizedBox(height: 20),
-          ElevatedButton(
-              onPressed: onAddRoommatePressed,
-              child: Text(AppLocalizations.of(context)!.admin_add_roommate_btn)),
+          Padding(
+  padding: const EdgeInsets.symmetric(vertical: 4),
+  child: ElevatedButton.icon(
+    style: ElevatedButton.styleFrom(
+      backgroundColor: Colors.blue,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+    ),
+    onPressed: onAddRoommatePressed,
+    icon: const Icon(Icons.group_add, color: Colors.white),
+    label: Text(
+      AppLocalizations.of(context)!.admin_add_roommate_btn,
+      style: const TextStyle(color: Colors.white),
+    ),
+  ),
+)
+
         ],
       ),
     ),

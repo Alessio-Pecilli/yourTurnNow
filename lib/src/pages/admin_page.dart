@@ -462,50 +462,57 @@ Widget _buildActionButton(
   }
 
   Widget _buildSingleChart(String title, List<dynamic> todos, bool? isCompleted, MaterialColor themeColor) {
-    // Filtra i todo in base al tipo di grafico usando la logica corretta
-    List<dynamic> filteredTodos;
-    if (isCompleted == null) {
-      // Tutti i todo (budget totale)
-      filteredTodos = todos;
-    } else if (isCompleted) {
-      // Solo todo completati: TodoStatus.done
-      filteredTodos = todos.where((t) => t.status == TodoStatus.done).toList();
-    } else {
-      // Solo todo da fare: TodoStatus.open
-      filteredTodos = todos.where((t) => t.status == TodoStatus.open).toList();
-    }
-    
-    // Calcola le spese per categoria
-    final Map<String, double> expensesByCategory = {};
-    for (final todo in filteredTodos) {
-      if (todo.cost != null && todo.cost! > 0) {
-        for (final category in todo.categories) {
-          final categoryName = category.name;
-          double amount = todo.cost!;
-          
-          // Per il budget totale, usa il modulo
-          if (isCompleted == null) {
-            amount = amount.abs();
-          }
-          
-          expensesByCategory[categoryName] = (expensesByCategory[categoryName] ?? 0) + amount;
+  // Filtra i todo in base al tipo di grafico usando la logica corretta
+  List<dynamic> filteredTodos;
+  if (isCompleted == null) {
+    filteredTodos = todos; // Tutti i todo
+  } else if (isCompleted) {
+    filteredTodos = todos.where((t) => t.status == TodoStatus.done).toList();
+  } else {
+    filteredTodos = todos.where((t) => t.status == TodoStatus.open).toList();
+  }
+
+  // Calcola le spese per categoria
+  final Map<String, double> expensesByCategory = {};
+  for (final todo in filteredTodos) {
+    if (todo.cost != null && todo.cost! > 0) {
+      for (final category in todo.categories) {
+        final categoryName = category.name;
+        double amount = todo.cost!;
+
+        // Per il budget totale, usa il modulo
+        if (isCompleted == null) {
+          amount = amount.abs();
         }
+
+        expensesByCategory[categoryName] = (expensesByCategory[categoryName] ?? 0) + amount;
       }
     }
-    
-    final List<ExpenseSlice> slices = expensesByCategory.entries.map((entry) {
-      return ExpenseSlice(
-        category: entry.key,
-        amount: entry.value,
-        color: _getCategoryColor(entry.key, themeColor),
-      );
-    }).toList();
-    
-    // Ordina per importo decrescente
-    slices.sort((a, b) => b.amount.compareTo(a.amount));
-    
-    final double totalAmount = slices.fold(0, (sum, slice) => sum + slice.amount);
-    
+  }
+
+  // Crea le slices
+  final List<ExpenseSlice> slices = expensesByCategory.entries.map((entry) {
+    return ExpenseSlice(
+      category: entry.key,
+      amount: entry.value,
+      color: _getCategoryColor(entry.key, themeColor),
+    );
+  }).toList();
+
+  // Ordina per importo decrescente
+  slices.sort((a, b) => b.amount.compareTo(a.amount));
+
+  // Calcola il totale
+  final double totalAmount = slices.fold(0, (sum, slice) => sum + slice.amount);
+
+  // 🔹 FILTRA le categorie con percentuale = 0%
+  final List<ExpenseSlice> nonZeroSlices = slices.where((slice) {
+  if (totalAmount == 0) return false;
+  final percent = (slice.amount / totalAmount) * 100;
+  return percent >= 0.5; // ignora tutto ciò che è < 0.5%
+}).toList();
+
+  
     return Card(
       elevation: 4,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
@@ -540,7 +547,7 @@ Widget _buildActionButton(
             ),
             const SizedBox(height: 16), // Material Design 3 standard spacing
             
-            if (slices.isEmpty) ...[
+            if (nonZeroSlices.isEmpty) ...[
               // Stato vuoto con dimensioni fisse per consistenza
               Container(
                 height: 160, // Ridotto da 200 a 160
@@ -591,8 +598,8 @@ Widget _buildActionButton(
                   alignment: Alignment.center,
                   children: [
                     CustomPaint(
-                      size: const Size(180, 180), // Bilanciato per visibilitÃƒÂ 
-                      painter: PieChartPainter(slices, totalAmount),
+                      size: const Size(180, 180), // Bilanciato per visibilità
+                      painter: PieChartPainter(nonZeroSlices, totalAmount),
                     ),
                     // Centro del grafico con totale
                     Container(
@@ -639,14 +646,14 @@ Widget _buildActionButton(
               Expanded(
                 child: GridView.builder(
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 3, // 3 colonne per vedere piÃƒÂ¹ categorie
-                    childAspectRatio: 3.2, // PiÃƒÂ¹ spazio per leggibilitÃƒÂ  (a11y)
+                    crossAxisCount: 3, // 3 colonne per vedere più categorie
+                    childAspectRatio: 3.2, // Più spazio per leggibilità (a11y)
                     crossAxisSpacing: 8, // Material Design 3 spacing
                     mainAxisSpacing: 8,
                   ),
-                  itemCount: slices.length,
+                  itemCount: nonZeroSlices.length,
                   itemBuilder: (context, index) {
-                    final slice = slices[index];
+                    final slice = nonZeroSlices[index];
                     final percentage = (slice.amount / totalAmount * 100);
                     return Semantics(
                       label: AppLocalizations.of(context)!.pie_label_amount_of_total.replaceFirst('{category}', slice.category).replaceFirst('{amount}', slice.amount.toStringAsFixed(2)).replaceFirst('{percent}', percentage.toStringAsFixed(1)),
@@ -791,7 +798,7 @@ Widget _buildActionButton(
                       borderRadius: BorderRadius.circular(14),
                       borderSide: BorderSide(color: Colors.grey.shade500, width: 1.8),
                     ),
-                    prefixIcon: Icon(Icons.label, color: Colors.grey.shade700),
+                    prefixIcon: Icon(Icons.label, color: Colors.blue.shade700),
                     filled: true,
                     fillColor: Colors.white,
                     contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
