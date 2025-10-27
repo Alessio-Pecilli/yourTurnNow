@@ -8,9 +8,9 @@ import 'package:your_turn/src/models/money_tx.dart';
 
 /// Coinquilini finti con foto profilo carine e colorate
 final mockRoommates = <Roommate>[
-  Roommate(id: "u1", name: "Ale", photoUrl: 'https://api.dicebear.com/7.x/adventurer/png?seed=Ale&backgroundColor=ffdfbf,c0aede,d1d4f9&scale=80', monthlyBudget: 200, tasksCompleted: 8),
+  Roommate(id: "u1", name: "Giulia", photoUrl: 'https://api.dicebear.com/7.x/adventurer/png?seed=Ale&backgroundColor=ffdfbf,c0aede,d1d4f9&scale=80', monthlyBudget: 200, tasksCompleted: 8),
   Roommate(id: "u2", name: "Marco", photoUrl: 'https://api.dicebear.com/7.x/adventurer/png?seed=Marco&backgroundColor=ffd5dc,ffdfbf,c0aede&scale=80', monthlyBudget: 150, tasksCompleted: 5),
-  Roommate(id: "u3", name: "Giulia", photoUrl: 'https://api.dicebear.com/7.x/adventurer/png?seed=Giulia&backgroundColor=d1d4f9,ffd5dc,b6e3f4&scale=80', monthlyBudget: 180, tasksCompleted: 6),
+  Roommate(id: "u3", name: "Max", photoUrl: 'https://api.dicebear.com/7.x/adventurer/png?seed=Giulia&backgroundColor=d1d4f9,ffd5dc,b6e3f4&scale=80', monthlyBudget: 180, tasksCompleted: 6),
   Roommate(id: "u4", name: "Luca", photoUrl: 'https://api.dicebear.com/7.x/adventurer/png?seed=Luca&backgroundColor=c0aede,ffdfbf,d1d4f9&scale=80', monthlyBudget: 120, tasksCompleted: 4),
   Roommate(id: "u5", name: "Sofia", photoUrl: 'https://api.dicebear.com/7.x/adventurer/png?seed=Sofia&backgroundColor=ffd5dc,b6e3f4,ffdfbf&scale=80', monthlyBudget: 160, tasksCompleted: 7),
 ];

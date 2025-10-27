@@ -6,7 +6,7 @@ import 'package:your_turn/l10n/app_localizations.dart';
 typedef OnEditRoommate = void Function(Roommate r);
 typedef OnDeleteRoommate = void Function(Roommate r);
 typedef OnDeleteCategory = void Function(TodoCategory c);
-const height = 330.0;
+const height = 250.0;
 class CategoriesCard extends StatelessWidget {
   final List<TodoCategory> categories;
   final VoidCallback onAddCategory;
@@ -60,7 +60,7 @@ class CategoriesCard extends StatelessWidget {
               gridDelegate:
                   const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 4,
-                childAspectRatio: 2.1, // proporzione uniforme
+                childAspectRatio: 5, // proporzione uniforme
                 crossAxisSpacing: 8,
                 mainAxisSpacing: 8,
               ),
@@ -70,7 +70,7 @@ class CategoriesCard extends StatelessWidget {
                 return Container(
                   decoration: BoxDecoration(
                     color: Colors.green.shade50,
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: BorderRadius.circular(10),
                     border: Border.all(color: Colors.green.shade200),
                   ),
                   child: Padding(
@@ -189,7 +189,7 @@ class RoommatesCard extends StatelessWidget {
               gridDelegate:
                   const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 4,
-                childAspectRatio: 2.1, // stessa proporzione delle categorie
+                childAspectRatio: 5, // proporzione uniforme
                 crossAxisSpacing: 8,
                 mainAxisSpacing: 8,
               ),
@@ -199,7 +199,7 @@ class RoommatesCard extends StatelessWidget {
                 return Container(
                   decoration: BoxDecoration(
                       color: Colors.blue.shade50,
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: BorderRadius.circular(12),
                       border: Border.all(color: Colors.blue.shade200)),
                   child: Padding(
                     padding: const EdgeInsets.all(8),
