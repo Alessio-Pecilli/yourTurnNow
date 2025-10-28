@@ -364,8 +364,12 @@ const SizedBox(height: 16),
   );
 
   if (ok == true) {
-    final amount = double.parse(amountCtrl.text.replaceAll(',', '.'));
-    final note = noteCtrl.text.trim();
+    var amount = double.parse(amountCtrl.text.replaceAll(',', '.'));
+    if (amount > 1000){
+      amount = 1000;
+    }
+    final titolo = noteCtrl.text.trim();
+    final note = titolo.length > 50 ? titolo.substring(0, 50) : titolo;
     final when = selectedDate ?? DateTime.now();
     final updated = tx.copyWith(
       amount: amount,
@@ -704,8 +708,12 @@ const SizedBox(height: 16),
 
   if (ok != true) return;
 
-  final amount = double.parse(amountCtrl.text.replaceAll(',', '.'));
-  final note = noteCtrl.text.trim();
+  var amount = double.parse(amountCtrl.text.replaceAll(',', '.'));
+    if (amount > 1000){
+      amount = 1000;
+    }
+    final titolo = noteCtrl.text.trim();
+    final note = titolo.length > 50 ? titolo.substring(0, 50) : titolo;
   final when = selectedDate ?? DateTime.now();
 
   ref.read(roommatesProvider.notifier).adjustBudgetFor(roommate.id, amount);
