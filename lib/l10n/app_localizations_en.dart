@@ -140,9 +140,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   // Export and tables
   @override
-  String get export_csv_desc => 'Export tables (categories, roommates, status) to CSV.';
+  String get export_csv_desc => 'Export tables to CSV.';
   @override
-  String get export_pdf_desc => 'Generate a paginated PDF with the same tables.';
+  String get export_pdf_desc => 'Export tables to PDF.';
   @override
   String get table_category => 'Category';
   @override

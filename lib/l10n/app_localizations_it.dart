@@ -140,9 +140,9 @@ class AppLocalizationsIt extends AppLocalizations {
 
   // Export and tables
   @override
-  String get export_csv_desc => 'Esporta tabelle (categorie, coinquilini, stato) in CSV.';
+  String get export_csv_desc => 'Esporta tabelle in CSV.';
   @override
-  String get export_pdf_desc => 'Genera un PDF impaginato con le stesse tabelle.';
+  String get export_pdf_desc => 'Esporta tabelle in PDF.';
   @override
   String get table_category => 'Categoria';
   @override
