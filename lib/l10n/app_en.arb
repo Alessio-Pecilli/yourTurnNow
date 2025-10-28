@@ -59,8 +59,8 @@
   "admin_edit_roommate": "Edit Roommate",
   "admin_stats_title": "Admin Statistics",
 
-  "export_csv_desc": "Export tables (categories, roommates, status) to CSV.",
-  "export_pdf_desc": "Generate a paginated PDF with the same tables.",
+    "export_csv_desc": "Export tables to CSV.",
+  "export_pdf_desc": "Export tables to PDF.",
   "table_category": "Category",
   "table_amount_eur": "Amount (EUR)",
   "table_roommate": "Roommate",
