@@ -121,8 +121,10 @@ class TransactionDialogs {
                           textInputAction: TextInputAction.next,
                           keyboardType: const TextInputType.numberWithOptions(decimal: true),
                           inputFormatters: [
-                            FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]')),
-                          ],
+  FilteringTextInputFormatter.allow(RegExp(r'[-0-9.,]')),
+],
+
+
                           decoration: InputDecoration(
                             labelText: AppLocalizations.of(context)!.todo_dialog_cost_label,
                             prefixIcon: Icon(Icons.euro, color: Colors.green.shade700),
@@ -138,7 +140,8 @@ class TransactionDialogs {
                               return AppLocalizations.of(context)!.todo_dialog_cost_required;
                             }
                             final parsed = double.tryParse(v.replaceAll(',', '.'));
-                            if (parsed == null || parsed <= 0) return 'Numero valido';
+                                                        if (parsed == null) return AppLocalizations.of(context)!.error_operation_not_allowed;
+
                             return null;
                           },
                         ),
@@ -146,65 +149,158 @@ class TransactionDialogs {
                       const SizedBox(height: 16),
 
                       // Categorie
-                      Text(
-                        AppLocalizations.of(context)!.todo_dialog_categories,
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.grey.shade800,
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: Colors.grey.shade50,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: Colors.grey.shade300),
-                        ),
-                        child: Wrap(
-                          spacing: 6,
-                          runSpacing: 6,
-                          children: allCategories.map((category) {
-                            final isSelected = selectedCategories.any((c) => c.id == category.id);
-                            final categoryColor = Color(
-                              int.parse(category.color.substring(1), radix: 16) + 0xFF000000,
-                            );
-                            return FilterChip(
-                              label: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(category.icon, size: 16, color: categoryColor),
-                                  const SizedBox(width: 3),
-                                  Text(category.name, style: const TextStyle(fontSize: 12)),
-                                ],
-                              ),
-                              selected: isSelected,
-                              onSelected: (selected) {
-                                setState(() {
-                                  if (selected) {
-                                    selectedCategories.add(category);
-                                  } else {
-                                    selectedCategories.removeWhere((c) => c.id == category.id);
-                                  }
-                                });
-                              },
-                              backgroundColor: Colors.grey.shade50,
-                              selectedColor: Colors.grey.shade200,
-                              checkmarkColor: categoryColor,
-                              side: BorderSide(
-                                color: isSelected ? categoryColor : categoryColor.withOpacity(0.3),
-                                width: isSelected ? 2 : 1,
-                              ),
-                              labelStyle: TextStyle(
-                                color: categoryColor,
-                                fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
-                              ),
-                            );
-                          }).toList(),
-                        ),
-                      ),
-                      const SizedBox(height: 16),
+                      // Categorie e Data affiancate
+Row(
+  crossAxisAlignment: CrossAxisAlignment.start,
+  children: [
+    // Sezione categorie (2/3)
+    Expanded(
+      flex: 2,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            AppLocalizations.of(context)!.todo_dialog_categories,
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: Colors.grey.shade800,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: Colors.grey.shade50,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.grey.shade300),
+            ),
+            child: Wrap(
+              spacing: 6,
+              runSpacing: 6,
+              children: allCategories.map((category) {
+                final isSelected = selectedCategories.any((c) => c.id == category.id);
+                final categoryColor = Color(
+                  int.parse(category.color.substring(1), radix: 16) + 0xFF000000,
+                );
+                return FilterChip(
+                  label: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(category.icon, size: 16, color: categoryColor),
+                      const SizedBox(width: 3),
+                      Text(category.name, style: const TextStyle(fontSize: 12)),
+                    ],
+                  ),
+                  selected: isSelected,
+                  onSelected: (selected) {
+                    setState(() {
+                      if (selected) {
+                        selectedCategories.add(category);
+                      } else {
+                        selectedCategories.removeWhere((c) => c.id == category.id);
+                      }
+                    });
+                  },
+                  backgroundColor: Colors.grey.shade50,
+                  selectedColor: Colors.grey.shade200,
+                  checkmarkColor: categoryColor,
+                  side: BorderSide(
+                    color: isSelected ? categoryColor : categoryColor.withOpacity(0.3),
+                    width: isSelected ? 2 : 1,
+                  ),
+                  labelStyle: TextStyle(
+                    color: categoryColor,
+                    fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                  ),
+                );
+              }).toList(),
+            ),
+          ),
+        ],
+      ),
+    ),
+    const SizedBox(width: 12),
+
+    // Sezione data (1/3)
+    Expanded(
+      flex: 1,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            AppLocalizations.of(context)!.todo_dialog_due_date,
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: Colors.grey.shade800,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Container(
+            decoration: BoxDecoration(
+              color: Colors.grey.shade50,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.grey.shade300),
+            ),
+            child: ListTile(
+              dense: true,
+              contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              leading: Icon(Icons.calendar_today, color: Colors.blue.shade700, size: 20),
+              title: Text(
+                selectedDate == null
+                    ? AppLocalizations.of(context)!.todo_dialog_optional
+                    : DateFormat('dd/MM/yyyy').format(selectedDate!.toLocal()),
+                style: TextStyle(
+                  color: selectedDate == null ? Colors.grey.shade600 : Colors.grey.shade800,
+                  fontWeight: selectedDate == null ? FontWeight.normal : FontWeight.bold,
+                  fontSize: 12,
+                ),
+              ),
+              trailing: selectedDate != null
+                  ? GestureDetector(
+                      onTap: () => setState(() => selectedDate = null),
+                      child: Icon(Icons.clear, color: Colors.grey.shade600, size: 16),
+                    )
+                  : Icon(Icons.arrow_forward_ios, color: Colors.grey.shade400, size: 12),
+              onTap: () async {
+                final picked = await showDatePicker(
+                  context: context,
+                  initialDate: selectedDate ?? DateTime.now(),
+                  firstDate: DateTime(2000),
+                  lastDate: DateTime.now().add(const Duration(days: 365)),
+                  builder: (context, child) {
+  final mq = MediaQuery.of(context);
+  return MediaQuery(
+    data: mq.copyWith(
+      textScaler: TextScaler.linear(1.0), // 👈 forza uno scaling valido
+    ),
+    child: Theme(
+      data: Theme.of(context).copyWith(
+        colorScheme: Theme.of(context).colorScheme.copyWith(
+          primary: Colors.blue.shade700,
+          onPrimary: Colors.white,
+          surface: Colors.white,
+          onSurface: Colors.grey.shade800,
+        ),
+      ),
+      child: child!,
+    ),
+  );
+},
+
+                );
+                if (picked != null) setState(() => selectedDate = picked);
+              },
+            ),
+          ),
+        ],
+      ),
+    ),
+  ],
+),
+const SizedBox(height: 16),
+
 
                       // Nota
                       Container(
@@ -231,67 +327,6 @@ class TransactionDialogs {
                         ),
                       ),
                       const SizedBox(height: 16),
-
-                      // Data
-                      Text(
-                        AppLocalizations.of(context)!.todo_dialog_due_date,
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.grey.shade800,
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      Container(
-                        decoration: BoxDecoration(
-                          color: Colors.grey.shade50,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: Colors.grey.shade300),
-                        ),
-                        child: ListTile(
-                          dense: true,
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                          leading: Icon(Icons.calendar_today, color: Colors.blue.shade700, size: 20),
-                          title: Text(
-                            selectedDate == null
-                                ? AppLocalizations.of(context)!.todo_dialog_optional
-                                : DateFormat('dd/MM/yyyy').format(selectedDate!.toLocal()),
-                            style: TextStyle(
-                              color: selectedDate == null ? Colors.grey.shade600 : Colors.grey.shade800,
-                              fontWeight: selectedDate == null ? FontWeight.normal : FontWeight.bold,
-                              fontSize: 12,
-                            ),
-                          ),
-                          trailing: selectedDate != null
-                              ? GestureDetector(
-                                  onTap: () => setState(() => selectedDate = null),
-                                  child: Icon(Icons.clear, color: Colors.grey.shade600, size: 16),
-                                )
-                              : Icon(Icons.arrow_forward_ios, color: Colors.grey.shade400, size: 12),
-                          onTap: () async {
-                            final picked = await showDatePicker(
-                              context: context,
-                              initialDate: selectedDate ?? DateTime.now(),
-                              firstDate: DateTime(2000),
-                              lastDate: DateTime.now().add(const Duration(days: 365)),
-                              builder: (context, child) {
-                                return Theme(
-                                  data: Theme.of(context).copyWith(
-                                    colorScheme: Theme.of(context).colorScheme.copyWith(
-                                          primary: Colors.blue.shade700,
-                                          onPrimary: Colors.white,
-                                          surface: Colors.white,
-                                          onSurface: Colors.grey.shade800,
-                                        ),
-                                  ),
-                                  child: child!,
-                                );
-                              },
-                            );
-                            if (picked != null) setState(() => selectedDate = picked);
-                          },
-                        ),
-                      ),
                     ],
                   ),
                 ),
@@ -415,8 +450,9 @@ class TransactionDialogs {
                           textInputAction: TextInputAction.next,
                           keyboardType: const TextInputType.numberWithOptions(decimal: true),
                           inputFormatters: [
-                            FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]')),
-                          ],
+  FilteringTextInputFormatter.allow(RegExp(r'[-0-9.,]')),
+],
+
                           decoration: InputDecoration(
                             labelText: AppLocalizations.of(context)!.todo_dialog_cost_label,
                             prefixIcon: Icon(Icons.euro, color: Colors.green.shade700),
@@ -433,7 +469,7 @@ class TransactionDialogs {
                               return AppLocalizations.of(context)!.todo_dialog_cost_required;
                             }
                             final parsed = double.tryParse(v.replaceAll(',', '.'));
-                            if (parsed == null || parsed <= 0) return 'Numero valido';
+                            if (parsed == null) return AppLocalizations.of(context)!.error_operation_not_allowed;
                             return null;
                           },
                         ),
@@ -441,65 +477,167 @@ class TransactionDialogs {
                       const SizedBox(height: 16),
 
                       // Categorie
-                      Text(
-                        AppLocalizations.of(context)!.todo_dialog_categories,
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.grey.shade800,
+                      // Categorie e Data affiancate
+// Categorie e Data affiancate con scroll orizzontale sicuro
+// Categorie e Data affiancate con scroll orizzontale sicuro
+Row(
+  crossAxisAlignment: CrossAxisAlignment.start,
+  children: [
+    Expanded(
+      flex: 2,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            AppLocalizations.of(context)!.todo_dialog_categories,
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: Colors.grey.shade800,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: Colors.grey.shade50,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.grey.shade300),
+            ),
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Wrap(
+                spacing: 6,
+                runSpacing: 6,
+                children: categories.map((category) {
+                  final isSelected = selectedCategories.any((c) => c.id == category.id);
+                  final categoryColor = Color(
+                    int.parse(category.color.substring(1), radix: 16) + 0xFF000000,
+                  );
+                  return FilterChip(
+                    label: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(category.icon, size: 16, color: categoryColor),
+                        const SizedBox(width: 3),
+                        Text(
+                          category.name,
+                          style: const TextStyle(fontSize: 12),
+                          textScaler: TextScaler.noScaling, // 👈 evita errori di scala
                         ),
-                      ),
-                      const SizedBox(height: 6),
-                      Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: Colors.grey.shade50,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: Colors.grey.shade300),
-                        ),
-                        child: Wrap(
-                          spacing: 6,
-                          runSpacing: 6,
-                          children: categories.map((category) {
-                            final isSelected = selectedCategories.any((c) => c.id == category.id);
-                            final categoryColor = Color(
-                              int.parse(category.color.substring(1), radix: 16) + 0xFF000000,
-                            );
-                            return FilterChip(
-                              label: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(category.icon, size: 16, color: categoryColor),
-                                  const SizedBox(width: 3),
-                                  Text(category.name, style: const TextStyle(fontSize: 12)),
-                                ],
-                              ),
-                              selected: isSelected,
-                              onSelected: (selected) {
-                                setState(() {
-                                  if (selected) {
-                                    selectedCategories.add(category);
-                                  } else {
-                                    selectedCategories.removeWhere((c) => c.id == category.id);
-                                  }
-                                });
-                              },
-                              backgroundColor: Colors.grey.shade50,
-                              selectedColor: Colors.grey.shade200,
-                              checkmarkColor: categoryColor,
-                              side: BorderSide(
-                                color: isSelected ? categoryColor : categoryColor.withOpacity(0.3),
-                                width: isSelected ? 2 : 1,
-                              ),
-                              labelStyle: TextStyle(
-                                color: categoryColor,
-                                fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
-                              ),
-                            );
-                          }).toList(),
-                        ),
-                      ),
-                      const SizedBox(height: 16),
+                      ],
+                    ),
+                    selected: isSelected,
+                    onSelected: (selected) {
+                      setState(() {
+                        if (selected) {
+                          selectedCategories.add(category);
+                        } else {
+                          selectedCategories.removeWhere((c) => c.id == category.id);
+                        }
+                      });
+                    },
+                    backgroundColor: Colors.grey.shade50,
+                    selectedColor: Colors.grey.shade200,
+                    checkmarkColor: categoryColor,
+                    side: BorderSide(
+                      color: isSelected ? categoryColor : categoryColor.withOpacity(0.3),
+                      width: isSelected ? 2 : 1,
+                    ),
+                    labelStyle: TextStyle(
+                      color: categoryColor,
+                      fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                    ),
+                  );
+                }).toList(),
+              ),
+            ),
+          ),
+        ],
+      ),
+    ),
+    const SizedBox(width: 12),
+    Expanded(
+      flex: 1,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            AppLocalizations.of(context)!.todo_dialog_due_date,
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: Colors.grey.shade800,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Container(
+            decoration: BoxDecoration(
+              color: Colors.grey.shade50,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.grey.shade300),
+            ),
+            child: ListTile(
+              dense: true,
+              contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              leading: Icon(Icons.calendar_today, color: Colors.blue.shade700, size: 18),
+              title: Text(
+                selectedDate == null
+                    ? AppLocalizations.of(context)!.todo_dialog_optional
+                    : DateFormat('dd/MM').format(selectedDate!.toLocal()),
+                style: TextStyle(
+                  color: selectedDate == null ? Colors.grey.shade600 : Colors.grey.shade800,
+                  fontWeight: selectedDate == null ? FontWeight.normal : FontWeight.bold,
+                  fontSize: 12,
+                ),
+                textScaler: TextScaler.noScaling, // 👈 protegge anche il testo della data
+              ),
+              trailing: selectedDate != null
+                  ? GestureDetector(
+                      onTap: () => setState(() => selectedDate = null),
+                      child: Icon(Icons.clear, color: Colors.grey.shade600, size: 16),
+                    )
+                  : Icon(Icons.arrow_forward_ios, color: Colors.grey.shade400, size: 12),
+              onTap: () async {
+                final picked = await showDatePicker(
+                  context: context,
+                  initialDate: selectedDate ?? DateTime.now(),
+                  firstDate: DateTime.now().subtract(const Duration(days: 365)),
+                  lastDate: DateTime.now().add(const Duration(days: 365)),
+                  builder: (context, child) {
+  final mq = MediaQuery.of(context);
+  return MediaQuery(
+    data: mq.copyWith(
+      textScaler: TextScaler.linear(1.0), 
+    ),
+    child: Theme(
+      data: Theme.of(context).copyWith(
+        colorScheme: Theme.of(context).colorScheme.copyWith(
+          primary: Colors.blue.shade700,
+          onPrimary: Colors.white,
+          surface: Colors.white,
+          onSurface: Colors.grey.shade800,
+        ),
+      ),
+      child: child!,
+    ),
+  );
+},
+
+                );
+                if (picked != null) setState(() => selectedDate = picked);
+              },
+            ),
+          ),
+        ],
+      ),
+    ),
+  ],
+),
+
+
+const SizedBox(height: 16),
+
 
                       // Nota
                       Container(
@@ -527,66 +665,7 @@ class TransactionDialogs {
                       ),
                       const SizedBox(height: 16),
 
-                      // Data
-                      Text(
-                        AppLocalizations.of(context)!.todo_dialog_due_date,
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.grey.shade800,
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      Container(
-                        decoration: BoxDecoration(
-                          color: Colors.grey.shade50,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: Colors.grey.shade300),
-                        ),
-                        child: ListTile(
-                          dense: true,
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                          leading: Icon(Icons.calendar_today, color: Colors.orange.shade600, size: 20),
-                          title: Text(
-                            selectedDate == null
-                                ? AppLocalizations.of(context)!.todo_dialog_optional
-                                : DateFormat('dd/MM').format(selectedDate!.toLocal()),
-                            style: TextStyle(
-                              color: selectedDate == null ? Colors.grey.shade600 : Colors.grey.shade800,
-                              fontWeight: selectedDate == null ? FontWeight.normal : FontWeight.bold,
-                              fontSize: 12,
-                            ),
-                          ),
-                          trailing: selectedDate != null
-                              ? GestureDetector(
-                                  onTap: () => setState(() => selectedDate = null),
-                                  child: Icon(Icons.clear, color: Colors.grey.shade600, size: 16),
-                                )
-                              : Icon(Icons.arrow_forward_ios, color: Colors.grey.shade400, size: 12),
-                          onTap: () async {
-                            final picked = await showDatePicker(
-                              context: context,
-                              initialDate: selectedDate ?? DateTime.now(),
-                              firstDate: DateTime.now().subtract(const Duration(days: 365)),
-                              lastDate: DateTime.now().add(const Duration(days: 365)),
-                              builder: (context, child) {
-                                return Theme(
-                                  data: Theme.of(context).copyWith(
-                                    colorScheme: Theme.of(context).colorScheme.copyWith(
-                                          primary: Colors.blue.shade700,
-                                          onPrimary: Colors.white,
-                                          surface: Colors.white,
-                                          onSurface: Colors.grey.shade800,
-                                        ),
-                                  ),
-                                  child: child!,
-                                );
-                              },
-                            );
-                            if (picked != null) setState(() => selectedDate = picked);
-                          },
-                        ),
-                      ),
+                      
                     ],
                   ),
                 ),

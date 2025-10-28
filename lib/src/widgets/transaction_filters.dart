@@ -144,36 +144,57 @@ class TransactionFilters extends StatelessWidget {
   // 🔸 Filtro per intervallo di date
   // -----------------------
   Widget _buildDateFilter(BuildContext context) {
-    return Flexible(
-      child: OutlinedButton.icon(
-        style: OutlinedButton.styleFrom(
-          minimumSize: const Size(0, 36),
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-          textStyle: const TextStyle(fontSize: 12),
-        ),
-        icon: const Icon(Icons.date_range, size: 16),
-        label: Text(
-          selectedDateRange == null
-              ? 'Date'
-              : '${DateFormat('dd/MM').format(selectedDateRange!.start)} - ${DateFormat('dd/MM').format(selectedDateRange!.end)}',
-          style: const TextStyle(fontSize: 12),
-        ),
-        onPressed: () async {
-          final picked = await showDateRangePicker(
-            context: context,
-            firstDate: DateTime(2020),
-            lastDate: DateTime.now().add(const Duration(days: 365)),
-            initialDateRange: selectedDateRange,
-            builder: (context, child) => Theme(
-              data: ThemeData.light(useMaterial3: true),
-              child: Dialog(backgroundColor: Colors.white, child: child!),
-            ),
-          );
-          if (picked != null) onDateRangeChanged(picked);
-        },
+  return Flexible(
+    child: OutlinedButton.icon(
+      style: OutlinedButton.styleFrom(
+        minimumSize: const Size(0, 36),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+        textStyle: const TextStyle(fontSize: 12),
+        side: BorderSide(color: Colors.blue.shade700, width: 1.5),
+        foregroundColor: Colors.blue.shade700,
       ),
-    );
-  }
+      icon: Icon(Icons.date_range, size: 16, color: Colors.blue.shade700),
+      label: Text(
+        selectedDateRange == null
+            ? 'Date'
+            : '${DateFormat('dd/MM').format(selectedDateRange!.start)} - ${DateFormat('dd/MM').format(selectedDateRange!.end)}',
+        style: TextStyle(fontSize: 12, color: Colors.blue.shade700),
+      ),
+      onPressed: () async {
+  final picked = await showDateRangePicker(
+    context: context,
+    firstDate: DateTime(2020),
+    lastDate: DateTime.now().add(const Duration(days: 365)),
+    initialDateRange: selectedDateRange,
+    builder: (context, child) {
+      final mq = MediaQuery.of(context);
+      return MediaQuery(
+        // Blocca lo scaling del testo per evitare bug text_scaler.dart
+        data: mq.copyWith(textScaler: const TextScaler.linear(1.0)),
+        child: Theme(
+          data: ThemeData(
+            useMaterial3: false, // disattiva completamente modalità “immissione”
+            colorScheme: ColorScheme.light(
+              primary: Colors.blue.shade700,  // intestazione, bottoni OK/Annulla
+              onPrimary: Colors.white,         // testo su intestazione
+              surface: Colors.white,           // background principale
+              onSurface: Colors.grey.shade800, // testo normale
+            ),
+            dialogBackgroundColor: Colors.white,
+          ),
+          child: child!,
+        ),
+      );
+    },
+  );
+
+  if (picked != null) onDateRangeChanged(picked);
+},
+
+    ),
+  );
+}
+
 
   // -----------------------
   // 🔸 Bottone Reset

@@ -84,43 +84,77 @@ void dispose() {
 
   // ðŸ”¹ Filtro per transazioni
   List<MoneyTx> _applyFilters(List<MoneyTx> all) {
+  print('🔵 [DEBUG] INIZIO _applyFilters');
+  print('Totale transazioni in ingresso: ${all.length}');
+
   var out = all;
 
+  // --- FILTRO CATEGORIA ---
   if (_selectedCategory != null) {
+    print('🟡 Filtro categoria attivo: $_selectedCategory');
     out = out.where((t) {
-      // Normalizza il nome della categoria selezionata
       String selectedName;
       if (_selectedCategory is TodoCategory) {
         selectedName = (_selectedCategory as TodoCategory).name.toLowerCase();
       } else {
+        print('⚠️ Categoria selezionata non valida: $_selectedCategory');
         return false;
       }
 
-      // Cerca match nelle categorie della transazione
+      // Cerca match nelle categorie
       final matchExpense = t.category.any(
         (c) => c.name.toLowerCase() == selectedName,
       );
 
-      // Cerca match anche su customCategoryName se presente
+      // Match anche su customCategoryName
       final matchCustom = (t.customCategoryName != null &&
           t.customCategoryName!.toLowerCase() == selectedName);
 
+      if (matchExpense || matchCustom) {
+        print('✅ Transazione ${t.id} (${t.note}) passa il filtro categoria');
+      } else {
+        print('❌ Transazione ${t.id} (${t.note}) esclusa dal filtro categoria');
+      }
+
       return matchExpense || matchCustom;
     }).toList();
+  } else {
+    print('🟢 Nessun filtro categoria attivo');
   }
 
+  // --- FILTRO INTERVALLO DATE ---
   if (_selectedDateRange != null) {
     final r = _selectedDateRange!;
-    out = out
-        .where((t) =>
-            !t.createdAt.isBefore(r.start) &&
-            !t.createdAt.isAfter(r.end))
-        .toList();
+    print('🟠 Filtro date attivo: ${r.start} → ${r.end}');
+    out = out.where((t) {
+      final include = !t.createdAt.isBefore(r.start) && !t.createdAt.isAfter(r.end);
+
+      if (include) {
+        print('✅ TX ${t.id} (${t.note}) data ${t.createdAt} compresa nel range');
+      } else {
+        print('❌ TX ${t.id} (${t.note}) data ${t.createdAt} FUORI RANGE');
+      }
+
+      return include;
+    }).toList();
+  } else {
+    print('🟢 Nessun filtro date attivo');
   }
 
+  // --- ORDINAMENTO ---
   out.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+  print('📅 Ordinamento decrescente completato.');
+
+  // --- RISULTATO FINALE ---
+  print('✅ Totale transazioni in uscita: ${out.length}');
+  for (var t in out) {
+    print('→ TX ${t.id} | ${t.createdAt} | ${t.note} | €${t.amount}');
+  }
+
+  print('🔵 [DEBUG] FINE _applyFilters\n');
   return out;
 }
+
 
 
 
@@ -150,7 +184,7 @@ void dispose() {
 
     final allTxs = ref.watch(userTransactionsProvider(me.id));
     final txs = _applyFilters(allTxs);
-    final visibleTxs = txs.take(_visibleTxCount).toList();
+    final visibleTxs = txs;
     final todoCategories = ref.watch(categoriesProvider);
     final allCategories = [
   ...todoCategories,  
@@ -206,7 +240,7 @@ void dispose() {
     );
 
     _onAddTransaction(context, currentMe).then((_) {
-      // ðŸ‘‡ dopo aver chiuso il dialogo, ridai focus alla pagina
+      //  dopo aver chiuso il dialogo, ridai focus alla pagina
       _keyboardFocusNode.requestFocus();
     });
   }
