@@ -60,7 +60,7 @@ class CategoriesCard extends StatelessWidget {
               gridDelegate:
                   const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 4,
-                childAspectRatio: 5, // proporzione uniforme
+                childAspectRatio: 3.5, // proporzione uniforme
                 crossAxisSpacing: 8,
                 mainAxisSpacing: 8,
               ),
@@ -189,7 +189,7 @@ class RoommatesCard extends StatelessWidget {
               gridDelegate:
                   const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 4,
-                childAspectRatio: 5, // proporzione uniforme
+                childAspectRatio: 3.5, // proporzione uniforme
                 crossAxisSpacing: 8,
                 mainAxisSpacing: 8,
               ),

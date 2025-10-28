@@ -299,7 +299,7 @@ void showTodoAddDialog(BuildContext context, WidgetRef outerRef, {TodoItem? pres
                           const SizedBox(height: 10),
 
                           // Note compatte
-                          Container(
+                          /*Container(
                             decoration: BoxDecoration(
                               color: Colors.grey.shade50,
                               borderRadius: BorderRadius.circular(12),
@@ -323,7 +323,7 @@ void showTodoAddDialog(BuildContext context, WidgetRef outerRef, {TodoItem? pres
                             ),
                           ),
                           const SizedBox(height: 16),
-
+*/
                           // Assegna a - griglia compatta
                           Text(
                             AppLocalizations.of(context)!.todo_dialog_assign_to,

@@ -56,56 +56,256 @@ class TransactionDialogs {
 
   /// Dialogo per modificare una transazione esistente
   static Future<void> showEditDialog(
-    BuildContext context,
-    WidgetRef ref,
-    MoneyTx tx,
-  ) async {
-    final amountCtrl = TextEditingController(text: tx.amount.toString());
-    final noteCtrl = TextEditingController(text: tx.note);
-    final formKey = GlobalKey<FormState>();
+  BuildContext context,
+  WidgetRef ref,
+  MoneyTx tx,
+) async {
+  final formKey = GlobalKey<FormState>();
+  final amountCtrl = TextEditingController(text: tx.amount.toStringAsFixed(2));
+  final noteCtrl = TextEditingController(text: tx.note);
+  final allCategories = ref.read(categoriesProvider);
 
-    List<TodoCategory> selectedCategories = [...tx.category];
-    DateTime? selectedDate = tx.createdAt;
+  List<TodoCategory> selectedCategories = [...tx.category];
+  DateTime? selectedDate = tx.createdAt;
 
-    final allCategories = ref.read(categoriesProvider);
-
-    final ok = await showDialog<bool>(
-      context: context,
-      builder: (_) => Theme(
-        data: ThemeData.light(useMaterial3: true),
-        child: StatefulBuilder(
-          builder: (context, setState) => AlertDialog(
-            title: Text(AppLocalizations.of(context)!.dialog_edit_transaction_title),
+  final ok = await showDialog<bool>(
+    context: context,
+    builder: (dialogCtx) {
+      return StatefulBuilder(
+        builder: (context, setState) {
+          return AlertDialog(
             backgroundColor: Colors.white,
             surfaceTintColor: Colors.white,
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-            content: Form(
-              key: formKey,
-              child: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildAmountField(amountCtrl, context),
-                    const SizedBox(height: 16),
-                    _buildMultiCategorySelector(context, allCategories, selectedCategories,
-                        (newList) {
-                      setState(() => selectedCategories = newList);
-                    }),
-                    const SizedBox(height: 16),
-                    _buildNoteField(noteCtrl, context),
-                    const SizedBox(height: 16),
-                    _buildDateSelector(context, selectedDate, (date) {
-                      setState(() => selectedDate = date);
-                    }),
-                  ],
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+            elevation: 12,
+            contentPadding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
+            title: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(Icons.edit, color: Colors.blue.shade700, size: 24),
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  AppLocalizations.of(context)!.dialog_edit_transaction_title,
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.grey.shade800,
+                  ),
+                ),
+              ],
+            ),
+            content: SizedBox(
+              width: MediaQuery.of(context).size.width * 0.9,
+              child: Form(
+                key: formKey,
+                autovalidateMode: AutovalidateMode.onUserInteraction,
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Importo
+                      Container(
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade50,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: Colors.grey.shade300),
+                        ),
+                        child: TextFormField(
+                          controller: amountCtrl,
+                          textInputAction: TextInputAction.next,
+                          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                          inputFormatters: [
+                            FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]')),
+                          ],
+                          decoration: InputDecoration(
+                            labelText: AppLocalizations.of(context)!.todo_dialog_cost_label,
+                            prefixIcon: Icon(Icons.euro, color: Colors.green.shade700),
+                            border: InputBorder.none,
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                            labelStyle: TextStyle(color: Colors.grey.shade700),
+                            filled: true,
+                            fillColor: Colors.grey.shade50,
+                          ),
+                          style: TextStyle(color: Colors.grey.shade800),
+                          validator: (v) {
+                            if (v == null || v.trim().isEmpty) {
+                              return AppLocalizations.of(context)!.todo_dialog_cost_required;
+                            }
+                            final parsed = double.tryParse(v.replaceAll(',', '.'));
+                            if (parsed == null || parsed <= 0) return 'Numero valido';
+                            return null;
+                          },
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+
+                      // Categorie
+                      Text(
+                        AppLocalizations.of(context)!.todo_dialog_categories,
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.grey.shade800,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade50,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: Colors.grey.shade300),
+                        ),
+                        child: Wrap(
+                          spacing: 6,
+                          runSpacing: 6,
+                          children: allCategories.map((category) {
+                            final isSelected = selectedCategories.any((c) => c.id == category.id);
+                            final categoryColor = Color(
+                              int.parse(category.color.substring(1), radix: 16) + 0xFF000000,
+                            );
+                            return FilterChip(
+                              label: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(category.icon, size: 16, color: categoryColor),
+                                  const SizedBox(width: 3),
+                                  Text(category.name, style: const TextStyle(fontSize: 12)),
+                                ],
+                              ),
+                              selected: isSelected,
+                              onSelected: (selected) {
+                                setState(() {
+                                  if (selected) {
+                                    selectedCategories.add(category);
+                                  } else {
+                                    selectedCategories.removeWhere((c) => c.id == category.id);
+                                  }
+                                });
+                              },
+                              backgroundColor: Colors.grey.shade50,
+                              selectedColor: Colors.grey.shade200,
+                              checkmarkColor: categoryColor,
+                              side: BorderSide(
+                                color: isSelected ? categoryColor : categoryColor.withOpacity(0.3),
+                                width: isSelected ? 2 : 1,
+                              ),
+                              labelStyle: TextStyle(
+                                color: categoryColor,
+                                fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+
+                      // Nota
+                      Container(
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade50,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: Colors.grey.shade300),
+                        ),
+                        child: TextFormField(
+                          controller: noteCtrl,
+                          textInputAction: TextInputAction.next,
+                          maxLines: 2,
+                          decoration: InputDecoration(
+                            labelText: AppLocalizations.of(context)!.todo_dialog_notes_label,
+                            prefixIcon: Icon(Icons.notes, color: Colors.blue.shade700),
+                            border: InputBorder.none,
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                            hintText: AppLocalizations.of(context)!.todo_dialog_notes_hint,
+                            labelStyle: TextStyle(color: Colors.grey.shade700),
+                            filled: true,
+                            fillColor: Colors.grey.shade50,
+                          ),
+                          style: TextStyle(color: Colors.grey.shade800),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+
+                      // Data
+                      Text(
+                        AppLocalizations.of(context)!.todo_dialog_due_date,
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.grey.shade800,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Container(
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade50,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: Colors.grey.shade300),
+                        ),
+                        child: ListTile(
+                          dense: true,
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          leading: Icon(Icons.calendar_today, color: Colors.blue.shade700, size: 20),
+                          title: Text(
+                            selectedDate == null
+                                ? AppLocalizations.of(context)!.todo_dialog_optional
+                                : DateFormat('dd/MM/yyyy').format(selectedDate!.toLocal()),
+                            style: TextStyle(
+                              color: selectedDate == null ? Colors.grey.shade600 : Colors.grey.shade800,
+                              fontWeight: selectedDate == null ? FontWeight.normal : FontWeight.bold,
+                              fontSize: 12,
+                            ),
+                          ),
+                          trailing: selectedDate != null
+                              ? GestureDetector(
+                                  onTap: () => setState(() => selectedDate = null),
+                                  child: Icon(Icons.clear, color: Colors.grey.shade600, size: 16),
+                                )
+                              : Icon(Icons.arrow_forward_ios, color: Colors.grey.shade400, size: 12),
+                          onTap: () async {
+                            final picked = await showDatePicker(
+                              context: context,
+                              initialDate: selectedDate ?? DateTime.now(),
+                              firstDate: DateTime(2000),
+                              lastDate: DateTime.now().add(const Duration(days: 365)),
+                              builder: (context, child) {
+                                return Theme(
+                                  data: Theme.of(context).copyWith(
+                                    colorScheme: Theme.of(context).colorScheme.copyWith(
+                                          primary: Colors.blue.shade700,
+                                          onPrimary: Colors.white,
+                                          surface: Colors.white,
+                                          onSurface: Colors.grey.shade800,
+                                        ),
+                                  ),
+                                  child: child!,
+                                );
+                              },
+                            );
+                            if (picked != null) setState(() => selectedDate = picked);
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context, false),
+                style: TextButton.styleFrom(
+                  foregroundColor: Colors.blue.shade700,
+                  textStyle: const TextStyle(fontWeight: FontWeight.w600),
+                  padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
                 child: Text(AppLocalizations.of(context)!.common_cancel),
               ),
               FilledButton(
@@ -113,115 +313,332 @@ class TransactionDialogs {
                   if (!(formKey.currentState?.validate() ?? false)) return;
                   Navigator.pop(context, true);
                 },
-                child: Text(AppLocalizations.of(context)!.common_save),
+                style: FilledButton.styleFrom(
+                  backgroundColor: Colors.blue.shade700,
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  textStyle: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+                child: Text(AppLocalizations.of(context)!.common_save, style: const TextStyle(color: Colors.white)),
               ),
             ],
-          ),
-        ),
-      ),
-    );
-
-    if (ok == true) {
-      final amount = double.parse(amountCtrl.text.replaceAll(',', '.'));
-      final note = noteCtrl.text.trim();
-      final when = selectedDate ?? DateTime.now();
-      final updated = tx.copyWith(
-        amount: amount,
-        note: note,
-        createdAt: when,
-        category: selectedCategories,
+          );
+        },
       );
-      ref.read(transactionsProvider.notifier).updateTx(updated);
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(AppLocalizations.of(context)!.snackbar_transaction_updated)),
-        );
-      }
-    }
-  }
+    },
+  );
 
-  /// Dialogo per aggiungere una nuova transazione
-  static Future<void> showAddDialog(
-    BuildContext context,
-    WidgetRef ref,
-    Roommate roommate,
-  ) async {
-    final categories = ref.read(categoriesProvider);
-    final amountCtrl = TextEditingController();
-    final noteCtrl = TextEditingController();
-    final formKey = GlobalKey<FormState>();
-
-    List<TodoCategory> selectedCategories = [];
-    DateTime? selectedDate;
-
-    final ok = await showDialog<bool>(
-      context: context,
-      builder: (_) => Theme(
-        data: ThemeData.light(useMaterial3: true),
-        child: StatefulBuilder(
-          builder: (context, setState) => AlertDialog(
-            title: Text(AppLocalizations.of(context)!.dialog_new_transaction_title),
-            backgroundColor: Colors.white,
-            surfaceTintColor: Colors.white,
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-            content: Form(
-              key: formKey,
-              child: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildAmountField(amountCtrl, context),
-                    const SizedBox(height: 16),
-                    _buildMultiCategorySelector(context,categories, selectedCategories,
-                        (newList) {
-                      setState(() => selectedCategories = newList);
-                    }),
-                    const SizedBox(height: 16),
-                    _buildNoteField(noteCtrl, context),
-                    const SizedBox(height: 16),
-                    _buildDateSelector(context, selectedDate, (date) {
-                      setState(() => selectedDate = date);
-                    }),
-                  ],
-                ),
-              ),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context, false),
-                child: Text(AppLocalizations.of(context)!.common_cancel),
-              ),
-              FilledButton(
-                onPressed: () {
-                  if (!(formKey.currentState?.validate() ?? false)) return;
-                  Navigator.pop(context, true);
-                },
-                child: Text(AppLocalizations.of(context)!.common_add),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-
-    if (ok != true) return;
-
+  if (ok == true) {
     final amount = double.parse(amountCtrl.text.replaceAll(',', '.'));
     final note = noteCtrl.text.trim();
     final when = selectedDate ?? DateTime.now();
-
-    // Aggiorna budget e aggiungi transazione
-    ref.read(roommatesProvider.notifier).adjustBudgetFor(roommate.id, amount);
-    ref.read(transactionsProvider.notifier).addTx(
-      roommateId: roommate.id,
+    final updated = tx.copyWith(
       amount: amount,
       note: note,
+      createdAt: when,
       category: selectedCategories,
-      when: when,
     );
+    ref.read(transactionsProvider.notifier).updateTx(updated);
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(AppLocalizations.of(context)!.snackbar_transaction_updated)),
+      );
+    }
   }
+}
+
+
+  /// Dialogo per aggiungere una nuova transazione
+  static Future<void> showAddDialog(
+  BuildContext context,
+  WidgetRef ref,
+  Roommate roommate,
+) async {
+  final formKey = GlobalKey<FormState>();
+  final amountCtrl = TextEditingController();
+  final noteCtrl = TextEditingController();
+  final categories = ref.read(categoriesProvider);
+
+  List<TodoCategory> selectedCategories = [];
+  DateTime? selectedDate;
+
+  final ok = await showDialog<bool>(
+    context: context,
+    builder: (dialogCtx) {
+      return StatefulBuilder(
+        builder: (context, setState) {
+          return AlertDialog(
+            backgroundColor: Colors.white,
+            surfaceTintColor: Colors.white,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+            elevation: 12,
+            contentPadding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
+            title: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.green.shade100,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(Icons.attach_money, color: Colors.green.shade700, size: 24),
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  AppLocalizations.of(context)!.dialog_new_transaction_title,
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.grey.shade800,
+                  ),
+                ),
+              ],
+            ),
+            content: SizedBox(
+              width: MediaQuery.of(context).size.width * 0.9,
+              child: Form(
+                key: formKey,
+                autovalidateMode: AutovalidateMode.onUserInteraction,
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Importo
+                      Container(
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade50,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: Colors.grey.shade300),
+                        ),
+                        child: TextFormField(
+                          controller: amountCtrl,
+                          textInputAction: TextInputAction.next,
+                          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                          inputFormatters: [
+                            FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]')),
+                          ],
+                          decoration: InputDecoration(
+                            labelText: AppLocalizations.of(context)!.todo_dialog_cost_label,
+                            prefixIcon: Icon(Icons.euro, color: Colors.green.shade700),
+                            border: InputBorder.none,
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                            hintText: '12.50',
+                            labelStyle: TextStyle(color: Colors.grey.shade700),
+                            filled: true,
+                            fillColor: Colors.grey.shade50,
+                          ),
+                          style: TextStyle(color: Colors.grey.shade800),
+                          validator: (v) {
+                            if (v == null || v.trim().isEmpty) {
+                              return AppLocalizations.of(context)!.todo_dialog_cost_required;
+                            }
+                            final parsed = double.tryParse(v.replaceAll(',', '.'));
+                            if (parsed == null || parsed <= 0) return 'Numero valido';
+                            return null;
+                          },
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+
+                      // Categorie
+                      Text(
+                        AppLocalizations.of(context)!.todo_dialog_categories,
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.grey.shade800,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade50,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: Colors.grey.shade300),
+                        ),
+                        child: Wrap(
+                          spacing: 6,
+                          runSpacing: 6,
+                          children: categories.map((category) {
+                            final isSelected = selectedCategories.any((c) => c.id == category.id);
+                            final categoryColor = Color(
+                              int.parse(category.color.substring(1), radix: 16) + 0xFF000000,
+                            );
+                            return FilterChip(
+                              label: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(category.icon, size: 16, color: categoryColor),
+                                  const SizedBox(width: 3),
+                                  Text(category.name, style: const TextStyle(fontSize: 12)),
+                                ],
+                              ),
+                              selected: isSelected,
+                              onSelected: (selected) {
+                                setState(() {
+                                  if (selected) {
+                                    selectedCategories.add(category);
+                                  } else {
+                                    selectedCategories.removeWhere((c) => c.id == category.id);
+                                  }
+                                });
+                              },
+                              backgroundColor: Colors.grey.shade50,
+                              selectedColor: Colors.grey.shade200,
+                              checkmarkColor: categoryColor,
+                              side: BorderSide(
+                                color: isSelected ? categoryColor : categoryColor.withOpacity(0.3),
+                                width: isSelected ? 2 : 1,
+                              ),
+                              labelStyle: TextStyle(
+                                color: categoryColor,
+                                fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+
+                      // Nota
+                      Container(
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade50,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: Colors.grey.shade300),
+                        ),
+                        child: TextFormField(
+                          controller: noteCtrl,
+                          textInputAction: TextInputAction.next,
+                          maxLines: 2,
+                          decoration: InputDecoration(
+                            labelText: AppLocalizations.of(context)!.todo_dialog_notes_label,
+                            prefixIcon: Icon(Icons.notes, color: Colors.blue.shade700),
+                            border: InputBorder.none,
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                            hintText: AppLocalizations.of(context)!.todo_dialog_notes_hint,
+                            labelStyle: TextStyle(color: Colors.grey.shade700),
+                            filled: true,
+                            fillColor: Colors.grey.shade50,
+                          ),
+                          style: TextStyle(color: Colors.grey.shade800),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+
+                      // Data
+                      Text(
+                        AppLocalizations.of(context)!.todo_dialog_due_date,
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.grey.shade800,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Container(
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade50,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: Colors.grey.shade300),
+                        ),
+                        child: ListTile(
+                          dense: true,
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          leading: Icon(Icons.calendar_today, color: Colors.orange.shade600, size: 20),
+                          title: Text(
+                            selectedDate == null
+                                ? AppLocalizations.of(context)!.todo_dialog_optional
+                                : DateFormat('dd/MM').format(selectedDate!.toLocal()),
+                            style: TextStyle(
+                              color: selectedDate == null ? Colors.grey.shade600 : Colors.grey.shade800,
+                              fontWeight: selectedDate == null ? FontWeight.normal : FontWeight.bold,
+                              fontSize: 12,
+                            ),
+                          ),
+                          trailing: selectedDate != null
+                              ? GestureDetector(
+                                  onTap: () => setState(() => selectedDate = null),
+                                  child: Icon(Icons.clear, color: Colors.grey.shade600, size: 16),
+                                )
+                              : Icon(Icons.arrow_forward_ios, color: Colors.grey.shade400, size: 12),
+                          onTap: () async {
+                            final picked = await showDatePicker(
+                              context: context,
+                              initialDate: selectedDate ?? DateTime.now(),
+                              firstDate: DateTime.now().subtract(const Duration(days: 365)),
+                              lastDate: DateTime.now().add(const Duration(days: 365)),
+                              builder: (context, child) {
+                                return Theme(
+                                  data: Theme.of(context).copyWith(
+                                    colorScheme: Theme.of(context).colorScheme.copyWith(
+                                          primary: Colors.blue.shade700,
+                                          onPrimary: Colors.white,
+                                          surface: Colors.white,
+                                          onSurface: Colors.grey.shade800,
+                                        ),
+                                  ),
+                                  child: child!,
+                                );
+                              },
+                            );
+                            if (picked != null) setState(() => selectedDate = picked);
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                style: TextButton.styleFrom(
+                  foregroundColor: Colors.blue.shade700,
+                  textStyle: const TextStyle(fontWeight: FontWeight.w600),
+                  padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+                child: Text(AppLocalizations.of(context)!.common_cancel),
+              ),
+              FilledButton(
+                onPressed: () {
+                  if (!(formKey.currentState?.validate() ?? false)) return;
+                  Navigator.pop(context, true);
+                },
+                style: FilledButton.styleFrom(
+                  backgroundColor: Colors.blue.shade700,
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  textStyle: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+                child: Text(AppLocalizations.of(context)!.common_add, style: const TextStyle(color: Colors.white)),
+              ),
+            ],
+          );
+        },
+      );
+    },
+  );
+
+  if (ok != true) return;
+
+  final amount = double.parse(amountCtrl.text.replaceAll(',', '.'));
+  final note = noteCtrl.text.trim();
+  final when = selectedDate ?? DateTime.now();
+
+  ref.read(roommatesProvider.notifier).adjustBudgetFor(roommate.id, amount);
+  ref.read(transactionsProvider.notifier).addTx(
+    roommateId: roommate.id,
+    amount: amount,
+    note: note,
+    category: selectedCategories,
+    when: when,
+  );
+}
+
 
   // --- CAMPI ---
 
