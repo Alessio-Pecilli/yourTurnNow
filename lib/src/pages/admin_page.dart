@@ -926,7 +926,8 @@ Widget _buildActionButton(
                     const SizedBox(width: 8),
                     FilledButton(
                       onPressed: () {
-                        final name = _categoryNameController.text.trim();
+                        var name = _categoryNameController.text.trim();
+                        name = name.length > 20 ? name.substring(0, 20) : name;
                         if (name.isEmpty || selectedIconKey == null) {
                           _showErrorDialog(AppLocalizations.of(context)!.error_operation_not_allowed, AppLocalizations.of(context)!.error_name_icon_required);
                           return;
@@ -988,7 +989,8 @@ Widget _buildAddRoommateForm({
       padding: const EdgeInsets.fromLTRB(16, 18, 16, 10),
       child: StatefulBuilder(
         builder: (context, setInnerState) {
-          final name = _roommateController.text.trim();
+          var name = _roommateController.text,
+          nameLimitato = name.length > 20 ? name.substring(0, 20) : name;
           final canSubmit = name.isNotEmpty;
           
           final avatarBg = _pastelFor(name.isEmpty ? 'A' : name, cs);
@@ -1231,10 +1233,12 @@ String _initialsOf(String name) {
   void _addRoommate() {
     if (_roommateController.text.trim().isNotEmpty) {
       // Use provider to add new roommate with random avatar
+      var name = _roommateController.text,
+          nameLimitato = name.length > 20 ? name.substring(0, 20) : name;
       ref.read(roommatesProvider.notifier).ensure(
         DateTime.now().toString(),
-        name: _roommateController.text.trim(),
-        photoUrl: 'https://api.dicebear.com/7.x/adventurer/png?seed=${_roommateController.text.trim()}&backgroundColor=ffd5dc,b6e3f4,ffdfbf&scale=80',
+        name: name,
+        photoUrl: 'https://api.dicebear.com/7.x/adventurer/png?seed=${name}&backgroundColor=ffd5dc,b6e3f4,ffdfbf&scale=80',
       );
       _roommateController.clear();
       HapticFeedback.lightImpact();
