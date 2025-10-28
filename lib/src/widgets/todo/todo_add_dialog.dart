@@ -462,11 +462,16 @@ void showTodoAddDialog(BuildContext context, WidgetRef outerRef, {TodoItem? pres
                     onPressed: () {
                       
 
-                      final cost = double.parse(costCtrl.text.replaceAll(',', '.'));
+                      var cost = double.parse(costCtrl.text.replaceAll(',', '.'));
+                      if (cost > 1000) {
+                        cost = 1000;
+                      }
+                      final titolo = titleCtrl.text.trim();
+                      final titoloLimitato = titolo.length > 50 ? titolo.substring(0, 50) : titolo;
 
                       if (preset == null) {
                         outerRef.read(todosProvider.notifier).add(
-                              title: titleCtrl.text.trim(),
+                              title: titoloLimitato,
                               notes: notesCtrl.text.trim().isEmpty ? null : notesCtrl.text.trim(),
                               cost: cost,
                               creatorId:  ref.watch(userProvider)!.id,
