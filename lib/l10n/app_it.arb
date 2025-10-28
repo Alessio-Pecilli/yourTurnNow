@@ -59,8 +59,9 @@
   "admin_edit_roommate": "Modifica Coinquilino",
   "admin_stats_title": "Statistiche Admin",
 
-  "export_csv_desc": "Esporta tabelle (categorie, coinquilini, stato) in CSV.",
-  "export_pdf_desc": "Genera un PDF impaginato con le stesse tabelle.",
+   "export_csv_desc": "Esporta tabelle in CSV.",
+  "export_pdf_desc": "Esporta tabelle in PDF.",
+  
   "table_category": "Categoria",
   "table_amount_eur": "Importo (EUR)",
   "table_roommate": "Coinquilino",
