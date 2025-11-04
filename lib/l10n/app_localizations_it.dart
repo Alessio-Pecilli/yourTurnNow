@@ -222,7 +222,7 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get csv_generated_on => 'Generato il: {timestamp}';
   @override
-  String get pdf_todo_status_title => 'Stato dei To‑Do';
+  String get pdf_todo_status_title => 'Stato dei To-Do';
   @override
   String get admin_chart_todo_done => 'Todo Completati';
   @override
