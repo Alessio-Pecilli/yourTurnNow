@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/intl.dart';
+import 'package:your_turn/l10n/app_localizations.dart';
 import 'package:your_turn/src/models/money_tx.dart';
 import 'package:your_turn/src/models/todo_category.dart';
 import 'package:your_turn/src/widgets/transaction_tile_card.dart';
@@ -18,7 +19,8 @@ void main() {
 
     await tester.pumpWidget(
       MaterialApp(
-        localizationsDelegates: const [],
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
         home: Scaffold(
           body: TransactionTileCard(
             tx: tx,
