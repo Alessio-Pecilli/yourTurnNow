@@ -67,9 +67,11 @@ jobs:
       - name: Run tests
         run: |
           if [ -d "test" ] && [ "$(ls -A test)" ]; then
+            echo "Eseguo i test..."
             flutter test --no-pub --coverage
           else
-          
+            echo "Nessun test trovato, salto questa fase."
+          fi
 
   build:
     name: Build Flutter Web
