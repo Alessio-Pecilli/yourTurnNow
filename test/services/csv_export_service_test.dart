@@ -1,100 +1,66 @@
-import 'package:flutter/foundation.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:your_turn/src/models/money_tx.dart';
 import 'package:your_turn/src/models/todo_category.dart';
+import 'package:your_turn/src/services/csv_export_service.dart';
 
-@immutable
-class MoneyTx {
-  final String id;
-  final String roommateId;
-  final double amount;
-  final String note;
-  final DateTime createdAt;
-  final List<TodoCategory> category;
-
-  const MoneyTx({
-    required this.id,
-    required this.roommateId,
-    required this.amount,
-    required this.note,
-    required this.createdAt,
-    required this.category,
-  });
-
-  MoneyTx copyWith({
-    String? id,
-    String? roommateId,
-    double? amount,
-    String? note,
-    DateTime? createdAt,
-    List<TodoCategory>? category,
-  }) {
-    return MoneyTx(
-      id: id ?? this.id,
-      roommateId: roommateId ?? this.roommateId,
-      amount: amount ?? this.amount,
-      note: note ?? this.note,
-      createdAt: createdAt ?? this.createdAt,
-      category: category ?? List.from(this.category),
-    );
-  }
-
-  Map<String, dynamic> toJson() => {
-        'id': id,
-        'roommateId': roommateId,
-        'amount': amount,
-        'note': note,
-        'createdAt': createdAt.toIso8601String(),
-        'category': category.map((c) => c.id).toList(),
-      };
-
-  factory MoneyTx.fromJson(Map<String, dynamic> json) {
-    final rawCategory = json['category'];
-    List<TodoCategory> parsedCategories = [];
-
-    if (rawCategory is List) {
-      parsedCategories = rawCategory.map((id) {
-        try {
-          return stockCategories.firstWhere((c) => c.id == id);
-        } catch (_) {
-          return stockCategories.firstWhere((c) => c.id == 'varie');
-        }
-      }).toList();
-    } else if (rawCategory is String) {
-      // compatibilità con vecchi dati (singola categoria)
-      try {
-        parsedCategories = [
-          stockCategories.firstWhere((c) => c.id == rawCategory)
-        ];
-      } catch (_) {
-        parsedCategories = [
-          stockCategories.firstWhere((c) => c.id == 'varie')
-        ];
-      }
-    } else {
-      parsedCategories = [
-        stockCategories.firstWhere((c) => c.id == 'varie')
+void main() {
+  group('CsvExportService basic tests', () {
+    test('calculateStatistics should compute correct totals', () {
+      final transactions = [
+        MoneyTx(
+          id: '1',
+          roommateId: 'r1',
+          amount: 100,
+          note: 'entrata',
+          createdAt: DateTime(2024, 5, 1),
+          category: [stockCategories.first],
+        ),
+        MoneyTx(
+          id: '2',
+          roommateId: 'r1',
+          amount: -40,
+          note: 'uscita',
+          createdAt: DateTime(2024, 5, 2),
+          category: [stockCategories.first],
+        ),
       ];
-    }
 
-    return MoneyTx(
-      id: json['id'] as String,
-      roommateId: json['roommateId'] as String,
-      amount: (json['amount'] as num).toDouble(),
-      note: json['note'] as String,
-      createdAt: DateTime.parse(json['createdAt']),
-      category: parsedCategories,
-    );
-  }
+      final stats = CsvExportService.calculateStatistics(transactions);
+      expect(stats['totalIncome'], 100);
+      expect(stats['totalExpenses'], 40);
+      expect(stats['balance'], 60);
+      expect(stats['transactionCount'], 2);
+    });
 
-  @override
-  String toString() {
-    final cats = category.map((c) => c.name).join(', ');
-    return 'MoneyTx(id: $id, roommateId: $roommateId, amount: $amount, '
-        'note: $note, createdAt: $createdAt, category: [$cats])';
-  }
+    test('filterByDateRange should include transactions within range', () {
+      final now = DateTime.now();
+      final transactions = [
+        MoneyTx(
+          id: '1',
+          roommateId: 'r1',
+          amount: 10,
+          note: 'in range',
+          createdAt: now,
+          category: [stockCategories.first],
+        ),
+        MoneyTx(
+          id: '2',
+          roommateId: 'r1',
+          amount: 5,
+          note: 'out of range',
+          createdAt: now.subtract(const Duration(days: 10)),
+          category: [stockCategories.first],
+        ),
+      ];
 
-  /// Categoria principale (prima della lista)
-  TodoCategory get mainCategory =>
-      category.isNotEmpty
-          ? category.first
-          : stockCategories.firstWhere((c) => c.id == 'varie');
+      final range = DateTimeRange(
+        start: now.subtract(const Duration(days: 1)),
+        end: now.add(const Duration(days: 1)),
+      );
+
+      final filtered = CsvExportService.filterByDateRange(transactions, range);
+      expect(filtered.length, 1);
+      expect(filtered.first.note, 'in range');
+    });
+  });
 }
