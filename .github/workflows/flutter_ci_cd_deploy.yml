@@ -64,12 +64,11 @@ jobs:
           echo "API_KEY=dummy" > .env
           echo "BASE_URL=dummy" >> .env
 
-      - name: Run tests (skip if none)
+      - name: Run tests
         run: |
           if [ -d "test" ] && [ "$(ls -A test)" ]; then
             flutter test --no-pub --coverage
           else
-            echo "⚠️ Nessun test trovato, skip."
           fi
 
   build:
