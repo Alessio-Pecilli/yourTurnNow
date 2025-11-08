@@ -69,7 +69,7 @@ jobs:
           if [ -d "test" ] && [ "$(ls -A test)" ]; then
             flutter test --no-pub --coverage
           else
-          fi
+          
 
   build:
     name: Build Flutter Web
